@@ -13,5 +13,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+Route::get('/admin', function () {
+    return 'anda adalah Sales Lapangan';
+})->middleware(['auth', 'role:Sales Lapangan']);
+
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
