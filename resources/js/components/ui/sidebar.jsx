@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from "@/components/ui/tooltip";
+import useSidebarStore from '@/store/sidebarStore';
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -33,28 +34,26 @@ function useSidebar() {
 function SidebarProvider({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }) {
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
+    const { isOpen, setIsOpen, toggleSidebar: toggleSidebarStore } = useSidebarStore();
 
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen);
-    const open = openProp ?? _open;
+    // Menggunakan state dari Zustand
+    const open = openProp ?? isOpen;
     const setOpen = React.useCallback((value) => {
         const openState = typeof value === "function" ? value(open) : value;
         if (setOpenProp) {
             setOpenProp(openState);
-        }
-        else {
-            _setOpen(openState);
+        } else {
+            setIsOpen(openState); // Memperbarui state di Zustand
         }
 
         // This sets the cookie to keep the sidebar state.
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
-    }, [setOpenProp, open]);
+    }, [setOpenProp, setIsOpen, open]);
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-        return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-    }, [isMobile, setOpen, setOpenMobile]);
+        return isMobile ? setOpenMobile((open) => !open) : toggleSidebarStore();
+    }, [isMobile, setOpen, setOpenMobile, toggleSidebarStore]);
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
