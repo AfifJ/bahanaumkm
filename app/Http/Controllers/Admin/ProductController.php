@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Storage;
 
@@ -16,8 +18,9 @@ class ProductController extends Controller
     {
         $this->authorize('viewAny', Product::class);
 
-        $products = Product::latest()->get();
-        return Inertia::render('products/index', [
+        $products = Product::latest()->paginate(10);
+        // dd($products);
+        return Inertia::render('admin/products/index', [
             'products' => $products,
             'can' => [
                 'create' => auth()->user()->can('create', Product::class),
@@ -33,7 +36,7 @@ class ProductController extends Controller
     public function create()
     {
         $this->authorize('create', Product::class);
-        return Inertia::render('products/create');
+        return Inertia::render('admin/products/create');
     }
 
     /**
@@ -64,7 +67,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $this->authorize('view', $product);
-        return Inertia::render('products/show', compact('product'));
+        return Inertia::render('admin/products/show', compact('product'));
     }
 
     /**
@@ -73,7 +76,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $this->authorize('update', $product);
-        return Inertia::render('products/edit', compact('product'));
+        return Inertia::render('admin/products/edit', compact('product'));
     }
 
     /**
@@ -102,7 +105,7 @@ class ProductController extends Controller
         }
 
         $product->update($data);
-        
+
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
     }

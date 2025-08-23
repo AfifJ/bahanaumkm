@@ -1,28 +1,29 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link } from '@inertiajs/react';
 import { PlusIcon } from 'lucide-react';
 
 export default function Index({ products, can }) {
+    const test = JSON.stringify(products, null, 2);
     return (
-        <AppLayout
+        <AdminLayout
             title="Products"
             breadcrumbs={[
                 {
                     title: 'Products',
-                    href: route('products.index'),
+                    href: route('admin.products.index'),
                 },
             ]}
         >
             <Head title="Products" />
-            <div className="py-6">
+            <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex flex-row items-center justify-between pb-4">
                         <h2 className="text-2xl font-bold">Product List</h2>
-                        {can.create && (
-                            <Link href={route('products.create')}>
+                        {can.create && route('admin.products.create') && (
+                            <Link href={route('admin.products.create')}>
                                 <Button>
                                     <PlusIcon className="mr-2 h-4 w-4" />
                                     Add Product
@@ -30,8 +31,8 @@ export default function Index({ products, can }) {
                             </Link>
                         )}
                     </div>
-                    <div>
-                        <div className="rounded-md border">
+                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                        <div className="border-b border-gray-200 bg-white p-6">
                             <Table>
                                 <TableHeader className="bg-gray-50">
                                     <TableRow>
@@ -45,7 +46,7 @@ export default function Index({ products, can }) {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {products.map((product) => (
+                                    {products.data.map((product) => (
                                         <TableRow key={product.id}>
                                             <TableCell>
                                                 {product.image_url ? (
@@ -83,28 +84,45 @@ export default function Index({ products, can }) {
                                             </TableCell>
                                             <TableCell className="space-x-2 text-right">
                                                 {can.edit && (
-                                                    <Link href={route('products.edit', product.id)}>
+                                                    <Link href={route('admin.products.edit', product.id)}>
                                                         <Button variant="outline" size="sm">
                                                             Edit
                                                         </Button>
                                                     </Link>
                                                 )}
                                                 {can.delete && (
-                                                    <Link href={route('products.destroy', product.id)} method="delete" as="button">
-                                                        <Button variant="destructive" size="sm">
+                                                    <Button asChild variant="destructive" size="sm">
+                                                        <Link href={route('admin.products.destroy', product.id)} method="delete" as="button">
                                                             Delete
-                                                        </Button>
-                                                    </Link>
+                                                        </Link>
+                                                    </Button>
                                                 )}
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
+                            <div className="mt-4 flex justify-center">
+                                {products.links.map(
+                                    (link, index) =>
+                                        link.url && (
+                                            <Link
+                                                key={index}
+                                                href={link.url}
+                                                className={`mx-1 rounded px-4 py-2 ${
+                                                    link.active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                                                }`}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: link.label,
+                                                }}
+                                            />
+                                        ),
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }

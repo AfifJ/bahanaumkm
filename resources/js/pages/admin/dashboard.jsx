@@ -1,23 +1,21 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import AppLayout from '@/layouts/admin-layout';
+import { Head, usePage } from '@inertiajs/react';
 
 const breadcrumbs = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Admin Dashboard',
+        href: route('admin.dashboard'),
     },
 ];
 
 export default function Dashboard() {
     const { auth } = usePage().props;
 
-    console.log('User data:', auth.user);
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title="Admin Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Role:</span>

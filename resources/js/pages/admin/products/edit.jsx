@@ -1,46 +1,38 @@
-import AppLayout from '@/layouts/app-layout';
+import AdminLayout from '@/layouts/admin-layout';
 import { Head, useForm } from '@inertiajs/react';
 import ProductForm from './components/ProductForm';
 
-export default function Create() {
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        buy_price: 0,
-        sell_price: 0,
-        stock: 0,
-        description: '',
+export default function Edit({ product }) {
+    const { data, setData, post, processing, errors, setError } = useForm({
+        name: product.name,
+        buy_price: product.buy_price,
+        sell_price: product.sell_price,
+        stock: product.stock,
+        description: product.description,
         image: null,
-        status: 'active',
+        image_url: product.image_url,
+        status: product.status,
+        _method: 'PUT',
     });
-
-    const handleImageChange = (e) => {
-        const file = e.target.files?.[0];
-        setData('image', file ?? null);
-    };
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('products.store'), {
-            forceFormData: true, // pastikan terkirim sebagai multipart/form-data
-            onError: () => {},
+
+        post(route('admin.products.update', product.id), {
+            forceFormData: true,
+            preserveScroll: true,
         });
     };
 
     return (
-        <AppLayout
-            title="Create Product"
+        <AdminLayout
+            title="Edit Product"
             breadcrumbs={[
-                {
-                    title: 'Products',
-                    href: route('products.index'),
-                },
-                {
-                    title: 'Create',
-                    href: route('products.create'),
-                },
+                { title: 'Products', href: route('admin.products.index') },
+                { title: 'Edit', href: route('admin.products.edit', product.id) },
             ]}
         >
-            <Head title="Create Product" />
+            <Head title="Edit Product" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
@@ -51,12 +43,13 @@ export default function Create() {
                                 errors={errors}
                                 processing={processing}
                                 onSubmit={submit}
+                                isEdit={true}
                                 onCancel={() => window.history.back()}
                             />
                         </div>
                     </div>
                 </div>
             </div>
-        </AppLayout>
+        </AdminLayout>
     );
 }
