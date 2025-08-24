@@ -2,6 +2,8 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { LoaderCircle } from 'lucide-react';
 
 const formatPrice = (value) => {
@@ -87,10 +89,10 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
 
             <div className="mt-4">
                 <Label htmlFor="description">Description</Label>
-                <textarea
+                <Textarea
                     name="description"
                     value={data.description}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    // className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     onChange={(e) => setData('description', e.target.value)}
                     required
                 />
@@ -121,16 +123,15 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
 
             <div className="mt-4">
                 <Label htmlFor="status">Status</Label>
-                <select
-                    name="status"
-                    value={data.status}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    onChange={(e) => setData('status', e.target.value)}
-                    required
-                >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+                <Select value={data.status} onValueChange={(value) => setData('status', value)} required>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Pilih status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                </Select>
                 <InputError message={errors.status} className="mt-2" />
             </div>
 
