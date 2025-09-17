@@ -9,7 +9,30 @@ const breadcrumbs = [
 ];
 
 export default function Dashboard() {
-    const { auth, products } = usePage().props;
+    const { auth } = usePage().props;
+    const products = [
+        {
+            id: 1,
+            name: 'Product 1',
+            image_url: 'https://via.placeholder.com/150',
+            description: 'This is a description for Product 1.',
+            price: 100000,
+        },
+        {
+            id: 2,
+            name: 'Product 2',
+            image_url: 'https://via.placeholder.com/150',
+            description: 'This is a description for Product 2.',
+            price: 200000,
+        },
+        {
+            id: 3,
+            name: 'Product 3',
+            image_url: 'https://via.placeholder.com/150',
+            description: 'This is a description for Product 3.',
+            price: 300000,
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

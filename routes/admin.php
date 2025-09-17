@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use Inertia\Inertia;
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
@@ -25,6 +26,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::resource('products', ProductController::class)
         ->middleware(['auth', 'verified'])
         ->name('index', 'products.index');
+
+    Route::resource('categories', CategoryController::class)
+        ->middleware(['auth', 'verified'])
+        ->name('index', 'categories.index');
 
 
     Route::get('/users', function () {

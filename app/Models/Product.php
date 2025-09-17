@@ -11,7 +11,7 @@ class Product extends Model
 
     protected $fillable = [
         // 'vendor_id',
-        // 'category_id',
+        'category_id',
         'name',
         'buy_price',
         'sell_price',
@@ -26,5 +26,13 @@ class Product extends Model
         'sell_price' => 'decimal:2',
         'status' => 'string'
     ];
+
+    /**
+     * Get the category that owns the product.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
 }

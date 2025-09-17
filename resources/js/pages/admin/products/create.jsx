@@ -43,18 +43,14 @@ export default function Create() {
             <Head title="Create Product" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="border-b border-gray-200 bg-white p-6">
-                            <ProductForm
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                                processing={processing}
-                                onSubmit={submit}
-                                onCancel={() => window.history.back()}
-                            />
-                        </div>
-                    </div>
+                    <ProductForm
+                        data={data}
+                        setData={setData}
+                        errors={errors}
+                        processing={processing}
+                        onSubmit={submit}
+                        onCancel={() => window.history.back()}
+                    />
                 </div>
             </div>
         </AdminLayout>

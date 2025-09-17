@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,7 +37,12 @@ class ProductController extends Controller
     public function create()
     {
         $this->authorize('create', Product::class);
-        return Inertia::render('admin/products/create');
+        
+        $categories = Category::where('status', 'active')->get();
+        
+        return Inertia::render('admin/products/create', [
+            'categories' => $categories
+        ]);
     }
 
     /**
@@ -76,7 +82,13 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $this->authorize('update', $product);
-        return Inertia::render('admin/products/edit', compact('product'));
+        
+        $categories = Category::where('status', 'active')->get();
+        
+        return Inertia::render('admin/products/edit', [
+            'product' => $product,
+            'categories' => $categories
+        ]);
     }
 
     /**

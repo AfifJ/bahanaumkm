@@ -1,21 +1,16 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { LayoutGrid, Package, Tag } from 'lucide-react';
+import { LayoutGrid, Package } from 'lucide-react';
 
 const mainNavItems = [
     {
         title: 'Dashboard',
-        href: '/admin/dashboard',
+        href: '/dashboard',
         icon: LayoutGrid,
     },
     {
         title: 'Products',
-        href: '/admin/products',
+        href: '/products',
         icon: Package,
-    },
-    {
-        title: 'Categories',
-        href: '/admin/categories',
-        icon: Tag,
     },
 ];
 
