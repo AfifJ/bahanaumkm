@@ -7,7 +7,6 @@ export default function CategoriesEdit({ category }) {
     const { data, setData, put, processing, errors } = useForm({
         name: category.name,
         description: category.description,
-        status: category.status,
     });
 
     const handleSubmit = (e) => {

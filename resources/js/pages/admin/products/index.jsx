@@ -17,7 +17,6 @@ import { Head, Link } from '@inertiajs/react';
 import { Edit, PlusIcon, Trash } from 'lucide-react';
 
 export default function Index({ products, can }) {
-    const test = JSON.stringify(products, null, 2);
     return (
         <AdminLayout
             title="Products"

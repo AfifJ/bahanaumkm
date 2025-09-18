@@ -7,7 +7,6 @@ export default function CategoriesCreate() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         description: '',
-        status: 'active',
     });
 
     const handleSubmit = (e) => {

@@ -1,5 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { LayoutGrid, Package, Tag } from 'lucide-react';
+import { LayoutGrid, Package, Tag, Users } from 'lucide-react';
 
 const mainNavItems = [
     {
@@ -16,6 +16,33 @@ const mainNavItems = [
         title: 'Categories',
         href: '/admin/categories',
         icon: Tag,
+    },
+    {
+        title: 'Pengguna',
+        href: '/admin/users',
+        icon: Users,
+        children: [
+            {
+                title: 'Kelola Admin',
+                href: '/admin/users/Admin',
+            },
+            {
+                title: 'Kelola Vendor',
+                href: '/admin/users/Vendor',
+            },
+            {
+                title: 'Kelola Mitra',
+                href: '/admin/users/Mitra',
+            },
+            {
+                title: 'Kelola Sales Lapangan',
+                href: '/admin/users/Sales Lapangan',
+            },
+            {
+                title: 'Kelola Buyer',
+                href: '/admin/users/Buyer',
+            },
+        ],
     },
 ];
 

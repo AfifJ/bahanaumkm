@@ -37,7 +37,7 @@ const handleSystemThemeChange = () => {
 };
 
 export function initializeTheme() {
-    const savedAppearance = localStorage.getItem('appearance') || 'system';
+    const savedAppearance = localStorage.getItem('appearance') || 'light';
 
     applyTheme(savedAppearance);
 
@@ -46,7 +46,7 @@ export function initializeTheme() {
 }
 
 export function useAppearance() {
-    const [appearance, setAppearance] = useState('system');
+    const [appearance, setAppearance] = useState('light');
 
     const updateAppearance = useCallback((mode) => {
         setAppearance(mode);
@@ -62,11 +62,10 @@ export function useAppearance() {
 
     useEffect(() => {
         const savedAppearance = localStorage.getItem('appearance');
-        updateAppearance(savedAppearance || 'system');
+        updateAppearance(savedAppearance || 'light');
 
         return () => mediaQuery()?.removeEventListener('change', handleSystemThemeChange);
     }, [updateAppearance]);
 
     return { appearance, updateAppearance };
 }
-

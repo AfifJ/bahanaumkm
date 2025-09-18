@@ -37,20 +37,6 @@ export default function CategoryForm({ data, setData, errors, processing, onSubm
                     <InputError message={errors.description} className="mt-2" />
                 </div>
 
-                <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={data.status} onValueChange={(value) => setData('status', value)} required>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="active">Aktif</SelectItem>
-                            <SelectItem value="inactive">Nonaktif</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <InputError message={errors.status} className="mt-2" />
-                </div>
-
                 <div className="flex items-center justify-end space-x-4">
                     <Button type="button" variant="ghost" onClick={onCancel}>
                         Batal

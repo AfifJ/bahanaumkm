@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\UserController;
 use Inertia\Inertia;
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/', function () {
@@ -33,6 +34,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
 
 
     Route::get('/users', function () {
-        return "admin users";
+        return redirect()->route('admin.users.index', ['role' => 'Admin']);
     })->name('users');
+
+    // User Management Routes
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/{role}', [UserController::class, 'index'])->name('index');
+        Route::get('/{role}/create', [UserController::class, 'create'])->name('create');
+        Route::post('/{role}', [UserController::class, 'store'])->name('store');
+        Route::get('/{role}/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{role}/{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{role}/{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
 });
