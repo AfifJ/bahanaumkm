@@ -19,7 +19,7 @@ const parsePrice = (value) => {
     return parseInt(value.toString().replace(/\./g, ''), 10);
 };
 
-export default function ProductForm({ data, setData, errors, processing, onSubmit, isEdit = false, onCancel, categories = [] }) {
+export default function ProductForm({ data, setData, errors, processing, onSubmit, isEdit = false, onCancel, categories = [], vendors = [] }) {
     const fileInputRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -223,22 +223,49 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
             <div className="mt-4">
                 <Label htmlFor="category_id">Kategori</Label>
                 <Select 
-                    value={data.category_id} 
-                    onValueChange={(value) => setData('category_id', value)}
+                    value={data.category_id?.toString()} 
+                    onValueChange={(value) => setData('category_id', value === 'null' ? null : parseInt(value))}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Pilih kategori" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value={null}>Tidak ada kategori</SelectItem>
+                        <SelectItem value="null">Tidak ada kategori</SelectItem>
                         {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
+                            <SelectItem key={category.id} value={category.id.toString()}>
                                 {category.name}
                             </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
                 <InputError message={errors.category_id} className="mt-2" />
+            </div>
+
+            <div className="mt-4">
+                <Label htmlFor="vendor_id">Vendor</Label>
+                {isEdit ? (
+                    <div className="p-3 border rounded-md bg-gray-50">
+                        <p className="text-sm">{data.vendor_name || data.vendor?.name || 'Tidak ada vendor'}</p>
+                    </div>
+                ) : (
+                    <Select 
+                        value={data.vendor_id?.toString()} 
+                        onValueChange={(value) => setData('vendor_id', value === 'null' ? null : parseInt(value))}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Pilih vendor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="null">Tidak ada vendor</SelectItem>
+                            {vendors.map((vendor) => (
+                                <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                                    {vendor.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
+                <InputError message={errors.vendor_id} className="mt-2" />
             </div>
 
             <div className="mt-4">

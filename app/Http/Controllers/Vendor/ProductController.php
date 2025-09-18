@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Storage;
@@ -18,17 +17,13 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $this->authorize('viewAny', Product::class);
+        $products = Product::where('vendor_id', auth()->id())
+            ->with('category')
+            ->latest()
+            ->paginate(10);
 
-        $products = Product::with('vendor')->latest()->paginate(10);
-        // dd($products);
-        return Inertia::render('admin/products/index', [
+        return Inertia::render('vendor/products/index', [
             'products' => $products,
-            'can' => [
-                'create' => auth()->user()->can('create', Product::class),
-                'edit' => auth()->user()->can('update', Product::class),
-                'delete' => auth()->user()->can('delete', Product::class),
-            ]
         ]);
     }
 
@@ -37,14 +32,10 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $this->authorize('create', Product::class);
-        
         $categories = Category::where('status', 'active')->get();
-        $vendors = User::where('role_id', 2)->where('status', 'active')->get();
         
-        return Inertia::render('admin/products/create', [
+        return Inertia::render('vendor/products/create', [
             'categories' => $categories,
-            'vendors' => $vendors
         ]);
     }
 
@@ -53,9 +44,8 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        $this->authorize('create', Product::class);
-
         $data = $request->validated();
+        $data['vendor_id'] = auth()->id();
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
@@ -64,21 +54,8 @@ class ProductController extends Controller
 
         Product::create($data);
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
-    }
-
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
-    {
-        $this->authorize('view', $product);
-        return Inertia::render('admin/products/show', [
-            'product' => $product->load(['vendor', 'category'])
-        ]);
+        return redirect()->route('vendor.products.index')
+            ->with('success', 'Produk berhasil dibuat.');
     }
 
     /**
@@ -86,15 +63,16 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        $this->authorize('update', $product);
-        
+        // Pastikan vendor hanya bisa mengedit produk miliknya
+        if ($product->vendor_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $categories = Category::where('status', 'active')->get();
-        $vendors = User::where('role_id', 2)->where('status', 'active')->get();
         
-        return Inertia::render('admin/products/edit', [
-            'product' => $product->load(['vendor', 'category']),
+        return Inertia::render('vendor/products/edit', [
+            'product' => $product->load('category'),
             'categories' => $categories,
-            'vendors' => $vendors
         ]);
     }
 
@@ -103,7 +81,10 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, Product $product)
     {
-        $this->authorize('update', $product);
+        // Pastikan vendor hanya bisa mengupdate produk miliknya
+        if ($product->vendor_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $data = $request->validated();
 
@@ -125,8 +106,8 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product updated successfully.');
+        return redirect()->route('vendor.products.index')
+            ->with('success', 'Produk berhasil diperbarui.');
     }
 
     /**
@@ -134,10 +115,13 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $this->authorize('delete', $product);
+        // Pastikan vendor hanya bisa menghapus produk miliknya
+        if ($product->vendor_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $product->delete();
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product deleted successfully.');
+        return redirect()->route('vendor.products.index')
+            ->with('success', 'Produk berhasil dihapus.');
     }
 }

@@ -10,7 +10,7 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        // 'vendor_id',
+        'vendor_id',
         'category_id',
         'name',
         'buy_price',
@@ -33,6 +33,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the vendor that owns the product.
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(User::class, 'vendor_id');
     }
 
 }

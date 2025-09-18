@@ -2,7 +2,7 @@ import AdminLayout from '@/layouts/admin-layout';
 import { Head, useForm } from '@inertiajs/react';
 import ProductForm from './components/ProductForm';
 
-export default function Create() {
+export default function Create({ vendors, categories }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         buy_price: 0,
@@ -11,6 +11,7 @@ export default function Create() {
         description: '',
         image: null,
         status: 'active',
+        vendor_id: null,
     });
 
     const handleImageChange = (e) => {
@@ -50,6 +51,8 @@ export default function Create() {
                         processing={processing}
                         onSubmit={submit}
                         onCancel={() => window.history.back()}
+                        vendors={vendors}
+                        categories={categories}
                     />
                 </div>
             </div>

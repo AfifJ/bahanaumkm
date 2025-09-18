@@ -12,46 +12,44 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import AdminLayout from '@/layouts/admin-layout';
+import VendorLayout from '@/layouts/vendor-layout';
 import { Head, Link } from '@inertiajs/react';
 import { Edit, PlusIcon, Trash } from 'lucide-react';
 
-export default function Index({ products, can }) {
+export default function Index({ products }) {
     return (
-        <AdminLayout
-            title="Products"
+        <VendorLayout
+            title="Produk Saya"
             breadcrumbs={[
                 {
-                    title: 'Products',
-                    href: route('admin.products.index'),
+                    title: 'Produk',
+                    href: route('vendor.products.index'),
                 },
             ]}
         >
-            <Head title="Products" />
+            <Head title="Produk Saya" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex flex-row items-center justify-between pb-4">
-                        <h2 className="text-2xl font-bold">Product List</h2>
-                        {can.create && route('admin.products.create') && (
-                            <Link href={route('admin.products.create')}>
-                                <Button>
-                                    <PlusIcon className="mr-2 h-4 w-4" />
-                                    Add Product
-                                </Button>
-                            </Link>
-                        )}
+                        <h2 className="text-2xl font-bold">Daftar Produk</h2>
+                        <Link href={route('vendor.products.create')}>
+                            <Button>
+                                <PlusIcon className="mr-2 h-4 w-4" />
+                                Tambah Produk
+                            </Button>
+                        </Link>
                     </div>
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
-                                <TableHead>Image</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Vendor</TableHead>
-                                <TableHead className="text-right">Buy Price</TableHead>
-                                <TableHead className="text-right">Sell Price</TableHead>
-                                <TableHead className="text-right">Stock</TableHead>
+                                <TableHead>Gambar</TableHead>
+                                <TableHead>Nama</TableHead>
+                                <TableHead>Kategori</TableHead>
+                                <TableHead className="text-right">Harga Beli</TableHead>
+                                <TableHead className="text-right">Harga Jual</TableHead>
+                                <TableHead className="text-right">Stok</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -71,7 +69,7 @@ export default function Index({ products, can }) {
                                         )}
                                     </TableCell>
                                     <TableCell className="font-medium">{product.name}</TableCell>
-                                    <TableCell>{product.vendor?.name || '-'}</TableCell>
+                                    <TableCell>{product.category?.name || '-'}</TableCell>
                                     <TableCell className="text-right">
                                         {new Intl.NumberFormat('id-ID', {
                                             style: 'currency',
@@ -93,39 +91,35 @@ export default function Index({ products, can }) {
                                         <Badge variant="outline">{product.status}</Badge>
                                     </TableCell>
                                     <TableCell className="space-x-2 text-right">
-                                        {can.edit && (
-                                            <Link href={route('admin.products.edit', product.id)}>
+                                        <Link href={route('vendor.products.edit', product.id)}>
+                                            <Button variant="outline" size="sm">
+                                                <Edit />
+                                            </Button>
+                                        </Link>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
                                                 <Button variant="outline" size="sm">
-                                                    <Edit />
+                                                    <Trash className="text-red-500" />
                                                 </Button>
-                                            </Link>
-                                        )}
-                                        {can.delete && (
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="outline" size="sm">
-                                                        <Trash className="text-red-500" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Apakah anda yakin?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Penghapusan data tidak bisa dibatalkan. Tindakan ini akan menghapus data secara permanen
-                                                            dari server.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction asChild>
-                                                            <Link href={route('admin.products.destroy', product.id)} method="delete" as="button">
-                                                                Lanjutkan
-                                                            </Link>
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        )}
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Apakah anda yakin?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Penghapusan data tidak bisa dibatalkan. Tindakan ini akan menghapus data secara permanen
+                                                        dari server.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                                                    <AlertDialogAction asChild>
+                                                        <Link href={route('vendor.products.destroy', product.id)} method="delete" as="button">
+                                                            Hapus
+                                                        </Link>
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -148,6 +142,6 @@ export default function Index({ products, can }) {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </VendorLayout>
     );
 }

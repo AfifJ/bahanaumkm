@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
+import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, useSidebar } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDownIcon } from 'lucide-react';
 
 export function NavMain({ items = [] }) {
     const page = usePage();
+    const { state } = useSidebar();
     const [expandedItems, setExpandedItems] = useState({});
 
     // Load expanded state from localStorage on component mount and auto-expand active items
@@ -71,7 +72,7 @@ export function NavMain({ items = [] }) {
                                         className={`size-4 transition-transform ${expandedItems[item.title] ? 'rotate-180' : ''}`}
                                     />
                                 </SidebarMenuButton>
-                                {expandedItems[item.title] && (
+                                {expandedItems[item.title] && state === 'expanded' && (
                                     <SidebarMenuSub>
                                         {item.children.map((child) => (
                                             <SidebarMenuSubItem key={child.title}>

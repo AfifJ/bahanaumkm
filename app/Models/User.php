@@ -58,4 +58,9 @@ class User extends Authenticatable
     {
         return $this->role->name === 'Admin';
     }
+
+    public function isVendor()
+    {
+        return $this->role->name === 'Vendor';
+    }
 }

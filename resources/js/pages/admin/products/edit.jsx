@@ -2,7 +2,7 @@ import AdminLayout from '@/layouts/admin-layout';
 import { Head, useForm } from '@inertiajs/react';
 import ProductForm from './components/ProductForm';
 
-export default function Edit({ product }) {
+export default function Edit({ product, vendors, categories }) {
     const { data, setData, post, processing, errors, setError } = useForm({
         name: product.name,
         buy_price: product.buy_price,
@@ -12,6 +12,9 @@ export default function Edit({ product }) {
         image: null,
         image_url: product.image_url,
         status: product.status,
+        vendor_id: product.vendor_id,
+        vendor_name: product.vendor?.name || null,
+        category_id: product.category_id,
         _method: 'PUT',
     });
 
@@ -43,6 +46,8 @@ export default function Edit({ product }) {
                         onSubmit={submit}
                         isEdit={true}
                         onCancel={() => window.history.back()}
+                        vendors={vendors}
+                        categories={categories}
                     />
                 </div>
             </div>

@@ -28,7 +28,10 @@ class ProductRequest extends FormRequest
             'sell_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'vendor_id' => 'nullable|exists:users,id',
+            'vendor_name' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
         ];
 
         return $rules;
