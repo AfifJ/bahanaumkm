@@ -1,11 +1,16 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, ShoppingCart } from 'lucide-react';
 
 const mainNavItems = [
     {
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Katalog',
+        href: '/catalog',
+        icon: ShoppingCart,
     },
 ];
 
