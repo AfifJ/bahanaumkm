@@ -50,7 +50,6 @@ export default function Create({ vendors, categories }) {
                         errors={errors}
                         processing={processing}
                         onSubmit={submit}
-                        onCancel={() => window.history.back()}
                         vendors={vendors}
                         categories={categories}
                     />

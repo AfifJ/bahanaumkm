@@ -23,16 +23,22 @@ class ProductRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'buy_price' => 'required|numeric|min:0',
             'sell_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'vendor_id' => 'nullable|exists:users,id',
-            'vendor_name' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'vendor_id' => 'required|exists:users,id',
+            'category_id' => 'required|exists:categories,id',
         ];
+
+        if ($this->isMethod('POST')) {
+            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,webp|max:2048';
+        } else {
+            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048';
+        }
+
 
         return $rules;
     }

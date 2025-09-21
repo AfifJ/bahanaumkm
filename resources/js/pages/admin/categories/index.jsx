@@ -45,6 +45,7 @@ export default function CategoriesIndex() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Gambar</TableHead>
                                     <TableHead>Nama</TableHead>
                                     <TableHead>Deskripsi</TableHead>
                                     <TableHead>Dibuat</TableHead>
@@ -54,6 +55,19 @@ export default function CategoriesIndex() {
                             <TableBody>
                                 {categories.data.map((category) => (
                                     <TableRow key={category.id}>
+                                        <TableCell>
+                                            {category.image ? (
+                                                <img
+                                                    src={`/storage/${category.image}`}
+                                                    alt={category.name}
+                                                    className="h-12 w-12 object-cover rounded"
+                                                />
+                                            ) : (
+                                                <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center">
+                                                    <span className="text-gray-400 text-xs">No Image</span>
+                                                </div>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="font-medium">{category.name}</TableCell>
                                         <TableCell>
                                             {category.description ? (

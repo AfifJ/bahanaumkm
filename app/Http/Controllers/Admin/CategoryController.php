@@ -18,7 +18,7 @@ class CategoryController extends Controller
         $this->authorize('viewAny', Category::class);
 
         $categories = Category::latest()->paginate(10);
-        
+
         return Inertia::render('admin/categories/index', [
             'categories' => $categories,
             'can' => [
@@ -45,7 +45,14 @@ class CategoryController extends Controller
     {
         $this->authorize('create', Category::class);
 
-        Category::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('categories', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        Category::create($data);
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category created successfully.');
@@ -76,7 +83,19 @@ class CategoryController extends Controller
     {
         $this->authorize('update', $category);
 
-        $category->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            // Hapus gambar lama jika ada
+            if ($category->image) {
+                \Storage::disk('public')->delete($category->image);
+            }
+
+            $imagePath = $request->file('image')->store('categories', 'public');
+            $data['image'] = $imagePath;
+        }
+
+        $category->update($data);
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category updated successfully.');
@@ -89,8 +108,13 @@ class CategoryController extends Controller
     {
         $this->authorize('delete', $category);
 
+        // Hapus gambar jika ada
+        if ($category->image) {
+            \Storage::disk('public')->delete($category->image);
+        }
+
         $category->delete();
-        
+
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category deleted successfully.');
     }

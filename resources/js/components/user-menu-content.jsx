@@ -2,7 +2,7 @@ import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSep
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, LayoutDashboard } from 'lucide-react';
 
 export function UserMenuContent({ user }) {
     const cleanup = useMobileNavigation();
@@ -20,6 +20,22 @@ export function UserMenuContent({ user }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+                {user.role_id === 2 && (
+                    <DropdownMenuItem asChild>
+                        <Link className="block w-full" href={route('vendor.dashboard')} as="button" prefetch onClick={cleanup}>
+                            <LayoutDashboard className="mr-2"/>
+                            Dashboard Vendor
+                        </Link>
+                    </DropdownMenuItem>
+                )}
+                {user.role_id === 1 && (
+                    <DropdownMenuItem asChild>
+                        <Link className="block w-full" href={route('admin.dashboard')} as="button" prefetch onClick={cleanup}>
+                            <LayoutDashboard className="mr-2"/>
+                            Dashboard Admin
+                        </Link>
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                     <Link className="block w-full" href={route('profile.edit')} as="button" prefetch onClick={cleanup}>
                         <Settings className="mr-2"/>
@@ -36,4 +52,3 @@ export function UserMenuContent({ user }) {
             </DropdownMenuItem>
         </>);
 }
-

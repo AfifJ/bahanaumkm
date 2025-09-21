@@ -1,21 +1,26 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import CategoryForm from './components/CategoryForm';
 
 export default function CategoriesEdit({ category }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         name: category.name,
         description: category.description,
+        image: null,
+        image_url: category.image, // Untuk preview gambar existing
+        _method: 'PUT',
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('admin.categories.update', category.id));
-    };
-
-    const handleCancel = () => {
-        window.history.back();
+        post(route('admin.categories.update', category.id), {
+            forceFormData: true,
+            preserveScroll: true,
+            onError: (errors) => {
+                console.log('Validation errors:', errors);
+            },
+        });
     };
 
     return (
@@ -30,20 +35,10 @@ export default function CategoriesEdit({ category }) {
                 <Card>
                     <CardHeader>
                         <CardTitle>Form Edit Kategori</CardTitle>
-                        <CardDescription>
-                            Edit informasi kategori produk
-                        </CardDescription>
+                        <CardDescription>Edit informasi kategori produk</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <CategoryForm
-                            data={data}
-                            setData={setData}
-                            errors={errors}
-                            processing={processing}
-                            onSubmit={handleSubmit}
-                            onCancel={handleCancel}
-                            isEdit={true}
-                        />
+                        <CategoryForm data={data} setData={setData} errors={errors} processing={processing} onSubmit={handleSubmit} isEdit={true} />
                     </CardContent>
                 </Card>
             </div>

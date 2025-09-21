@@ -45,7 +45,6 @@ export default function Edit({ product, vendors, categories }) {
                         processing={processing}
                         onSubmit={submit}
                         isEdit={true}
-                        onCancel={() => window.history.back()}
                         vendors={vendors}
                         categories={categories}
                     />

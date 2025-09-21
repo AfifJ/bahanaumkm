@@ -1,21 +1,24 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import CategoryForm from './components/CategoryForm';
 
 export default function CategoriesCreate() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         description: '',
+        image: null,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('admin.categories.store'));
-    };
-
-    const handleCancel = () => {
-        window.history.back();
+        post(route('admin.categories.store'), data, {
+            forceFormData: true,
+            preserveScroll: true,
+            onError: (errors) => {
+                console.log('Validation errors:', errors);
+            },
+        });
     };
 
     return (
@@ -30,9 +33,7 @@ export default function CategoriesCreate() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Form Tambah Kategori</CardTitle>
-                        <CardDescription>
-                            Tambahkan kategori baru untuk produk
-                        </CardDescription>
+                        <CardDescription>Tambahkan kategori baru untuk produk</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <CategoryForm
@@ -41,7 +42,6 @@ export default function CategoriesCreate() {
                             errors={errors}
                             processing={processing}
                             onSubmit={handleSubmit}
-                            onCancel={handleCancel}
                         />
                     </CardContent>
                 </Card>
