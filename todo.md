@@ -1,10 +1,17 @@
 # Todo
-- [ ] crud kategori dengan gambar
-- [ ] layout untuk buyer
-  - [ ] beranda
-  - [ ] detail produk
-  - [ ] profil
-  - [ ] pencarian / kategori
+
+Buyer
+- [x] crud kategori dengan gambar
+- [ ] beranda buyer
+- [ ] detail produk untuk buyer
+  - [ ] deskripsi panjang
+  - [ ] judul panjang
+- [ ] profil
+- [x] pencarian / kategori
+
+Mitra
+- [x] kelola mitra (admin)
+- [ ] transaksi mitra
 
 # Catatan:
 1. login_admin

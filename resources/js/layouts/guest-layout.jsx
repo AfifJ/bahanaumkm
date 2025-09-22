@@ -2,6 +2,7 @@ import { Navbar04 } from '@/components/ui/navbar-04';
 import MobileBottomNav from '@/components/mobile-bottom-nav';
 import { BookOpen, Folder, LayoutGrid, ShoppingCart } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { router } from '@inertiajs/react';
 
 const mainNavItems = [
     {
@@ -32,9 +33,15 @@ const footerNavItems = [
 const Example = ({ children }) => {
     const isMobile = useIsMobile();
     
+    const handleSearchSubmit = (query) => {
+        if (query.trim()) {
+            router.get(route('search'), { search: query.trim() });
+        }
+    };
+    
     return (
         <div className="relative w-full">
-            <Navbar04 />
+            <Navbar04 onSearchSubmit={handleSearchSubmit} />
             <main className={isMobile ? 'pb-16' : ''}>
                 {children}
             </main>

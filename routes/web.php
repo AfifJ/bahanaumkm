@@ -8,9 +8,15 @@ use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Catalog routes - accessible to guests and authenticated users
-Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
-Route::get('/catalog/{product}', [CatalogController::class, 'show'])->name('catalog.show');
+// Category routes - accessible to guests and authenticated users
+Route::get('/category', [CatalogController::class, 'categoryIndex'])->name('category.index');
+Route::get('/category/{category}', [CatalogController::class, 'categoryShow'])->name('category.show');
+
+// Search route
+Route::get('/search', [CatalogController::class, 'search'])->name('search');
+
+// Product detail route
+Route::get('/product/{product}', [CatalogController::class, 'productShow'])->name('product.show');
 
 // Placeholder routes for mobile navigation
 Route::get('/transaksi', function () {

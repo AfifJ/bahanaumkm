@@ -41,7 +41,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                             {featuredProducts.map((product) => (
                                 <Card key={product.id} className="transition-shadow hover:shadow-lg">
                                     <CardHeader className="p-0">
-                                        <Link href={route('catalog.show', product.id)}>
+                                        <Link href={route('product.show', product.slug)}>
                                             {product.image_url ? (
                                                 <img
                                                     src={product.image_url}
@@ -57,7 +57,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                                     </CardHeader>
                                     <CardContent className="p-2">
                                         <Link
-                                            href={route('catalog.show', product.id)}
+                                            href={route('product.show', product.slug)}
                                             className="line-clamp-2 text-lg font-semibold text-gray-900 hover:text-blue-600"
                                         >
                                             {product.name}
@@ -67,7 +67,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                                     </CardContent>
                                     <CardFooter className="p-4 pt-0">
                                         <Button asChild className="w-full">
-                                            <Link href={route('catalog.show', product.id)}>Lihat Detail</Link>
+                                            <Link href={route('product.show', product.slug)}>Lihat Detail</Link>
                                         </Button>
                                     </CardFooter>
                                 </Card>
@@ -86,7 +86,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                             {popularCategories.map((category) => (
                                 <Link
                                     key={category.id}
-                                    href={route('catalog.index', { category: category.id })}
+                                    href={route('category.show', category.slug)}
                                     className="flex w-fit flex-col items-center justify-center"
                                 >
                                     {category.image ? (
@@ -114,13 +114,17 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     </div>
 
                     {latestProducts.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-6 lg:grid-cols-6">
                             {latestProducts.map((product) => (
-                                <Card key={product.id} className="gap-0 p-0 shadow-none transition-shadow hover:shadow-lg">
+                                <Card key={product.id} className="rounded-0 gap-0 p-0 shadow-none transition-shadow hover:shadow-lg">
                                     <CardHeader className="p-0">
-                                        <Link href={route('catalog.show', product.id)}>
+                                        <Link href={route('product.show', product.slug)}>
                                             {product.image_url ? (
-                                                <img src={product.image_url} alt={product.name} className="h-48 w-full rounded-t-lg object-cover" />
+                                                <img
+                                                    src={product.image_url}
+                                                    alt={product.name}
+                                                    className="aspect-square h-48 rounded-t-lg object-cover"
+                                                />
                                             ) : (
                                                 <div className="flex h-48 w-full items-center justify-center rounded-t-lg bg-gray-200">
                                                     <span className="px-4 text-center text-gray-500">Gambar Tidak Tersedia</span>
@@ -128,9 +132,9 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                                             )}
                                         </Link>
                                     </CardHeader>
-                                    <CardContent className="p-4">
+                                    <CardContent className="p-2">
                                         <Link
-                                            href={route('catalog.show', product.id)}
+                                            href={route('product.show', product.slug)}
                                             className="text-md line-clamp-2 font-semibold text-gray-900 hover:text-blue-600"
                                         >
                                             {product.name}
@@ -151,7 +155,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
 
                     <div className="mt-12 text-center">
                         <Button asChild size="lg">
-                            <Link href={route('catalog.index')}>Lihat Semua Produk</Link>
+                            <Link href={route('category.index')}>Lihat Semua Produk</Link>
                         </Button>
                     </div>
                 </div>
@@ -162,7 +166,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     <h2 className="mb-4 text-3xl font-bold">Siap Berbelanja?</h2>
                     <p className="mb-8 text-xl opacity-90">Jelajahi ribuan produk UMKM berkualitas dengan harga terbaik</p>
                     <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-                        <Link href={route('catalog.index')}>Mulai Berbelanja</Link>
+                        <Link href={route('category.index')}>Mulai Berbelanja</Link>
                     </Button>
                 </div>
             </section>

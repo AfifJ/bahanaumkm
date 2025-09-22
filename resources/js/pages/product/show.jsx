@@ -1,9 +1,13 @@
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link } from '@inertiajs/react';
 
-export default function CatalogShow({ product, relatedProducts }) {
+export default function ProductShow({ product, relatedProducts, layout }) {
+    const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
+
     const formatPrice = (price) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -13,28 +17,24 @@ export default function CatalogShow({ product, relatedProducts }) {
     };
 
     return (
-        <AppLayout>
+        <LayoutComponent>
             <Head title={product.name} />
 
             <div className="container mx-auto px-4 py-8">
                 {/* Breadcrumb */}
-                <nav className="mb-6">
-                    <ol className="flex items-center space-x-2 text-sm text-gray-600">
-                        <li>
-                            <Link href={route('home')} className="hover:text-blue-600">
-                                Home
-                            </Link>
-                        </li>
-                        <li className="before:mx-2 before:content-['/']" />
-                        <li>
-                            <Link href={route('catalog.index')} className="hover:text-blue-600">
-                                Katalog
-                            </Link>
-                        </li>
-                        <li className="before:mx-2 before:content-['/']" />
-                        <li className="text-gray-900">{product.name}</li>
-                    </ol>
-                </nav>
+                <div className="mb-6">
+                    <Breadcrumbs
+                        breadcrumbs={[
+                            { title: 'Home', href: route('home') },
+                            { title: 'Kategori', href: route('category.index') },
+                            {
+                                title: product.category?.name || 'Kategori',
+                                href: product.category ? route('category.show', product.category.slug) : '#',
+                            },
+                            { title: product.name },
+                        ]}
+                    />
+                </div>
 
                 <div className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
                     {/* Product Image */}
@@ -104,7 +104,7 @@ export default function CatalogShow({ product, relatedProducts }) {
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {relatedProducts.map((relatedProduct) => (
                                 <Card key={relatedProduct.id} className="transition-shadow hover:shadow-lg">
-                                    <Link href={route('catalog.show', relatedProduct.id)}>
+                                    <Link href={route('product.show', relatedProduct.slug)}>
                                         <img
                                             src={relatedProduct.image_url || '/placeholder-product.jpg'}
                                             alt={relatedProduct.name}
@@ -113,7 +113,7 @@ export default function CatalogShow({ product, relatedProducts }) {
                                     </Link>
                                     <CardContent className="p-4">
                                         <Link
-                                            href={route('catalog.show', relatedProduct.id)}
+                                            href={route('product.show', relatedProduct.slug)}
                                             className="mb-2 line-clamp-2 text-sm font-semibold text-gray-900 hover:text-blue-600"
                                         >
                                             {relatedProduct.name}
@@ -127,6 +127,6 @@ export default function CatalogShow({ product, relatedProducts }) {
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </LayoutComponent>
     );
 }

@@ -1,12 +1,13 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import GuestLayout from '@/layouts/guest-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
-export default function CatalogIndex({ products, categories, filters }) {
+export default function SearchIndex({ products, categories, filters, layout }) {
     const { url } = usePage();
     const [search, setSearch] = useState(filters.search || '');
     const [category, setCategory] = useState(filters.category || 'all');
@@ -46,13 +47,15 @@ export default function CatalogIndex({ products, categories, filters }) {
         }).format(price);
     };
 
+    const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
+
     return (
-        <AppLayout>
-            <Head title="Katalog Produk" />
+        <LayoutComponent>
+            <Head title="Pencarian Produk" />
 
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Katalog Produk</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Pencarian Produk</h1>
                     
                     {/* Search and Filters */}
                     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -125,11 +128,18 @@ export default function CatalogIndex({ products, categories, filters }) {
 
                     {products.data.length > 0 ? (
                         <>
+                            <div className="mb-4">
+                                <p className="text-gray-600">
+                                    Menampilkan {products.total} hasil pencarian
+                                    {search && ` untuk "${search}"`}
+                                </p>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {products.data.map((product) => (
                                     <Card key={product.id} className="hover:shadow-lg transition-shadow p-0">
                                         <CardHeader className="p-0">
-                                            <Link href={route('catalog.show', product.id)}>
+                                            <Link href={route('product.show', product.slug)}>
                                                 {product.image_url ? (
                                                     <img
                                                         src={product.image_url}
@@ -145,7 +155,7 @@ export default function CatalogIndex({ products, categories, filters }) {
                                         </CardHeader>
                                         <CardContent className="p-4">
                                             <Link 
-                                                href={route('catalog.show', product.id)}
+                                                href={route('product.show', product.slug)}
                                                 className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
                                             >
                                                 {product.name}
@@ -162,7 +172,7 @@ export default function CatalogIndex({ products, categories, filters }) {
                                         </CardContent>
                                         <CardFooter className="p-4 pt-0">
                                             <Button asChild className="w-full">
-                                                <Link href={route('catalog.show', product.id)}>
+                                                <Link href={route('product.show', product.slug)}>
                                                     Lihat Detail
                                                 </Link>
                                             </Button>
@@ -193,16 +203,16 @@ export default function CatalogIndex({ products, categories, filters }) {
                         </>
                     ) : (
                         <div className="text-center py-12">
-                            <div className="text-gray-400 text-6xl mb-4">📦</div>
+                            <div className="text-gray-400 text-6xl mb-4">🔍</div>
                             <h3 className="text-lg font-medium text-gray-900 mb-2">Produk tidak ditemukan</h3>
                             <p className="text-gray-600 mb-4">
-                                Coba ubah filter pencarian Anda atau lihat semua produk.
+                                Coba ubah kata kunci pencarian atau filter yang Anda gunakan.
                             </p>
-                            <Button onClick={clearFilters}>Lihat Semua Produk</Button>
+                            <Button onClick={clearFilters}>Reset Pencarian</Button>
                         </div>
                     )}
                 </div>
             </div>
-        </AppLayout>
+        </LayoutComponent>
     );
 }
