@@ -21,12 +21,13 @@ export default function Dashboard() {
                     <Badge variant="outline">{auth.user?.role || 'No role'}</Badge>
                 </div>
                 <div className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                    <pre className="relative z-10 rounded bg-gray-100 p-4 text-left text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                    {/* <pre className="relative z-10 rounded bg-gray-100 p-4 text-left text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                         {JSON.stringify(auth.user, null, 2)}
                     </pre>
                     <pre className="relative z-10 rounded bg-gray-100 p-4 text-left text-xs text-gray-800 dark:bg-gray-800 dark:text-gray-200">
                         {JSON.stringify(auth.user, null, 2)}
-                    </pre>
+                    </pre> */}
+                    Selamat Datang
                 </div>
             </div>
         </AppLayout>

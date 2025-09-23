@@ -38,10 +38,10 @@ class ProductController extends Controller
     public function create()
     {
         $this->authorize('create', Product::class);
-        
-        $categories = Category::where('status', 'active')->get();
+
+        $categories = Category::get();
         $vendors = User::where('role_id', 2)->where('status', 'active')->get();
-        
+
         return Inertia::render('admin/products/create', [
             'categories' => $categories,
             'vendors' => $vendors
@@ -87,10 +87,10 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $this->authorize('update', $product);
-        
-        $categories = Category::where('status', 'active')->get();
+
+        $categories = Category::get();
         $vendors = User::where('role_id', 2)->where('status', 'active')->get();
-        
+
         return Inertia::render('admin/products/edit', [
             'product' => $product->load(['vendor', 'category']),
             'categories' => $categories,

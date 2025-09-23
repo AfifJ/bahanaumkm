@@ -94,15 +94,15 @@ export default function Index({ products, can }) {
                                     </TableCell>
                                     <TableCell className="space-x-2 text-right">
                                         {can.edit && (
-                                            <Link href={route('admin.products.edit', product.id)}>
-                                                <Button variant="outline" size="sm">
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={route('admin.products.edit', product)}>
                                                     <Edit />
-                                                </Button>
-                                            </Link>
+                                                </Link>
+                                            </Button>
                                         )}
                                         {can.delete && (
                                             <AlertDialog>
-                                                <AlertDialogTrigger asChild>
+                                                <AlertDialogTrigger asChild className='hover:cursor-pointer'>
                                                     <Button variant="outline" size="sm">
                                                         <Trash className="text-red-500" />
                                                     </Button>
@@ -118,7 +118,7 @@ export default function Index({ products, can }) {
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                                                         <AlertDialogAction asChild>
-                                                            <Link href={route('admin.products.destroy', product.id)} method="delete" as="button">
+                                                            <Link href={route('admin.products.destroy', product)} method="delete" as="button">
                                                                 Lanjutkan
                                                             </Link>
                                                         </AlertDialogAction>

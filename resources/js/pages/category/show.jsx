@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import ScrollToTop from '@/components/scroll-to-top';
 
 export default function CategoryShow({ products, categories, currentCategory, filters, layout }) {
     const { url } = usePage();
@@ -18,7 +19,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
 
     const handleFilter = () => {
         const params = new URLSearchParams();
-        
+
         if (search) params.set('search', search);
         if (minPrice) params.set('min_price', minPrice);
         if (maxPrice) params.set('max_price', maxPrice);
@@ -49,6 +50,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
 
     return (
         <LayoutComponent>
+            <ScrollToTop />
             <Head title={`Produk ${currentCategory.name}`} />
 
             <div className="container mx-auto px-4 py-8">
@@ -58,9 +60,9 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                         breadcrumbs={[
                             { title: 'Home', href: route('home') },
                             { title: 'Kategori', href: route('category.index') },
-                            { 
-                                title: currentCategory.name, 
-                                href: route('category.show', currentCategory.slug) 
+                            {
+                                title: currentCategory.name,
+                                href: route('category.show', currentCategory.slug)
                             },
                         ]}
                     />
@@ -150,7 +152,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                         </Link>
                                     </CardHeader>
                                     <CardContent className="p-4">
-                                        <Link 
+                                        <Link
                                             href={route('product.show', product.slug)}
                                             className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
                                         >
@@ -185,29 +187,28 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                         <Link
                                             key={index}
                                             href={link.url || '#'}
-                                            className={`px-3 py-2 rounded-md border ${
-                                                link.active
+                                            className={`px-3 py-2 rounded-md border ${link.active
                                                     ? 'bg-blue-600 text-white border-blue-600'
                                                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                            } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                         />
                                     ))}
                                 </nav>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-center py-12">
-                            <div className="text-gray-400 text-6xl mb-4">📦</div>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">Produk tidak ditemukan</h3>
-                            <p className="text-gray-600 mb-4">
-                                Coba ubah filter pencarian Anda atau lihat semua produk.
-                            </p>
-                            <Button onClick={clearFilters}>Lihat Semua Produk</Button>
-                        </div>
-                    )}
-                </div>
-            </LayoutComponent>
-        );
-    }
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <div className="text-center py-12">
+                        <div className="text-gray-400 text-6xl mb-4">📦</div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Produk tidak ditemukan</h3>
+                        <p className="text-gray-600 mb-4">
+                            Coba ubah filter pencarian Anda atau lihat semua produk.
+                        </p>
+                        <Button onClick={clearFilters}>Lihat Semua Produk</Button>
+                    </div>
+                )}
+            </div>
+        </LayoutComponent>
+    );
+}

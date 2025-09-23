@@ -21,7 +21,7 @@ export default function Edit({ product, vendors, categories }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('admin.products.update', product.id), {
+        post(route('admin.products.update', product), {
             forceFormData: true,
             preserveScroll: true,
         });
@@ -32,7 +32,7 @@ export default function Edit({ product, vendors, categories }) {
             title="Edit Product"
             breadcrumbs={[
                 { title: 'Products', href: route('admin.products.index') },
-                { title: 'Edit', href: route('admin.products.edit', product.id) },
+                { title: 'Edit', href: route('admin.products.edit', product) },
             ]}
         >
             <Head title="Edit Product" />

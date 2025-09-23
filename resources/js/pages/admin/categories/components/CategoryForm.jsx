@@ -26,6 +26,7 @@ export default function CategoryForm({ data, setData, errors, processing, onSubm
 
     const removeImage = () => {
         setData('image', null);
+        setData('image_url', null);
         setImagePreview(null);
     };
 

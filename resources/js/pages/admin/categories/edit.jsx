@@ -14,7 +14,7 @@ export default function CategoriesEdit({ category }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('admin.categories.update', category.id), {
+        post(route('admin.categories.update', category), {
             forceFormData: true,
             preserveScroll: true,
             onError: (errors) => {

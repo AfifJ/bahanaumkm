@@ -109,43 +109,35 @@ export function AppHeader({ breadcrumbs = [] }) {
                         </NavigationMenu>
                     </div>
 
-                    <div className="ml-auto flex items-center space-x-2">
-                        <div className="relative flex items-center space-x-1">
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
-                                        <Search className="!size-5 opacity-80 group-hover:opacity-100"/>
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md">
-                                    <form onSubmit={handleSearch} className="flex items-center space-x-2">
-                                        <Input
-                                            placeholder="Cari produk..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="flex-1"
-                                        />
-                                        <Button type="submit" size="sm">
-                                            Cari
-                                        </Button>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
-                            <div className="hidden lg:flex">
-                                {rightNavItems.map((item) => (<TooltipProvider key={item.title} delayDuration={0}>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <a href={item.href} target="_blank" rel="noopener noreferrer" className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
-                                                    <span className="sr-only">{item.title}</span>
-                                                    {item.icon && <Icon iconNode={item.icon} className="size-5 opacity-80 group-hover:opacity-100"/>}
-                                                </a>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{item.title}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>))}
-                            </div>
+                    <div className="ml-auto flex items-center space-x-4">
+                        {/* Search form - biasa, bukan expandable */}
+                        <form onSubmit={handleSearch} className="flex items-center space-x-2">
+                            <Input
+                                placeholder="Cari produk..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-64"
+                            />
+                            <Button type="submit" size="sm" variant="outline">
+                                <Search className="h-4 w-4 mr-1"/>
+                                Cari
+                            </Button>
+                        </form>
+                        
+                        <div className="hidden lg:flex">
+                            {rightNavItems.map((item) => (<TooltipProvider key={item.title} delayDuration={0}>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <a href={item.href} target="_blank" rel="noopener noreferrer" className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
+                                                <span className="sr-only">{item.title}</span>
+                                                {item.icon && <Icon iconNode={item.icon} className="size-5 opacity-80 group-hover:opacity-100"/>}
+                                            </a>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{item.title}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>))}
                         </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

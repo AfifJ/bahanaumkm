@@ -3,10 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import GuestLayout from '@/layouts/guest-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { ShoppingCart, Package } from 'lucide-react';
+import ScrollToTop from '@/components/scroll-to-top';
 
 export default function ProductShow({ product, relatedProducts, layout }) {
     const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
+    const [quantity, setQuantity] = useState(1);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [isBuyingNow, setIsBuyingNow] = useState(false);
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('id-ID', {
@@ -16,8 +22,72 @@ export default function ProductShow({ product, relatedProducts, layout }) {
         }).format(price);
     };
 
+    const handleAddToCart = async () => {
+        if (product.stock <= 0) return;
+
+        setIsAddingToCart(true);
+        try {
+            const response = await fetch(route('buyer.cart.add'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    product_id: product.id,
+                    quantity: quantity,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Show success message
+                alert('Produk berhasil ditambahkan ke keranjang!');
+            } else {
+                alert(result.error || 'Gagal menambahkan produk ke keranjang');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat menambahkan ke keranjang');
+        } finally {
+            setIsAddingToCart(false);
+        }
+    };
+
+    const handleBuyNow = () => {
+        if (product.stock <= 0) return;
+
+        // Simpan data produk ke session storage untuk halaman checkout
+        const checkoutData = {
+            items: [{
+                product_id: product.id,
+                quantity: quantity,
+                product: {
+                    id: product.id,
+                    name: product.name,
+                    image_url: product.image_url,
+                    sell_price: product.sell_price,
+                    stock: product.stock
+                }
+            }],
+            direct_checkout: true
+        };
+
+        sessionStorage.setItem('checkout_data', JSON.stringify(checkoutData));
+
+        // Redirect ke halaman checkout
+        router.visit(route('buyer.orders.create'));
+    };
+
+    const handleQuantityChange = (newQuantity) => {
+        if (newQuantity < 1) return;
+        if (newQuantity > product.stock) return;
+        setQuantity(newQuantity);
+    };
+
     return (
         <LayoutComponent>
+            <ScrollToTop />
             <Head title={product.name} />
 
             <div className="container mx-auto px-4 py-8">
@@ -71,12 +141,65 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                             <p className="leading-relaxed text-gray-700">{product.description || 'Tidak ada deskripsi produk.'}</p>
                         </div>
 
+                        {/* Quantity Selector */}
+                        {product.stock > 0 && (
+                            <div className="mb-4">
+                                <label className="mb-2 block text-sm font-medium text-gray-700">Jumlah:</label>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => handleQuantityChange(quantity - 1)}
+                                        disabled={quantity <= 1}
+                                        className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="w-12 text-center font-medium">{quantity}</span>
+                                    <button
+                                        onClick={() => handleQuantityChange(quantity + 1)}
+                                        disabled={quantity >= product.stock}
+                                        className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                                    >
+                                        +
+                                    </button>
+                                    <span className="ml-2 text-sm text-gray-500">Max: {product.stock}</span>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col gap-4 sm:flex-row">
-                            <Button size="lg" className="flex-1" disabled={product.stock <= 0}>
-                                {product.stock > 0 ? 'Tambah ke Keranjang' : 'Stok Habis'}
+                            <Button
+                                size="lg"
+                                className="flex-1"
+                                disabled={product.stock <= 0 || isAddingToCart}
+                                onClick={handleAddToCart}
+                            >
+                                {isAddingToCart ? (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                                        Menambahkan...
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShoppingCart className="mr-2 h-4 w-4" />
+                                        {product.stock > 0 ? 'Tambah ke Keranjang' : 'Stok Habis'}
+                                    </>
+                                )}
                             </Button>
-                            <Button variant="outline" size="lg" className="flex-1">
-                                Beli Sekarang
+                            <Button
+                                variant="outline"
+                                size="lg"
+                                className="flex-1"
+                                disabled={product.stock <= 0 || isBuyingNow}
+                                onClick={handleBuyNow}
+                            >
+                                {isBuyingNow ? (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                                        Memproses...
+                                    </>
+                                ) : (
+                                    'Beli Sekarang'
+                                )}
                             </Button>
                         </div>
 

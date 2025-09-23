@@ -39,9 +39,9 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
 
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {featuredProducts.map((product) => (
-                                <Card key={product.id} className="transition-shadow hover:shadow-lg">
-                                    <CardHeader className="p-0">
-                                        <Link href={route('product.show', product.slug)}>
+                                <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
+                                    <Card className="transition-shadow hover:shadow-lg">
+                                        <CardHeader className="p-0">
                                             {product.image_url ? (
                                                 <img
                                                     src={product.image_url}
@@ -53,24 +53,20 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                                                     <span className="text-gray-500">Gambar Tidak Tersedia</span>
                                                 </div>
                                             )}
-                                        </Link>
-                                    </CardHeader>
-                                    <CardContent className="p-2">
-                                        <Link
-                                            href={route('product.show', product.slug)}
-                                            className="line-clamp-2 text-lg font-semibold text-gray-900 hover:text-blue-600"
-                                        >
-                                            {product.name}
-                                        </Link>
-                                        <p className="mt-1 text-sm text-gray-600">{product.category?.name}</p>
-                                        <p className="mt-2 text-xl font-bold text-green-600">{formatPrice(product.sell_price)}</p>
-                                    </CardContent>
-                                    <CardFooter className="p-4 pt-0">
-                                        <Button asChild className="w-full">
-                                            <Link href={route('product.show', product.slug)}>Lihat Detail</Link>
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
+                                        </CardHeader>
+                                        <CardContent className="p-2">
+                                            <span
+                                                href={route('product.show', product.slug)}
+                                                className="line-clamp-2 text-lg font-semibold text-gray-900"
+                                            >
+                                                {product.name}
+                                            </span>
+                                            <p className="mt-1 text-sm text-gray-600">{product.category?.name}</p>
+                                            <p className="mt-2 text-xl font-bold text-green-600">{formatPrice(product.sell_price)}</p>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+
                             ))}
                         </div>
                     </div>
@@ -82,25 +78,23 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     <h2 className="mb-2 text-xl font-bold text-gray-900">Kategori</h2>
                     {/* <p className="mb-8 text-gray-600">Jelajahi kategori produk terpopuler</p> */}
                     {popularCategories.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                        <div className="grid grid-cols-3 gap-6 md:grid-cols-4 lg:grid-cols-6">
                             {popularCategories.map((category) => (
-                                <Link
-                                    key={category.id}
-                                    href={route('category.show', category.slug)}
-                                    className="flex w-fit flex-col items-center justify-center"
-                                >
-                                    {category.image ? (
-                                        <img src={`/storage/${category.image}`} alt={category.name} className="h-12 w-12 rounded object-cover" />
-                                    ) : (
-                                        <div className="flex h-12 w-12 items-center justify-center rounded bg-gray-200">
-                                            <span className="text-gray-400">📦</span>
+                                <Link preserveScroll key={category.id} href={route('category.show', category.slug)} className='hover:cursor-pointer'>
+                                    <div className="group flex flex-col items-center rounded-lg transition-all hover:scale-105 hover:shadow-lg">
+                                        <div className="mb-3 flex h-16 w-16 items-center justify-center">
+                                            {category.image ? (
+                                                <img src={`/storage/${category.image}`} alt={category.name} className="h-12 w-12 rounded object-cover" />
+                                            ) : (
+                                                <span className="text-2xl text-blue-500">📦</span>
+                                            )}
                                         </div>
-                                    )}
-
-                                    <h3 className="text-gray-900">{category.name}</h3>
+                                        <h3 className="text-center line-clamp-2 h-10 text-sm font-medium text-gray-900 group-hover:text-blue-600">{category.name}</h3>
+                                    </div>
                                 </Link>
                             ))}
                         </div>
+
                     ) : (
                         <p className="text-gray-600">Belum ada kategori tersedia</p>
                     )}
@@ -114,37 +108,34 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     </div>
 
                     {latestProducts.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-6 lg:grid-cols-6">
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
                             {latestProducts.map((product) => (
-                                <Card key={product.id} className="rounded-0 gap-0 p-0 shadow-none transition-shadow hover:shadow-lg">
-                                    <CardHeader className="p-0">
-                                        <Link href={route('product.show', product.slug)}>
+                                <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
+                                    <Card className="p-0 gap-1 group overflow-hidden rounded-lg border border-gray-200 transition-all hover:scale-105 hover:shadow-lg">
+                                        <CardHeader className="p-0">
                                             {product.image_url ? (
                                                 <img
                                                     src={product.image_url}
                                                     alt={product.name}
-                                                    className="aspect-square h-48 rounded-t-lg object-cover"
+                                                    className="aspect-square w-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="flex h-48 w-full items-center justify-center rounded-t-lg bg-gray-200">
-                                                    <span className="px-4 text-center text-gray-500">Gambar Tidak Tersedia</span>
+                                                <div className="flex aspect-square w-full items-center justify-center bg-gray-100">
+                                                    <span className="text-gray-400">📦</span>
                                                 </div>
                                             )}
-                                        </Link>
-                                    </CardHeader>
-                                    <CardContent className="p-2">
-                                        <Link
-                                            href={route('product.show', product.slug)}
-                                            className="text-md line-clamp-2 font-semibold text-gray-900 hover:text-blue-600"
-                                        >
-                                            {product.name}
-                                        </Link>
-                                        {/* <p className="mt-1 text-sm text-gray-600">{product.category?.name}</p> */}
-                                        <p className="mt-2 text-lg font-bold text-black">{formatPrice(product.sell_price)}</p>
-                                    </CardContent>
-                                </Card>
+                                        </CardHeader>
+                                        <CardContent className="p-3">
+                                            <h3 className="line-clamp-2 h-10 text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                                {product.name}
+                                            </h3>
+                                            <p className="mt-2 text-lg font-bold text-green-600">{formatPrice(product.sell_price)}</p>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
                             ))}
                         </div>
+
                     ) : (
                         <div className="py-12 text-center">
                             <div className="mb-4 text-6xl text-gray-400">🆕</div>

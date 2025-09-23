@@ -78,7 +78,7 @@ export default function CategoriesIndex() {
                                         </TableCell>
                                         <TableCell>{new Date(category.created_at).toLocaleDateString('id-ID')}</TableCell>
                                         <TableCell className="space-x-2 text-right">
-                                            <Link href={route('admin.categories.edit', category.id)}>
+                                            <Link href={route('admin.categories.edit', category)}>
                                                 <Button variant="outline" size="sm">
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
@@ -100,7 +100,7 @@ export default function CategoriesIndex() {
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                                                         <AlertDialogAction asChild>
-                                                            <Link href={route('admin.categories.destroy', category.id)} method="delete" as="button">
+                                                            <Link href={route('admin.categories.destroy', category)} method="delete" as="button">
                                                                 Lanjutkan
                                                             </Link>
                                                         </AlertDialogAction>

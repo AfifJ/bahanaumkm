@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -62,5 +64,25 @@ class User extends Authenticatable
     public function isVendor()
     {
         return $this->role->name === 'Vendor';
+    }
+
+    public function isMitra()
+    {
+        return $this->role->name === 'Mitra';
+    }
+
+    public function mitraProfile(): HasOne
+    {
+        return $this->hasOne(MitraProfile::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'buyer_id');
+    }
+
+    public function affiliateOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'mitra_id');
     }
 }

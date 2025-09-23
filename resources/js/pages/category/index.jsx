@@ -3,16 +3,17 @@ import AppLayout from '@/layouts/app-layout';
 import GuestLayout from '@/layouts/guest-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import ScrollToTop from '@/components/scroll-to-top';
 
 export default function CategoryIndex({ categories, layout }) {
     const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
 
     return (
         <LayoutComponent>
+            <ScrollToTop />
             <Head title="Kategori Produk" />
 
             <div className="container mx-auto px-4 py-8">
-                {/* Breadcrumb */}
                 <div className="mb-6">
                     <Breadcrumbs
                         breadcrumbs={[
@@ -35,9 +36,9 @@ export default function CategoryIndex({ categories, layout }) {
                             <Card key={category.id} className="hover:shadow-lg transition-shadow">
                                 <Link href={route('category.show', category.slug)}>
                                     <CardContent className="p-6 text-center">
-                                        {category.image_url ? (
+                                        {category.image ? (
                                             <img
-                                                src={category.image_url}
+                                                src={`/storage/${category.image}`}
                                                 alt={category.name}
                                                 className="w-24 h-24 mx-auto object-cover rounded-lg mb-4"
                                             />

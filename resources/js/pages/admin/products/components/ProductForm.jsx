@@ -37,6 +37,7 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
 
     const handleRemoveImage = () => {
         setData('image', null);
+        setData('image_url', null);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }

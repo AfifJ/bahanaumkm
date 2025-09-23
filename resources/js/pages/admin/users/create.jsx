@@ -4,14 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft } from 'lucide-react';
 
-export default function UserCreate({ role }) {
+export default function UserCreate({ role, mitraUsers }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
+        hotel_name: '',
+        address: '',
+        city: '',
+        phone: '',
+        partner_tier: '',
+        commission_rate: '',
     });
 
     const roleTitles = {
@@ -114,6 +122,99 @@ export default function UserCreate({ role }) {
                                 />
                                 {errors.password_confirmation && <p className="text-sm text-red-500">{errors.password_confirmation}</p>}
                             </div>
+
+                            {/* Form tambahan untuk data mitra */}
+                            {role.name === 'Mitra' && (
+                                <>
+                                    <div className="border-t pt-6 mt-6">
+                                        <h3 className="text-lg font-semibold mb-4">Data Mitra</h3>
+                                        
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="hotel_name">Nama Hotel/Usaha</Label>
+                                                <Input
+                                                    id="hotel_name"
+                                                    value={data.hotel_name}
+                                                    onChange={(e) => setData('hotel_name', e.target.value)}
+                                                    placeholder="Masukkan nama hotel/usaha"
+                                                    required
+                                                />
+                                                {errors.hotel_name && <p className="text-sm text-red-500">{errors.hotel_name}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="address">Alamat</Label>
+                                                <Textarea
+                                                    id="address"
+                                                    value={data.address}
+                                                    onChange={(e) => setData('address', e.target.value)}
+                                                    placeholder="Masukkan alamat lengkap"
+                                                    required
+                                                />
+                                                {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="city">Kota</Label>
+                                                <Input
+                                                    id="city"
+                                                    value={data.city}
+                                                    onChange={(e) => setData('city', e.target.value)}
+                                                    placeholder="Masukkan kota"
+                                                    required
+                                                />
+                                                {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="phone">Telepon</Label>
+                                                <Input
+                                                    id="phone"
+                                                    value={data.phone}
+                                                    onChange={(e) => setData('phone', e.target.value)}
+                                                    placeholder="Masukkan nomor telepon"
+                                                />
+                                                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="partner_tier">Tier Mitra</Label>
+                                                <Select
+                                                    value={data.partner_tier}
+                                                    onValueChange={(value) => setData('partner_tier', value)}
+                                                    required
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Pilih tier mitra" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="premium">Premium</SelectItem>
+                                                        <SelectItem value="standard">Standard</SelectItem>
+                                                        <SelectItem value="basic">Basic</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.partner_tier && <p className="text-sm text-red-500">{errors.partner_tier}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="commission_rate">Komisi (%)</Label>
+                                                <Input
+                                                    id="commission_rate"
+                                                    type="number"
+                                                    min="0"
+                                                    max="100"
+                                                    step="0.1"
+                                                    value={data.commission_rate}
+                                                    onChange={(e) => setData('commission_rate', e.target.value)}
+                                                    placeholder="Masukkan persentase komisi"
+                                                    required
+                                                />
+                                                {errors.commission_rate && <p className="text-sm text-red-500">{errors.commission_rate}</p>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             <div className="flex gap-4">
                                 <Button type="submit" disabled={processing}>

@@ -27,6 +27,10 @@ Route::get('/promo', function () {
     return Inertia::render('promo');
 })->name('promo');
 
+// Affiliate routes for QR code system
+Route::get('/affiliate/{code}', [App\Http\Controllers\AffiliateController::class, 'processVisit'])
+    ->name('affiliate.redirect');
+
 // Route::middleware(['auth', 'verified'])->group(function () {
 //     Route::get('dashboard', function () {
 //         // return Inertia::render('dashboard');

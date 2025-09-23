@@ -21,7 +21,7 @@ export default function CategoriesShow({ category }) {
                         <h2 className="text-3xl font-bold tracking-tight">Detail Kategori</h2>
                     </div>
                     <Button variant="outline" size="sm" asChild>
-                        <Link href={route('admin.categories.edit', category.id)}>
+                        <Link href={route('admin.categories.edit', category)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                         </Link>

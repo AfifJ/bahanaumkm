@@ -25,12 +25,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     })->name('dashboard');
 
     Route::resource('products', ProductController::class)
-        ->middleware(['auth', 'verified'])
-        ->name('index', 'products.index');
+        ->middleware(['auth', 'verified']);
 
     Route::resource('categories', CategoryController::class)
-        ->middleware(['auth', 'verified'])
-        ->name('index', 'categories.index');
+        ->middleware(['auth', 'verified']);
 
 
     Route::get('/users', function () {

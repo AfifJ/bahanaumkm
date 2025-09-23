@@ -1,7 +1,7 @@
 'use client';;
 import * as React from 'react';
 import { useEffect, useState, useRef, useId } from 'react';
-import { SearchIcon, User, LogOut, Settings, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, Settings, LayoutDashboard, SearchIcon } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -19,7 +19,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../dropd
 import { UserMenuContent } from '@/components/user-menu-content';
 import { cn } from '@/lib/utils';
 import { usePage, Link, router } from '@inertiajs/react';
-import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
 
 // Simple logo component for the navbar
 const Logo = (props) => {
@@ -96,6 +95,7 @@ export const Navbar04 = React.forwardRef((
     cartHref = '#cart',
     cartCount = "",
     searchPlaceholder = 'Search...',
+    categories = [],
     onSignInClick,
     onCartClick,
     onSearchSubmit,
@@ -105,6 +105,7 @@ export const Navbar04 = React.forwardRef((
 ) => {
   const { auth } = usePage().props;
   const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef(null);
   const searchId = useId();
 
@@ -121,6 +122,12 @@ export const Navbar04 = React.forwardRef((
     const resizeObserver = new ResizeObserver(checkWidth);
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
+    }
+    const params = new URLSearchParams(window.location.search);
+
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
     }
 
     return () => {
@@ -140,10 +147,9 @@ export const Navbar04 = React.forwardRef((
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const query = formData.get('search');
-    if (onSearchSubmit) {
-      onSearchSubmit(query);
+    if (searchQuery.trim() && onSearchSubmit) {
+      onSearchSubmit(searchQuery.trim());
+      setSearchQuery(''); // Clear search after submit
     }
   };
 
@@ -241,7 +247,7 @@ export const Navbar04 = React.forwardRef((
                           </button>
                         ) : (
                           <Link
-                            href={route('login')}
+                            href='/login'
                             className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline">
                             {signInText}
                           </Link>
@@ -269,16 +275,15 @@ export const Navbar04 = React.forwardRef((
               </PopoverContent>
             </Popover>
           )}
-          {/* Main nav */}
           <div className="flex flex-1 items-center gap-4 max-md:justify-between">
-            <button
-              onClick={(e) => e.preventDefault()}
+            <Link
+              href="/"
               className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer">
               <div className="text-2xl">
                 {logo}
               </div>
               <span className="hidden font-bold text-xl sm:inline-block">BahanaUMKM</span>
-            </button>
+            </Link>
             {/* Navigation menu */}
             {!isMobile && (
               <NavigationMenu className="flex">
@@ -302,6 +307,8 @@ export const Navbar04 = React.forwardRef((
               <Input
                 id={searchId}
                 name="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="peer h-8 ps-8 pe-2"
                 placeholder={searchPlaceholder}
                 type="search" />

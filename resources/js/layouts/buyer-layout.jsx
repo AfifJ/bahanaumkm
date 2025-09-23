@@ -1,5 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { LayoutGrid, Package } from 'lucide-react';
+import { LayoutGrid, Package, ShoppingCart, History } from 'lucide-react';
 
 const mainNavItems = [
     {
@@ -11,6 +11,16 @@ const mainNavItems = [
         title: 'Products',
         href: '/products',
         icon: Package,
+    },
+    {
+        title: 'Keranjang',
+        href: '/buyer/orders/create',
+        icon: ShoppingCart,
+    },
+    {
+        title: 'Riwayat Pesanan',
+        href: '/buyer/orders',
+        icon: History,
     },
 ];
 
