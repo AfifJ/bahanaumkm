@@ -8,10 +8,12 @@ Buyer
   - [ ] judul panjang
 - [ ] profil
 - [x] pencarian / kategori
+- [ ] checkout produk
 
 Mitra
 - [x] kelola mitra (admin)
-- [ ] transaksi mitra
+- [ ] transaksi mitra (mitra dapat 25% dari total keuntungan)
+- [ ] laporan transaksi
 
 # Catatan:
 1. login_admin

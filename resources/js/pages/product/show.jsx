@@ -7,6 +7,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { ShoppingCart, Package } from 'lucide-react';
 import ScrollToTop from '@/components/scroll-to-top';
+import { Input } from '@/components/ui/input';
 
 export default function ProductShow({ product, relatedProducts, layout }) {
     const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
@@ -137,8 +138,8 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                         </div>
 
                         <div className="mb-6">
-                            <h3 className="mb-2 text-lg font-semibold">Deskripsi Produk</h3>
-                            <p className="leading-relaxed text-gray-700">{product.description || 'Tidak ada deskripsi produk.'}</p>
+                            <h3 className="mb-2 text-lg font-semibold">Varian</h3>
+                            <p className="leading-relaxed text-gray-700">Varian a b c</p>
                         </div>
 
                         {/* Quantity Selector */}
@@ -146,21 +147,28 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                             <div className="mb-4">
                                 <label className="mb-2 block text-sm font-medium text-gray-700">Jumlah:</label>
                                 <div className="flex items-center space-x-2">
-                                    <button
+                                    <Button
                                         onClick={() => handleQuantityChange(quantity - 1)}
                                         disabled={quantity <= 1}
                                         className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                                     >
                                         -
-                                    </button>
-                                    <span className="w-12 text-center font-medium">{quantity}</span>
-                                    <button
+                                    </Button>
+                                    <Input
+                                        type="number"
+                                        value={quantity}
+                                        onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                                        className="w-16 text-center border-0 shadow-none"
+                                        min="1"
+                                        max={product.stock}
+                                    />
+                                    <Button
                                         onClick={() => handleQuantityChange(quantity + 1)}
                                         disabled={quantity >= product.stock}
                                         className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                                     >
                                         +
-                                    </button>
+                                    </Button>
                                     <span className="ml-2 text-sm text-gray-500">Max: {product.stock}</span>
                                 </div>
                             </div>
@@ -204,7 +212,7 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                         </div>
 
                         {/* Product Specifications */}
-                        <div className="mt-6 rounded-lg bg-gray-50 p-4">
+                        {/* <div className="mt-6 rounded-lg bg-gray-50 p-4">
                             <h4 className="mb-2 font-semibold">Informasi Produk</h4>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                                 <span className="text-gray-600">SKU:</span>
@@ -216,7 +224,12 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                                 <span className="text-gray-600">Status:</span>
                                 <span className="capitalize">{product.status}</span>
                             </div>
-                        </div>
+                        </div> */}
+                    </div>
+
+                    <div className="mb-6">
+                        <h3 className="mb-2 text-lg font-semibold">Deskripsi Produk | Ulasan</h3>
+                        <p className="leading-relaxed text-gray-700">{product.description || 'Tidak ada deskripsi produk.'}</p>
                     </div>
                 </div>
 

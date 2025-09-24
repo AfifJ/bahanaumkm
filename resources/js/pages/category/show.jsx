@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import ScrollToTop from '@/components/scroll-to-top';
+import { Filter, FilterX } from 'lucide-react';
 
 export default function CategoryShow({ products, categories, currentCategory, filters, layout }) {
     const { url } = usePage();
@@ -16,6 +17,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
     const [maxPrice, setMaxPrice] = useState(filters.max_price || '');
     const [sortBy, setSortBy] = useState(filters.sort_by || 'created_at');
     const [sortOrder, setSortOrder] = useState(filters.sort_order || 'desc');
+    const [showFilters, setShowFilters] = useState(false);
 
     const handleFilter = () => {
         const params = new URLSearchParams();
@@ -70,66 +72,68 @@ export default function CategoryShow({ products, categories, currentCategory, fi
 
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Produk {currentCategory.name}</h1>
+                    <Button
+                        variant={'outline'}
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        {showFilters ? <FilterX /> :
+                            <Filter />
+                        }
+                    </Button>
                     <p className="text-gray-600">
                         {products.total} produk ditemukan dalam kategori ini
                     </p>
                 </div>
 
                 {/* Search and Filters */}
-                <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div className="lg:col-span-2">
+                {showFilters &&
+                    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <Input
-                                placeholder="Cari produk..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleFilter()}
+                                type="number"
+                                placeholder="Harga Min"
+                                value={minPrice}
+                                onChange={(e) => setMinPrice(e.target.value)}
+                            />
+                            <Input
+                                type="number"
+                                placeholder="Harga Max"
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(e.target.value)}
                             />
                         </div>
-                        <Input
-                            type="number"
-                            placeholder="Harga Min"
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(e.target.value)}
-                        />
-                        <Input
-                            type="number"
-                            placeholder="Harga Max"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                        />
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Urutkan berdasarkan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="created_at">Terbaru</SelectItem>
-                                <SelectItem value="name">Nama A-Z</SelectItem>
-                                <SelectItem value="sell_price">Harga</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={sortOrder} onValueChange={setSortOrder}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Urutan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="desc">Tertinggi</SelectItem>
-                                <SelectItem value="asc">Terendah</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <div className="flex gap-2">
-                            <Button onClick={handleFilter} className="flex-1">
-                                Terapkan Filter
-                            </Button>
-                            <Button variant="outline" onClick={clearFilters}>
-                                Reset
-                            </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Urutkan berdasarkan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="created_at">Terbaru</SelectItem>
+                                    <SelectItem value="name">Nama A-Z</SelectItem>
+                                    <SelectItem value="sell_price">Harga</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Select value={sortOrder} onValueChange={setSortOrder}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Urutan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="desc">Tertinggi</SelectItem>
+                                    <SelectItem value="asc">Terendah</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <div className="flex gap-2">
+                                <Button onClick={handleFilter} className="flex-1">
+                                    Terapkan Filter
+                                </Button>
+                                <Button variant="outline" onClick={clearFilters}>
+                                    Reset
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
 
                 {products.data.length > 0 ? (
                     <>
@@ -188,8 +192,8 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                             key={index}
                                             href={link.url || '#'}
                                             className={`px-3 py-2 rounded-md border ${link.active
-                                                    ? 'bg-blue-600 text-white border-blue-600'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                                 } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                         />

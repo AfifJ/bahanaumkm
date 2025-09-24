@@ -29,7 +29,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     </div>
                 </div>
             </section>
-            {featuredProducts.length > 0 && (
+            {/* {featuredProducts.length > 0 && (
                 <section className="bg-gray-50 py-16">
                     <div className="container mx-auto px-4">
                         <div className="mb-12 text-center">
@@ -71,11 +71,17 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                         </div>
                     </div>
                 </section>
-            )}
+            )} */}
             {/* Popular Categories Section */}
             <section className="py-4">
                 <div className="container mx-auto px-4">
-                    <h2 className="mb-2 text-xl font-bold text-gray-900">Kategori</h2>
+                    <h2 className="mb-4 text-xl font-bold text-gray-900 flex justify-between">Kategori
+                        <Button asChild>
+                            <Link href={'/category'}>
+                                Lihat Semua
+                            </Link>
+                        </Button>
+                    </h2>
                     {/* <p className="mb-8 text-gray-600">Jelajahi kategori produk terpopuler</p> */}
                     {popularCategories.length > 0 ? (
                         <div className="grid grid-cols-3 gap-6 md:grid-cols-4 lg:grid-cols-6">
@@ -152,7 +158,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                 </div>
             </section>
             {/* Call to Action Section */}
-            <section className="bg-blue-600 py-16 text-white">
+            {/* <section className="bg-blue-600 py-16 text-white">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="mb-4 text-3xl font-bold">Siap Berbelanja?</h2>
                     <p className="mb-8 text-xl opacity-90">Jelajahi ribuan produk UMKM berkualitas dengan harga terbaik</p>
@@ -160,7 +166,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                         <Link href={route('category.index')}>Mulai Berbelanja</Link>
                     </Button>
                 </div>
-            </section>
+            </section> */}
         </GuestLayout>
     );
 }

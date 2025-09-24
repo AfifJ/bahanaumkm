@@ -1,7 +1,7 @@
 'use client';;
 import * as React from 'react';
 import { useEffect, useState, useRef, useId } from 'react';
-import { User, LogOut, Settings, LayoutDashboard, SearchIcon } from 'lucide-react';
+import { User, LogOut, Settings, LayoutDashboard, SearchIcon, ShoppingCart } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -263,7 +263,8 @@ export const Navbar04 = React.forwardRef((
                           if (onCartClick) onCartClick();
                         }}>
                         <span className="flex items-baseline gap-2">
-                          {cartText}
+                          <ShoppingCart />
+                          {/* {cartText} */}
                           <span className="text-primary-foreground/60 text-xs">
                             {cartCount}
                           </span>
@@ -364,20 +365,40 @@ export const Navbar04 = React.forwardRef((
                 </Button>
               )
             )}
-            <Button
-              size="sm"
-              className="text-sm font-medium px-4 h-9 rounded-md shadow-sm"
-              onClick={(e) => {
-                e.preventDefault();
-                if (onCartClick) onCartClick();
-              }}>
-              <span className="flex items-baseline gap-2">
-                {cartText}
-                <span className="text-primary-foreground/60 text-xs">
-                  {cartCount}
+            {auth.user ?
+              <Button
+                size="sm"
+                className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md shadow-sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onCartClick) onCartClick();
+                }}>
+                <span className="flex items-baseline gap-2">
+                  {/* {cartText} */}
+                  <ShoppingCart />
+                  {cartCount > 0 &&
+                    <span className="text-primary-foreground/60 text-xs">
+                      {cartCount}
+                    </span>
+                  }
                 </span>
-              </span>
-            </Button>
+              </Button>
+              :
+              <Button
+                size="sm"
+                asChild
+              >
+                <Link
+                  className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md shadow-sm"
+                  href={'/login'}
+                >
+                  <span className="flex items-baseline gap-2">
+                    <ShoppingCart />
+                  </span>
+                </Link>
+              </Button>
+            }
+
           </div>
         )}
       </div>

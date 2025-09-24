@@ -32,12 +32,6 @@ export default function Index({ products }) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex flex-row items-center justify-between pb-4">
                         <h2 className="text-2xl font-bold">Daftar Produk</h2>
-                        <Link href={route('vendor.products.create')}>
-                            <Button>
-                                <PlusIcon className="mr-2 h-4 w-4" />
-                                Tambah Produk
-                            </Button>
-                        </Link>
                     </div>
                     <Table>
                         <TableHeader className="bg-gray-50">
@@ -49,7 +43,6 @@ export default function Index({ products }) {
                                 <TableHead className="text-right">Harga Jual</TableHead>
                                 <TableHead className="text-right">Stok</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -89,37 +82,6 @@ export default function Index({ products }) {
                                     <TableCell className="text-right">{product.stock}</TableCell>
                                     <TableCell>
                                         <Badge variant="outline">{product.status}</Badge>
-                                    </TableCell>
-                                    <TableCell className="space-x-2 text-right">
-                                        <Link href={route('vendor.products.edit', product.id)}>
-                                            <Button variant="outline" size="sm">
-                                                <Edit />
-                                            </Button>
-                                        </Link>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="outline" size="sm">
-                                                    <Trash className="text-red-500" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Apakah anda yakin?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Penghapusan data tidak bisa dibatalkan. Tindakan ini akan menghapus data secara permanen
-                                                        dari server.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                    <AlertDialogAction asChild>
-                                                        <Link href={route('vendor.products.destroy', product.id)} method="delete" as="button">
-                                                            Hapus
-                                                        </Link>
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
                                     </TableCell>
                                 </TableRow>
                             ))}

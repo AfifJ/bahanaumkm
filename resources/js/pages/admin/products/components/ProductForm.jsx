@@ -118,9 +118,8 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                     </Card>
                 ) : (
                     <Card
-                        className={`cursor-pointer rounded-lg border-2 border-dashed p-6 transition-colors ${
-                            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                        className={`cursor-pointer rounded-lg border-2 border-dashed p-6 transition-colors ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                            }`}
                         onClick={handleClickArea}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
@@ -225,28 +224,22 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
 
             <div className="mt-4">
                 <Label htmlFor="vendor_id">Vendor</Label>
-                {isEdit ? (
-                    <div className="rounded-md border bg-gray-50 p-3">
-                        <p className="text-sm">{data.vendor_name || data.vendor?.name || 'Tidak ada vendor'}</p>
-                    </div>
-                ) : (
-                    <Select
-                        value={data.vendor_id?.toString()}
-                        onValueChange={(value) => setData('vendor_id', value === 'null' ? null : parseInt(value))}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Pilih vendor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="null">Tidak ada vendor</SelectItem>
-                            {vendors.map((vendor) => (
-                                <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                                    {vendor.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
+                <Select
+                    value={data.vendor_id?.toString()}
+                    onValueChange={(value) => setData('vendor_id', value === 'null' ? null : parseInt(value))}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Pilih vendor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="null">Tidak ada vendor</SelectItem>
+                        {vendors.map((vendor) => (
+                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                                {vendor.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <InputError message={errors.vendor_id} className="mt-2" />
             </div>
 
