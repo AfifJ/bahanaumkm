@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             OrderSeeder::class,
         ]);
+        
+        // Uncomment baris berikut jika ingin menambahkan data produk bulk
+        // $this->call(BulkProductSeeder::class);
+        
         // User::factory(10)->create();
 
         // User::factory()->create([

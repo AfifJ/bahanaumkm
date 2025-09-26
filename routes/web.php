@@ -52,4 +52,5 @@ require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/admin.php';
 require __DIR__ . '/vendor.php';
+require __DIR__ . '/buyer.php';
 require __DIR__ . '/guest.php';

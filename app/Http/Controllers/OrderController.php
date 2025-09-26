@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('orders/Index', [
+        return Inertia::render('orders/index', [
             'orders' => $orders,
         ]);
     }
@@ -30,9 +31,18 @@ class OrderController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('orders/Create');
+        $productId = $request->input('product_id');
+        $quantity = $request->input('quantity');
+
+        // Lakukan sesuatu dengan parameter, misalnya ambil data produk
+        $product = Product::find($productId);
+
+        return Inertia::render('orders/create', [
+            'product' => $product,
+            'quantity' => $quantity,
+        ]);
     }
 
     /**
@@ -40,9 +50,9 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'shipping_address' => 'required|string|min:10',
         ]);
@@ -57,10 +67,10 @@ class OrderController extends Controller
 
             foreach ($request->items as $itemData) {
                 $product = Product::findOrFail($itemData['product_id']);
-                
+
                 // Check stock availability
                 if ($product->stock < $itemData['quantity']) {
-                    throw new \Exception("Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}");
+                    throw new Exception("Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}");
                 }
 
                 // Set mitra_id from the first product
@@ -70,7 +80,7 @@ class OrderController extends Controller
 
                 // Ensure all products are from the same vendor
                 if ($product->vendor_id !== $mitraId) {
-                    throw new \Exception("Tidak dapat membeli produk dari vendor yang berbeda dalam satu pesanan");
+                    throw new Exception("Tidak dapat membeli produk dari vendor yang berbeda dalam satu pesanan");
                 }
 
                 $unitPrice = $product->sell_price;
@@ -94,7 +104,7 @@ class OrderController extends Controller
             // Create order
             $order = Order::create([
                 'buyer_id' => Auth::id(),
-                'mitra_id' => $mitraId,
+                'partner_id' => $mitraId,
                 'shipping_address' => $request->shipping_address,
                 'total_amount' => $totalAmount,
                 'partner_commission' => $mitraCommission,
@@ -109,10 +119,20 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return redirect()->route('orders.show', $order->id)
+            // Return JSON response for API calls
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesanan berhasil dibuat. Silakan lakukan pembayaran.',
+                    'order_id' => $order->id,
+                    'order' => $order
+                ]);
+            }
+
+            return redirect()->route('buyer.orders.show', $order->id)
                 ->with('success', 'Pesanan berhasil dibuat. Silakan lakukan pembayaran.');
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
@@ -130,7 +150,7 @@ class OrderController extends Controller
 
         $order->load(['items.product', 'mitra']);
 
-        return Inertia::render('orders/Show', [
+        return Inertia::render('orders/show', [
             'order' => $order,
         ]);
     }
@@ -146,19 +166,34 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'sometimes|in:cancelled',
+            'status' => 'sometimes|in:cancelled,paid',
         ]);
 
-        // Only allow cancellation for pending orders
-        if ($request->status === 'cancelled' && $order->status === 'pending') {
-            // Restore product stock
+        // Handle payment update
+        if ($request->status === 'paid' && $order->status === 'pending') {
+            $updated = $order->update(['status' => 'paid']);
+            return back()->with('success', 'Pembayaran berhasil diproses');
+        }
+
+        // Handle cancellation
+         if ($request->status === 'cancelled' && $order->status === 'pending') {
+            // Load items with products to ensure relationships exist
+            $order->load('items.product');
+            
             foreach ($order->items as $item) {
-                $product = $item->product;
-                $product->increment('stock', $item->quantity);
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                } else {
+                    \Log::warning('Product not found for order item', [
+                        'order_id' => $order->id,
+                        'item_id' => $item->id,
+                        'product_id' => $item->product_id
+                    ]);
+                }
             }
 
             $order->update(['status' => 'cancelled']);
-
+            // DB::commit();
             return back()->with('success', 'Pesanan berhasil dibatalkan');
         }
 

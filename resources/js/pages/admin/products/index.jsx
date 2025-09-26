@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link } from '@inertiajs/react';
-import { Edit, PlusIcon, Trash } from 'lucide-react';
+import { CornerUpRight, Edit, MoveUpRight, PlusIcon, Trash } from 'lucide-react';
 
 export default function Index({ products, can }) {
     return (
@@ -31,14 +31,17 @@ export default function Index({ products, can }) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex flex-row items-center justify-between pb-4">
+                        <Link href={route('admin.products.create')}>
+                            Add Product Witch
+                        </Link>
                         <h2 className="text-2xl font-bold">Product List</h2>
                         {can.create && route('admin.products.create') && (
-                            <Link href={route('admin.products.create')}>
-                                <Button>
+                            <Button asChild>
+                                <Link href={route('admin.products.create')}>
                                     <PlusIcon className="mr-2 h-4 w-4" />
                                     Add Product
-                                </Button>
-                            </Link>
+                                </Link>
+                            </Button>
                         )}
                     </div>
                     <Table>
@@ -70,7 +73,13 @@ export default function Index({ products, can }) {
                                             </div>
                                         )}
                                     </TableCell>
-                                    <TableCell className="font-medium">{product.name}</TableCell>
+                                    <TableCell className="font-medium text-blue-600 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis" title={product.name}>
+                                        {can.edit && (
+                                            <Link href={route('admin.products.edit', product)}>
+                                                {product.name}  <MoveUpRight className='inline h-4 w-4' />
+                                            </Link>
+                                        )}
+                                    </TableCell>
                                     <TableCell>{product.vendor?.name || '-'}</TableCell>
                                     <TableCell className="text-right">
                                         {new Intl.NumberFormat('id-ID', {

@@ -1,13 +1,14 @@
+import { Button } from '@/components/ui/button';
 import BuyerLayout from '@/layouts/buyer-layout';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { 
-    Package, 
-    Calendar, 
-    DollarSign, 
-    MapPin, 
-    User, 
-    Truck, 
-    CheckCircle, 
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import {
+    Package,
+    Calendar,
+    DollarSign,
+    MapPin,
+    User,
+    Truck,
+    CheckCircle,
     XCircle,
     ArrowLeft
 } from 'lucide-react';
@@ -57,10 +58,36 @@ export default function OrderShow({ order }) {
 
     const handleCancelOrder = () => {
         if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-            put(route('buyer.orders.update', order.id), {
+            router.put(route('buyer.orders.update', order.id), {
                 status: 'cancelled'
+            }, {
+                onSuccess: () => {
+                    console.log('Cancel successful');
+                },
+                onError: (errors) => {
+                    console.error('Cancel failed:', errors);
+                },
+                onFinish: () => {
+                    console.log('Request cancel finished');
+                }
             });
         }
+    };
+
+    const handleBayarSekarang = () => {
+        router.put(route('buyer.orders.update', order.id), {
+            status: 'paid'
+        }, {
+            onSuccess: () => {
+                console.log('Payment successful');
+            },
+            onError: (errors) => {
+                console.error('Payment failed:', errors);
+            },
+            onFinish: () => {
+                console.log('Request finished');
+            }
+        });
     };
 
     const StatusIcon = getStatusIcon(order.status);
@@ -68,7 +95,7 @@ export default function OrderShow({ order }) {
     return (
         <BuyerLayout>
             <Head title={`Detail Pesanan #${order.order_code} - Bahana UMKM`} />
-            
+
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-6">
@@ -79,7 +106,7 @@ export default function OrderShow({ order }) {
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Kembali ke Riwayat Transaksi
                     </Link>
-                    
+
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -154,10 +181,9 @@ export default function OrderShow({ order }) {
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Status Pesanan</h2>
                             <div className="space-y-4">
                                 <div className="flex items-center space-x-3">
-                                    <div className={`w-3 h-3 rounded-full ${
-                                        ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)
-                                            ? 'bg-green-500' : 'bg-gray-300'
-                                    }`} />
+                                    <div className={`w-3 h-3 rounded-full ${['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)
+                                        ? 'bg-green-500' : 'bg-gray-300'
+                                        }`} />
                                     <div>
                                         <p className="font-medium text-gray-900">Pesanan dibuat</p>
                                         <p className="text-sm text-gray-500">{formatDate(order.created_at)}</p>
@@ -166,10 +192,9 @@ export default function OrderShow({ order }) {
 
                                 {order.status !== 'pending' && order.status !== 'cancelled' && (
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                            ['paid', 'processing', 'shipped', 'delivered'].includes(order.status)
-                                                ? 'bg-green-500' : 'bg-gray-300'
-                                        }`} />
+                                        <div className={`w-3 h-3 rounded-full ${['paid', 'processing', 'shipped', 'delivered'].includes(order.status)
+                                            ? 'bg-green-500' : 'bg-gray-300'
+                                            }`} />
                                         <div>
                                             <p className="font-medium text-gray-900">Pembayaran diterima</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -179,10 +204,9 @@ export default function OrderShow({ order }) {
 
                                 {['processing', 'shipped', 'delivered'].includes(order.status) && (
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                            ['processing', 'shipped', 'delivered'].includes(order.status)
-                                                ? 'bg-green-500' : 'bg-gray-300'
-                                        }`} />
+                                        <div className={`w-3 h-3 rounded-full ${['processing', 'shipped', 'delivered'].includes(order.status)
+                                            ? 'bg-green-500' : 'bg-gray-300'
+                                            }`} />
                                         <div>
                                             <p className="font-medium text-gray-900">Pesanan diproses</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -192,10 +216,9 @@ export default function OrderShow({ order }) {
 
                                 {['shipped', 'delivered'].includes(order.status) && (
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                            ['shipped', 'delivered'].includes(order.status)
-                                                ? 'bg-green-500' : 'bg-gray-300'
-                                        }`} />
+                                        <div className={`w-3 h-3 rounded-full ${['shipped', 'delivered'].includes(order.status)
+                                            ? 'bg-green-500' : 'bg-gray-300'
+                                            }`} />
                                         <div>
                                             <p className="font-medium text-gray-900">Pesanan dikirim</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -230,18 +253,18 @@ export default function OrderShow({ order }) {
                     <div className="space-y-6">
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h2>
-                            
+
                             <div className="space-y-3">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Subtotal</span>
                                     <span className="font-medium">{formatPrice(order.total_amount)}</span>
                                 </div>
-                                
+
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Ongkos kirim</span>
                                     <span className="font-medium">Gratis</span>
                                 </div>
-                                
+
                                 <div className="border-t pt-3">
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span>Total</span>
@@ -253,29 +276,29 @@ export default function OrderShow({ order }) {
 
                         <div className="bg-white rounded-lg shadow-sm border p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Informasi Pengiriman</h2>
-                            
+
                             <div className="space-y-3">
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                                     <MapPin className="h-4 w-4" />
                                     <span className="break-words">{order.shipping_address}</span>
                                 </div>
-                                
+
                                 {order.mitra && (
                                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                                         <User className="h-4 w-4" />
                                         <span>Vendor: {order.mitra.name}</span>
                                     </div>
                                 )}
-                                
+
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                                     <Calendar className="h-4 w-4" />
                                     <span>Dipesan: {formatDate(order.created_at)}</span>
                                 </div>
-                                
-                                <div className="flex items-center space-x-2 text-sm text-gray-600">
+
+                                {/* <div className="flex items-center space-x-2 text-sm text-gray-600">
                                     <DollarSign className="h-4 w-4" />
                                     <span>Komisi Vendor: {formatPrice(order.partner_commission)}</span>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 
@@ -287,16 +310,18 @@ export default function OrderShow({ order }) {
                                     Pesanan Anda menunggu pembayaran. Silakan selesaikan pembayaran atau batalkan pesanan.
                                 </p>
                                 <div className="space-y-2">
-                                    <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm">
+                                    <Button
+                                        onClick={handleBayarSekarang}
+                                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm">
                                         Bayar Sekarang
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         onClick={handleCancelOrder}
                                         disabled={processing}
                                         className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm"
                                     >
                                         {processing ? 'Membatalkan...' : 'Batalkan Pesanan'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}

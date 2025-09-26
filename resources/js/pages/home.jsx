@@ -1,10 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import BuyerLayout from '@/layouts/buyer-layout';
 import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Home({ featuredProducts, latestProducts, popularCategories }) {
     const { auth } = usePage().props;
+    const LayoutComponent = BuyerLayout;
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('id-ID', {
@@ -15,10 +17,10 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
     };
 
     return (
-        <GuestLayout>
+        <LayoutComponent>
             <Head title="Beranda - Bahana UMKM" />
             {/* Hero Banner Section */}
-            <section className="">
+            <section className="py-2">
                 <div className="container mx-auto px-4">
                     <div className="aspect-[4/1] overflow-hidden rounded-md">
                         <img
@@ -75,13 +77,13 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
             {/* Popular Categories Section */}
             <section className="py-4">
                 <div className="container mx-auto px-4">
-                    <h2 className="mb-4 text-xl font-bold text-gray-900 flex justify-between">Kategori
-                        <Button asChild>
-                            <Link href={'/category'}>
-                                Lihat Semua
-                            </Link>
-                        </Button>
-                    </h2>
+                    <div className='flex justify-between'>
+                        <h2 className="mb-4 text-xl font-bold text-gray-900 ">Kategori
+                        </h2>
+                        <Link href={'/category'}>
+                            Lihat Semua
+                        </Link>
+                    </div>
                     {/* <p className="mb-8 text-gray-600">Jelajahi kategori produk terpopuler</p> */}
                     {popularCategories.length > 0 ? (
                         <div className="grid grid-cols-3 gap-6 md:grid-cols-4 lg:grid-cols-6">
@@ -117,8 +119,8 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
                             {latestProducts.map((product) => (
                                 <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
-                                    <Card className="p-0 gap-1 group overflow-hidden rounded-lg border border-gray-200 transition-all hover:scale-105 hover:shadow-lg">
-                                        <CardHeader className="p-0">
+                                    <div className="p-0 gap-1 group overflow-hidden rounded transition-all hover:scale-105 hover:shadow-lg">
+                                        <div className="p-0 rounded overflow-hidden">
                                             {product.image_url ? (
                                                 <img
                                                     src={product.image_url}
@@ -130,14 +132,14 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                                                     <span className="text-gray-400">📦</span>
                                                 </div>
                                             )}
-                                        </CardHeader>
-                                        <CardContent className="p-3">
+                                        </div>
+                                        <div className="p-3">
                                             <h3 className="line-clamp-2 h-10 text-sm font-medium text-gray-900 group-hover:text-blue-600">
                                                 {product.name}
                                             </h3>
-                                            <p className="mt-2 text-lg font-bold text-green-600">{formatPrice(product.sell_price)}</p>
-                                        </CardContent>
-                                    </Card>
+                                            <p className="mt-2 text-lg font-bold">{formatPrice(product.sell_price)}</p>
+                                        </div>
+                                    </div>
                                 </Link>
                             ))}
                         </div>
@@ -167,6 +169,6 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     </Button>
                 </div>
             </section> */}
-        </GuestLayout>
+        </LayoutComponent>
     );
 }

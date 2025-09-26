@@ -10,7 +10,7 @@ import ScrollToTop from '@/components/scroll-to-top';
 import { Input } from '@/components/ui/input';
 
 export default function ProductShow({ product, relatedProducts, layout }) {
-    const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
+    const LayoutComponent = GuestLayout
     const [quantity, setQuantity] = useState(1);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isBuyingNow, setIsBuyingNow] = useState(false);
@@ -58,26 +58,20 @@ export default function ProductShow({ product, relatedProducts, layout }) {
     const handleBuyNow = () => {
         if (product.stock <= 0) return;
 
-        // Simpan data produk ke session storage untuk halaman checkout
-        const checkoutData = {
-            items: [{
-                product_id: product.id,
-                quantity: quantity,
-                product: {
-                    id: product.id,
-                    name: product.name,
-                    image_url: product.image_url,
-                    sell_price: product.sell_price,
-                    stock: product.stock
-                }
-            }],
-            direct_checkout: true
-        };
+        setIsBuyingNow(true);
 
-        sessionStorage.setItem('checkout_data', JSON.stringify(checkoutData));
+        // Clear any existing cart data from session storage
+        sessionStorage.removeItem('checkout_data');
 
-        // Redirect ke halaman checkout
-        router.visit(route('buyer.orders.create'));
+        // Redirect ke halaman checkout dengan query parameters untuk pembelian langsung
+        router.visit(route('buyer.orders.create', {
+            product_id: product.id,
+            quantity: quantity
+        }), {
+            onFinish: () => {
+                setIsBuyingNow(false);
+            }
+        });
     };
 
     const handleQuantityChange = (newQuantity) => {
@@ -196,7 +190,7 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                             <Button
                                 variant="outline"
                                 size="lg"
-                                className="flex-1"
+                                className="flex-1 hover:cursor-pointer"
                                 disabled={product.stock <= 0 || isBuyingNow}
                                 onClick={handleBuyNow}
                             >

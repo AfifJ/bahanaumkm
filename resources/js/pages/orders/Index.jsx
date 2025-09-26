@@ -1,5 +1,5 @@
 import BuyerLayout from '@/layouts/buyer-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Package, Calendar, DollarSign, MapPin, User } from 'lucide-react';
 
 export default function OrdersIndex({ orders }) {
@@ -38,7 +38,7 @@ export default function OrdersIndex({ orders }) {
     return (
         <BuyerLayout>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
-            
+
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -167,7 +167,19 @@ export default function OrdersIndex({ orders }) {
                                                 <button
                                                     onClick={() => {
                                                         if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-                                                            // Implement cancel logic
+                                                            router.put(route('buyer.orders.update', order.id), {
+                                                                status: 'cancelled'
+                                                            }, {
+                                                                onSuccess: () => {
+                                                                    console.log('Cancel successful');
+                                                                },
+                                                                onError: (errors) => {
+                                                                    console.error('Cancel failed:', errors);
+                                                                },
+                                                                onFinish: () => {
+                                                                    console.log('Request cancel finished');
+                                                                }
+                                                            });
                                                         }
                                                     }}
                                                     className="px-4 py-2 text-sm border border-red-300 rounded-md text-red-700 hover:bg-red-50"
@@ -194,11 +206,10 @@ export default function OrdersIndex({ orders }) {
                                         <Link
                                             key={index}
                                             href={link.url || '#'}
-                                            className={`px-3 py-2 rounded-md text-sm ${
-                                                link.active
+                                            className={`px-3 py-2 rounded-md text-sm ${link.active
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                            } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                         />
                                     ))}

@@ -139,9 +139,9 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {products.data.map((product) => (
-                                <Card key={product.id} className="hover:shadow-lg transition-shadow p-0">
-                                    <CardHeader className="p-0">
-                                        <Link href={route('product.show', product.slug)}>
+                                <Link key={product.id} href={route('product.show', product.slug)}>
+                                    <Card className="hover:shadow-lg transition-shadow p-0">
+                                        <CardHeader className="p-0">
                                             {product.image_url ? (
                                                 <img
                                                     src={product.image_url}
@@ -153,33 +153,25 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                                     <span className="text-gray-500">Gambar Tidak Tersedia</span>
                                                 </div>
                                             )}
-                                        </Link>
-                                    </CardHeader>
-                                    <CardContent className="p-4">
-                                        <Link
-                                            href={route('product.show', product.slug)}
-                                            className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
-                                        >
-                                            {product.name}
-                                        </Link>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                            {product.category?.name}
-                                        </p>
-                                        <p className="text-2xl font-bold text-green-600 mt-2">
-                                            {formatPrice(product.sell_price)}
-                                        </p>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Stok: {product.stock}
-                                        </p>
-                                    </CardContent>
-                                    <CardFooter className="p-4 pt-0">
-                                        <Button asChild className="w-full">
-                                            <Link href={route('product.show', product.slug)}>
-                                                Lihat Detail
-                                            </Link>
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
+                                        </CardHeader>
+                                        <CardContent className="p-4">
+                                            <span
+                                                className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
+                                            >
+                                                {product.name}
+                                            </span>
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                {product.category?.name}
+                                            </p>
+                                            <p className="text-2xl font-bold text-green-600 mt-2">
+                                                {formatPrice(product.sell_price)}
+                                            </p>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                Stok: {product.stock}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
                             ))}
                         </div>
 

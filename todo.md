@@ -1,19 +1,18 @@
 # Todo
-
-Buyer
-- [x] crud kategori dengan gambar
-- [ ] beranda buyer
-- [ ] detail produk untuk buyer
-  - [ ] deskripsi panjang
-  - [ ] judul panjang
-- [ ] profil
-- [x] pencarian / kategori
-- [ ] checkout produk
-
-Mitra
-- [x] kelola mitra (admin)
+- [ ] checkout produk (cek logika ketika beli sekarang)
+- [ ] tempat pengiriman (list semua mitra)
+- [ ] sistem cart
 - [ ] transaksi mitra (mitra dapat 25% dari total keuntungan)
 - [ ] laporan transaksi
+- [ ] profil
+
+- [x] crud kategori dengan gambar
+- [x] beranda buyer
+- [x] detail produk untuk buyer
+  - [x] deskripsi panjang
+  - [x] judul panjang
+- [x] kelola mitra (admin)
+- [x] pencarian / kategori
 
 # Catatan:
 1. login_admin
