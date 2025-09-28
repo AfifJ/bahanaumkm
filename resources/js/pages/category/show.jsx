@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import ScrollToTop from '@/components/scroll-to-top';
-import { Filter, FilterX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Filter, FilterX } from 'lucide-react';
 
 export default function CategoryShow({ products, categories, currentCategory, filters, layout }) {
     const { url } = usePage();
@@ -177,20 +177,53 @@ export default function CategoryShow({ products, categories, currentCategory, fi
 
                         {/* Pagination */}
                         {products.links && products.links.length > 3 && (
-                            <div className="mt-8 flex justify-center">
-                                <nav className="flex items-center gap-2">
-                                    {products.links.map((link, index) => (
-                                        <Link
-                                            key={index}
-                                            href={link.url || '#'}
-                                            className={`px-3 py-2 rounded-md border ${link.active
-                                                ? 'bg-blue-600 text-white border-blue-600'
-                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
-                                </nav>
+                            <div className="mt-8 flex items-center justify-between">
+                                <div className="text-sm text-gray-700">
+                                    Menampilkan {products.from} sampai {products.to} dari {products.total} produk
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                    {/* Previous Button */}
+                                    <Link
+                                        href={products.links[0].url || '#'}
+                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${
+                                            !products.links[0].url
+                                                ? 'cursor-not-allowed text-gray-400'
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        <span className="ml-1">Sebelumnya</span>
+                                    </Link>
+
+                                    {/* Page Numbers */}
+                                    <div className="flex space-x-1">
+                                        {products.links.slice(1, -1).map((link, index) => (
+                                            <Link
+                                                key={index}
+                                                href={link.url || '#'}
+                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${
+                                                    link.active
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'text-gray-700 hover:bg-gray-50'
+                                                } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Next Button */}
+                                    <Link
+                                        href={products.links[products.links.length - 1].url || '#'}
+                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${
+                                            !products.links[products.links.length - 1].url
+                                                ? 'cursor-not-allowed text-gray-400'
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <span className="mr-1">Selanjutnya</span>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Link>
+                                </div>
                             </div>
                         )}
                     </>

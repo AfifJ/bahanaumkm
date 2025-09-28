@@ -1,3 +1,14 @@
+// import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+
+// const Pesanan = () => {
+//     return (
+//         <BuyerLayoutNonSearch backLink={route('buyer.profile.index')}>
+//             <div>Pesanan</div>
+//         </BuyerLayoutNonSearch>
+//     )
+// }
+// export default Pesanan
+
 import { Button } from '@/components/ui/button';
 import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -41,14 +52,11 @@ export default function OrdersIndex({ orders }) {
     };
 
     return (
-        <BuyerLayoutNonSearch title={'Riwayat Transaksi'}>
+        <BuyerLayoutNonSearch backLink={route('buyer.profile.index')} title={'Pesanan Saya'}>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
-
             <div className="container mx-auto p-4">
                 {flash?.success && <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">{flash.success}</div>}
-
                 {flash?.error && <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{flash.error}</div>}
-
                 {/* Orders List */}
                 <div className="rounded-lg bg-white">
                     {orders.data.length === 0 ? (

@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request, $roleName)
     {
         $role = Role::where('name', $roleName)->firstOrFail();
-        
+
         $users = User::with('role')
             ->where('role_id', $role->id)
             ->orderBy('name')
@@ -37,16 +37,16 @@ class UserController extends Controller
     public function create($roleName)
     {
         $role = Role::where('name', $roleName)->firstOrFail();
-        
+
         $data = ['role' => $role];
-        
+
         // Jika role adalah Mitra, tambahkan data tambahan
         if ($roleName === 'Mitra') {
             $data['mitraUsers'] = User::whereHas('role', function($query) {
                 $query->where('name', 'Mitra');
             })->whereDoesntHave('mitraProfile')->get();
         }
-        
+
         return Inertia::render('admin/users/create', $data);
     }
 
@@ -56,7 +56,7 @@ class UserController extends Controller
     public function store(Request $request, $roleName)
     {
         $role = Role::where('name', $roleName)->firstOrFail();
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -78,8 +78,8 @@ class UserController extends Controller
                 'address' => 'required|string',
                 'city' => 'required|string|max:100',
                 'phone' => 'nullable|string|max:20',
-                'partner_tier' => 'required|in:premium,standard,basic',
-                'commission_rate' => 'required|numeric|min:0|max:100'
+                // 'partner_tier' => 'required|in:premium,standard,basic',
+                // 'commission_rate' => 'required|numeric|min:0|max:100'
             ]);
 
             $mitraData['user_id'] = $user->id;
@@ -98,17 +98,17 @@ class UserController extends Controller
     public function edit($roleName, User $user)
     {
         $role = Role::where('name', $roleName)->firstOrFail();
-        
+
         $data = [
             'user' => $user->load('role'),
             'role' => $role
         ];
-        
+
         // Jika role adalah Mitra, tambahkan data profil mitra
         if ($roleName === 'Mitra') {
             $data['mitraProfile'] = MitraProfile::where('user_id', $user->id)->first();
         }
-        
+
         return Inertia::render('admin/users/edit', $data);
     }
 
@@ -128,15 +128,15 @@ class UserController extends Controller
         // Jika role adalah Mitra, update juga profil mitra
         if ($roleName === 'Mitra') {
             $mitraProfile = MitraProfile::where('user_id', $user->id)->first();
-            
+
             if ($mitraProfile) {
                 $mitraData = $request->validate([
                     'hotel_name' => 'required|string|max:255',
                     'address' => 'required|string',
                     'city' => 'required|string|max:100',
                     'phone' => 'nullable|string|max:20',
-                    'partner_tier' => 'required|in:premium,standard,basic',
-                    'commission_rate' => 'required|numeric|min:0|max:100'
+                    // 'partner_tier' => 'required|in:premium,standard,basic',
+                    // 'commission_rate' => 'required|numeric|min:0|max:100'
                 ]);
 
                 $mitraProfile->update($mitraData);

@@ -44,4 +44,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::put('/{role}/{user}', [UserController::class, 'update'])->name('update');
         Route::delete('/{role}/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
+
+    Route::get('/transaction', function () {
+
+
+    })->name('transaction');
+
+    // Route::prefix('transaction')->name('transaction.')->group(function () {
+    //     Route::get('/', [PesananCotroller::class, 'index'])->name('index');
+    // });
 });

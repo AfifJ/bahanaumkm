@@ -16,8 +16,10 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        
+
         $orders = Order::with(['items.product', 'mitra'])
             ->where('buyer_id', Auth::id())
             ->orderBy('created_at', 'desc')
@@ -176,10 +178,10 @@ class OrderController extends Controller
         }
 
         // Handle cancellation
-         if ($request->status === 'cancelled' && $order->status === 'pending') {
+        if ($request->status === 'cancelled' && $order->status === 'pending') {
             // Load items with products to ensure relationships exist
             $order->load('items.product');
-            
+
             foreach ($order->items as $item) {
                 if ($item->product) {
                     $item->product->increment('stock', $item->quantity);

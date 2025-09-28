@@ -1,11 +1,11 @@
 # Todo
-- [ ] checkout produk (cek logika ketika beli sekarang)
+- [ ] laporan transaksi untuk mitra (ongoing)
 - [ ] tempat pengiriman (list semua mitra)
 - [ ] sistem cart
 - [ ] transaksi mitra (mitra dapat 25% dari total keuntungan)
-- [ ] laporan transaksi
-- [ ] profil
+- [ ] profil (ui udah)
 
+- [x] checkout produk (cek logika ketika beli sekarang)
 - [x] crud kategori dengan gambar
 - [x] beranda buyer
 - [x] detail produk untuk buyer
@@ -190,4 +190,3 @@ Tombol Tambah Diskon Baru.
 Opsi: Edit Diskon, Hapus/Nonaktifkan Diskon.
 Pencarian Diskon.
 Navigasi: Menu Admin.
-

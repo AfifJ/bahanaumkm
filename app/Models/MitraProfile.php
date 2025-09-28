@@ -22,8 +22,8 @@ class MitraProfile extends Model
         'address',
         'city',
         'phone',
-        'partner_tier',
-        'commission_rate',
+        // 'partner_tier',
+        // 'commission_rate',
         'unique_code'
     ];
 

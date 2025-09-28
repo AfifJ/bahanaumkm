@@ -1,17 +1,7 @@
 import { Button } from '@/components/ui/button';
 import BuyerLayout from '@/layouts/buyer-layout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import {
-    Package,
-    Calendar,
-    DollarSign,
-    MapPin,
-    User,
-    Truck,
-    CheckCircle,
-    XCircle,
-    ArrowLeft
-} from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, MapPin, Package, User, XCircle } from 'lucide-react';
 
 export default function OrderShow({ order }) {
     const { flash } = usePage().props;
@@ -58,36 +48,44 @@ export default function OrderShow({ order }) {
 
     const handleCancelOrder = () => {
         if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-            router.put(route('buyer.orders.update', order.id), {
-                status: 'cancelled'
-            }, {
-                onSuccess: () => {
-                    console.log('Cancel successful');
+            router.put(
+                route('buyer.orders.update', order.id),
+                {
+                    status: 'cancelled',
                 },
-                onError: (errors) => {
-                    console.error('Cancel failed:', errors);
+                {
+                    onSuccess: () => {
+                        console.log('Cancel successful');
+                    },
+                    onError: (errors) => {
+                        console.error('Cancel failed:', errors);
+                    },
+                    onFinish: () => {
+                        console.log('Request cancel finished');
+                    },
                 },
-                onFinish: () => {
-                    console.log('Request cancel finished');
-                }
-            });
+            );
         }
     };
 
     const handleBayarSekarang = () => {
-        router.put(route('buyer.orders.update', order.id), {
-            status: 'paid'
-        }, {
-            onSuccess: () => {
-                console.log('Payment successful');
+        router.put(
+            route('buyer.orders.update', order.id),
+            {
+                status: 'paid',
             },
-            onError: (errors) => {
-                console.error('Payment failed:', errors);
+            {
+                onSuccess: () => {
+                    console.log('Payment successful');
+                },
+                onError: (errors) => {
+                    console.error('Payment failed:', errors);
+                },
+                onFinish: () => {
+                    console.log('Request finished');
+                },
             },
-            onFinish: () => {
-                console.log('Request finished');
-            }
-        });
+        );
     };
 
     const StatusIcon = getStatusIcon(order.status);
@@ -99,77 +97,53 @@ export default function OrderShow({ order }) {
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-6">
-                    <Link
-                        href={route('buyer.orders.index')}
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-                    >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
+                    <Link href={route('buyer.orders.index')} className="mb-4 inline-flex items-center text-blue-600 hover:text-blue-800">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
                         Kembali ke Riwayat Transaksi
                     </Link>
 
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                Detail Pesanan #{order.order_code}
-                            </h1>
-                            <p className="text-gray-600">Informasi lengkap tentang pesanan Anda</p>
+                            <h1 className="mb-2 text-xl font-bold text-gray-900">#{order.order_code}</h1>
                         </div>
-                        <div className={`flex items-center space-x-2 px-4 py-2 rounded-full border ${getStatusColor(order.status)}`}>
-                            <StatusIcon className="h-4 w-4" />
-                            <span className="text-sm font-medium">
-                                {order.status === 'pending' && 'Menunggu Pembayaran'}
-                                {order.status === 'paid' && 'Sudah Dibayar'}
-                                {order.status === 'processing' && 'Diproses'}
-                                {order.status === 'shipped' && 'Dikirim'}
-                                {order.status === 'delivered' && 'Selesai'}
-                                {order.status === 'cancelled' && 'Dibatalkan'}
-                            </span>
-                        </div>
+                    </div>
+                    <div className={`my-2 flex items-center space-x-2 rounded-full border px-4 py-2 ${getStatusColor(order.status)}`}>
+                        <StatusIcon className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                            {order.status === 'pending' && 'Menunggu Pembayaran'}
+                            {order.status === 'paid' && 'Sudah Dibayar'}
+                            {order.status === 'processing' && 'Diproses'}
+                            {order.status === 'shipped' && 'Dikirim'}
+                            {order.status === 'delivered' && 'Selesai'}
+                            {order.status === 'cancelled' && 'Dibatalkan'}
+                        </span>
                     </div>
                 </div>
 
                 {/* Flash Messages */}
-                {flash?.success && (
-                    <div className="mb-6 rounded-lg bg-green-50 p-4 text-green-700 border border-green-200">
-                        {flash.success}
-                    </div>
-                )}
+                {flash?.success && <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">{flash.success}</div>}
 
-                {flash?.error && (
-                    <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-700 border border-red-200">
-                        {flash.error}
-                    </div>
-                )}
+                {flash?.error && <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{flash.error}</div>}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     {/* Order Details */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-6 lg:col-span-2">
                         {/* Order Items */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Produk yang Dipesan</h2>
+                        <div className="rounded-lg border bg-white p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Produk yang Dipesan</h2>
                             <div className="space-y-4">
                                 {order.items.map((item) => (
-                                    <div key={item.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                                    <div key={item.id} className="flex items-center space-x-4 rounded-lg bg-gray-50 p-3">
                                         {item.product.image_url && (
-                                            <img
-                                                src={item.product.image_url}
-                                                alt={item.product.name}
-                                                className="h-16 w-16 rounded-md object-cover"
-                                            />
+                                            <img src={item.product.image_url} alt={item.product.name} className="h-16 w-16 rounded-md object-cover" />
                                         )}
-                                        <div className="flex-1 min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <h3 className="font-medium text-gray-900">{item.product.name}</h3>
-                                            <p className="text-sm text-gray-500">
-                                                Kuantitas: {item.quantity}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                Harga satuan: {formatPrice(item.unit_price)}
-                                            </p>
+                                            <p className="text-sm text-gray-500">Kuantitas: {item.quantity}</p>
+                                            <p className="text-sm text-gray-500">Harga satuan: {formatPrice(item.unit_price)}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-medium text-gray-900">
-                                                {formatPrice(item.total_price)}
-                                            </p>
+                                            <p className="font-medium text-gray-900">{formatPrice(item.total_price)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -177,13 +151,17 @@ export default function OrderShow({ order }) {
                         </div>
 
                         {/* Order Timeline */}
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Status Pesanan</h2>
+                        <div className="rounded-lg border bg-white p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Status Pesanan</h2>
                             <div className="space-y-4">
                                 <div className="flex items-center space-x-3">
-                                    <div className={`w-3 h-3 rounded-full ${['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)
-                                        ? 'bg-green-500' : 'bg-gray-300'
-                                        }`} />
+                                    <div
+                                        className={`h-3 w-3 rounded-full ${
+                                            ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)
+                                                ? 'bg-green-500'
+                                                : 'bg-gray-300'
+                                        }`}
+                                    />
                                     <div>
                                         <p className="font-medium text-gray-900">Pesanan dibuat</p>
                                         <p className="text-sm text-gray-500">{formatDate(order.created_at)}</p>
@@ -192,9 +170,11 @@ export default function OrderShow({ order }) {
 
                                 {order.status !== 'pending' && order.status !== 'cancelled' && (
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${['paid', 'processing', 'shipped', 'delivered'].includes(order.status)
-                                            ? 'bg-green-500' : 'bg-gray-300'
-                                            }`} />
+                                        <div
+                                            className={`h-3 w-3 rounded-full ${
+                                                ['paid', 'processing', 'shipped', 'delivered'].includes(order.status) ? 'bg-green-500' : 'bg-gray-300'
+                                            }`}
+                                        />
                                         <div>
                                             <p className="font-medium text-gray-900">Pembayaran diterima</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -204,9 +184,11 @@ export default function OrderShow({ order }) {
 
                                 {['processing', 'shipped', 'delivered'].includes(order.status) && (
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${['processing', 'shipped', 'delivered'].includes(order.status)
-                                            ? 'bg-green-500' : 'bg-gray-300'
-                                            }`} />
+                                        <div
+                                            className={`h-3 w-3 rounded-full ${
+                                                ['processing', 'shipped', 'delivered'].includes(order.status) ? 'bg-green-500' : 'bg-gray-300'
+                                            }`}
+                                        />
                                         <div>
                                             <p className="font-medium text-gray-900">Pesanan diproses</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -216,9 +198,11 @@ export default function OrderShow({ order }) {
 
                                 {['shipped', 'delivered'].includes(order.status) && (
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${['shipped', 'delivered'].includes(order.status)
-                                            ? 'bg-green-500' : 'bg-gray-300'
-                                            }`} />
+                                        <div
+                                            className={`h-3 w-3 rounded-full ${
+                                                ['shipped', 'delivered'].includes(order.status) ? 'bg-green-500' : 'bg-gray-300'
+                                            }`}
+                                        />
                                         <div>
                                             <p className="font-medium text-gray-900">Pesanan dikirim</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -228,7 +212,7 @@ export default function OrderShow({ order }) {
 
                                 {order.status === 'delivered' && (
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 rounded-full bg-green-500" />
+                                        <div className="h-3 w-3 rounded-full bg-green-500" />
                                         <div>
                                             <p className="font-medium text-gray-900">Pesanan selesai</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -238,7 +222,7 @@ export default function OrderShow({ order }) {
 
                                 {order.status === 'cancelled' && (
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-3 h-3 rounded-full bg-red-500" />
+                                        <div className="h-3 w-3 rounded-full bg-red-500" />
                                         <div>
                                             <p className="font-medium text-gray-900">Pesanan dibatalkan</p>
                                             <p className="text-sm text-gray-500">-</p>
@@ -251,8 +235,8 @@ export default function OrderShow({ order }) {
 
                     {/* Order Summary */}
                     <div className="space-y-6">
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h2>
+                        <div className="rounded-lg border bg-white p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Ringkasan Pesanan</h2>
 
                             <div className="space-y-3">
                                 <div className="flex justify-between">
@@ -274,8 +258,8 @@ export default function OrderShow({ order }) {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Informasi Pengiriman</h2>
+                        <div className="rounded-lg border bg-white p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Informasi Pengiriman</h2>
 
                             <div className="space-y-3">
                                 <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -304,21 +288,22 @@ export default function OrderShow({ order }) {
 
                         {/* Action Buttons */}
                         {order.status === 'pending' && (
-                            <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4">
-                                <h3 className="font-medium text-yellow-800 mb-2">Tindakan</h3>
-                                <p className="text-sm text-yellow-700 mb-3">
+                            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                                <h3 className="mb-2 font-medium text-yellow-800">Tindakan</h3>
+                                <p className="mb-3 text-sm text-yellow-700">
                                     Pesanan Anda menunggu pembayaran. Silakan selesaikan pembayaran atau batalkan pesanan.
                                 </p>
                                 <div className="space-y-2">
                                     <Button
                                         onClick={handleBayarSekarang}
-                                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm">
+                                        className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                                    >
                                         Bayar Sekarang
                                     </Button>
                                     <Button
                                         onClick={handleCancelOrder}
                                         disabled={processing}
-                                        className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm"
+                                        className="w-full rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
                                     >
                                         {processing ? 'Membatalkan...' : 'Batalkan Pesanan'}
                                     </Button>
@@ -327,20 +312,16 @@ export default function OrderShow({ order }) {
                         )}
 
                         {order.status === 'delivered' && (
-                            <div className="bg-green-50 rounded-lg border border-green-200 p-4">
-                                <h3 className="font-medium text-green-800 mb-2">Pesanan Selesai</h3>
-                                <p className="text-sm text-green-700">
-                                    Terima kasih telah berbelanja di Bahana UMKM!
-                                </p>
+                            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                                <h3 className="mb-2 font-medium text-green-800">Pesanan Selesai</h3>
+                                <p className="text-sm text-green-700">Terima kasih telah berbelanja di Bahana UMKM!</p>
                             </div>
                         )}
 
                         {order.status === 'cancelled' && (
-                            <div className="bg-red-50 rounded-lg border border-red-200 p-4">
-                                <h3 className="font-medium text-red-800 mb-2">Pesanan Dibatalkan</h3>
-                                <p className="text-sm text-red-700">
-                                    Pesanan ini telah dibatalkan.
-                                </p>
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                                <h3 className="mb-2 font-medium text-red-800">Pesanan Dibatalkan</h3>
+                                <p className="text-sm text-red-700">Pesanan ini telah dibatalkan.</p>
                             </div>
                         )}
                     </div>

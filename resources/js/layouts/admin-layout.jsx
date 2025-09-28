@@ -1,5 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { LayoutGrid, Package, Tag, Users } from 'lucide-react';
+import { ArrowLeftRight, LayoutGrid, Package, Tag, Users } from 'lucide-react';
 
 const mainNavItems = [
     {
@@ -43,6 +43,11 @@ const mainNavItems = [
                 href: '/admin/users/Buyer',
             },
         ],
+    },
+    {
+        title: 'Transaksi',
+        href: '/admin/orders',
+        icon: ArrowLeftRight,
     },
 ];
 

@@ -1,11 +1,11 @@
-import AdminLayout from '@/layouts/admin-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import AdminLayout from '@/layouts/admin-layout';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
 export default function UserEdit({ user, role, mitraProfile }) {
@@ -17,16 +17,16 @@ export default function UserEdit({ user, role, mitraProfile }) {
         address: mitraProfile?.address || '',
         city: mitraProfile?.city || '',
         phone: mitraProfile?.phone || '',
-        partner_tier: mitraProfile?.partner_tier || '',
-        commission_rate: mitraProfile?.commission_rate || '',
+        // partner_tier: mitraProfile?.partner_tier || '',
+        // commission_rate: mitraProfile?.commission_rate || '',
     });
 
     const roleTitles = {
-        'Admin': 'Admin',
-        'Vendor': 'Vendor/Supplier',
-        'Mitra': 'Mitra',
+        Admin: 'Admin',
+        Vendor: 'Vendor/Supplier',
+        Mitra: 'Mitra',
         'Sales Lapangan': 'Sales Lapangan',
-        'Buyer': 'Buyer'
+        Buyer: 'Buyer',
     };
 
     const submit = (e) => {
@@ -40,12 +40,12 @@ export default function UserEdit({ user, role, mitraProfile }) {
                 { title: 'Dashboard', href: route('admin.dashboard') },
                 { title: 'Pengguna', href: route('admin.users.index', { role: role.name }) },
                 { title: roleTitles[role.name] || role.name, href: route('admin.users.index', { role: role.name }) },
-                { title: 'Edit' }
+                { title: 'Edit' },
             ]}
         >
             <Head title={`Edit ${roleTitles[role.name] || role.name}`} />
 
-            <div className="flex-1 p-8 space-y-4">
+            <div className="flex-1 space-y-4 p-8">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" asChild>
                         <Link href={route('admin.users.index', { role: role.name })}>
@@ -53,21 +53,15 @@ export default function UserEdit({ user, role, mitraProfile }) {
                         </Link>
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">
-                            Edit {roleTitles[role.name] || role.name}
-                        </h2>
-                        <p className="text-muted-foreground">
-                            {role.description}
-                        </p>
+                        <h2 className="text-3xl font-bold tracking-tight">Edit {roleTitles[role.name] || role.name}</h2>
+                        <p className="text-muted-foreground">{role.description}</p>
                     </div>
                 </div>
 
                 <Card>
                     <CardHeader>
                         <CardTitle>Form Edit {roleTitles[role.name] || role.name}</CardTitle>
-                        <CardDescription>
-                            Perbarui informasi {roleTitles[role.name] || role.name}
-                        </CardDescription>
+                        <CardDescription>Perbarui informasi {roleTitles[role.name] || role.name}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="space-y-4">
@@ -98,10 +92,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
 
                             <div className="space-y-2">
                                 <Label htmlFor="status">Status</Label>
-                                <Select
-                                    value={data.status}
-                                    onValueChange={(value) => setData('status', value)}
-                                >
+                                <Select value={data.status} onValueChange={(value) => setData('status', value)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Pilih status" />
                                     </SelectTrigger>
@@ -116,9 +107,9 @@ export default function UserEdit({ user, role, mitraProfile }) {
                             {/* Form tambahan untuk data mitra */}
                             {role.name === 'Mitra' && (
                                 <>
-                                    <div className="border-t pt-6 mt-6">
-                                        <h3 className="text-lg font-semibold mb-4">Data Mitra</h3>
-                                        
+                                    <div className="mt-6 border-t pt-6">
+                                        <h3 className="mb-4 text-lg font-semibold">Data Mitra</h3>
+
                                         <div className="space-y-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="hotel_name">Nama Hotel/Usaha</Label>
@@ -167,13 +158,9 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                 {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
                                             </div>
 
-                                            <div className="space-y-2">
+                                            {/* <div className="space-y-2">
                                                 <Label htmlFor="partner_tier">Tier Mitra</Label>
-                                                <Select
-                                                    value={data.partner_tier}
-                                                    onValueChange={(value) => setData('partner_tier', value)}
-                                                    required
-                                                >
+                                                <Select value={data.partner_tier} onValueChange={(value) => setData('partner_tier', value)} required>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Pilih tier mitra" />
                                                     </SelectTrigger>
@@ -200,7 +187,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                     required
                                                 />
                                                 {errors.commission_rate && <p className="text-sm text-red-500">{errors.commission_rate}</p>}
-                                            </div>
+                                            </div>*/}
                                         </div>
                                     </div>
                                 </>
@@ -211,9 +198,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                     {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                                 </Button>
                                 <Button variant="outline" asChild>
-                                    <Link href={route('admin.users.index', { role: role.name })}>
-                                        Batal
-                                    </Link>
+                                    <Link href={route('admin.users.index', { role: role.name })}>Batal</Link>
                                 </Button>
                             </div>
                         </form>

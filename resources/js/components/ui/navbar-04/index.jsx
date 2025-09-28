@@ -166,7 +166,7 @@ export const Navbar04 = React.forwardRef((
         {/* Left side */}
         <div className="flex flex-1 items-center gap-2">
           {/* Mobile menu trigger */}
-          {isMobile && (
+          {/* {isMobile && (
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -196,7 +196,6 @@ export const Navbar04 = React.forwardRef((
                         className="bg-border -mx-1 my-1 h-px" />
                     </NavigationMenuItem>
                     {auth.user ? (
-                      // User is logged in - show user menu items
                       <>
                         <NavigationMenuItem className="w-full">
                           <button
@@ -234,7 +233,6 @@ export const Navbar04 = React.forwardRef((
                         </NavigationMenuItem>
                       </>
                     ) : (
-                      // User is not logged in - show sign in button
                       <NavigationMenuItem className="w-full">
                         {onSignInClick ? (
                           <button
@@ -264,7 +262,6 @@ export const Navbar04 = React.forwardRef((
                         }}>
                         <span className="flex items-baseline gap-2">
                           <ShoppingCart />
-                          {/* {cartText} */}
                           <span className="text-primary-foreground/60 text-xs">
                             {cartCount}
                           </span>
@@ -275,7 +272,7 @@ export const Navbar04 = React.forwardRef((
                 </NavigationMenu>
               </PopoverContent>
             </Popover>
-          )}
+          )} */}
           <div className="flex flex-1 items-center gap-4 max-md:justify-between">
             <Link
               href="/"

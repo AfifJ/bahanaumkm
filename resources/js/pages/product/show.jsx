@@ -1,16 +1,16 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import ScrollToTop from '@/components/scroll-to-top';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
-import GuestLayout from '@/layouts/guest-layout';
-import { Head, Link, useForm, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import { ShoppingCart, Package } from 'lucide-react';
-import ScrollToTop from '@/components/scroll-to-top';
 import { Input } from '@/components/ui/input';
+import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import GuestLayout from '@/layouts/guest-layout';
+import { Head, Link, router } from '@inertiajs/react';
+import { Package } from 'lucide-react';
+import { useState } from 'react';
 
 export default function ProductShow({ product, relatedProducts, layout }) {
-    const LayoutComponent = GuestLayout
+    const LayoutComponent = GuestLayout;
     const [quantity, setQuantity] = useState(1);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isBuyingNow, setIsBuyingNow] = useState(false);
@@ -64,14 +64,17 @@ export default function ProductShow({ product, relatedProducts, layout }) {
         sessionStorage.removeItem('checkout_data');
 
         // Redirect ke halaman checkout dengan query parameters untuk pembelian langsung
-        router.visit(route('buyer.orders.create', {
-            product_id: product.id,
-            quantity: quantity
-        }), {
-            onFinish: () => {
-                setIsBuyingNow(false);
-            }
-        });
+        router.visit(
+            route('buyer.orders.create', {
+                product_id: product.id,
+                quantity: quantity,
+            }),
+            {
+                onFinish: () => {
+                    setIsBuyingNow(false);
+                },
+            },
+        );
     };
 
     const handleQuantityChange = (newQuantity) => {
@@ -81,7 +84,7 @@ export default function ProductShow({ product, relatedProducts, layout }) {
     };
 
     return (
-        <LayoutComponent>
+        <BuyerLayoutNonSearch backLink={route('home')} title={''} >
             <ScrollToTop />
             <Head title={product.name} />
 
@@ -152,7 +155,7 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                                         type="number"
                                         value={quantity}
                                         onChange={(e) => handleQuantityChange(Number(e.target.value))}
-                                        className="w-16 text-center border-0 shadow-none"
+                                        className="w-16 border-0 text-center shadow-none"
                                         min="1"
                                         max={product.stock}
                                     />
@@ -169,12 +172,7 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                         )}
 
                         <div className="flex flex-col gap-4 sm:flex-row">
-                            <Button
-                                size="lg"
-                                className="flex-1"
-                                disabled={product.stock <= 0 || isAddingToCart}
-                                onClick={handleAddToCart}
-                            >
+                            {/* <Button size="lg" className="flex-1 py-3" disabled={product.stock <= 0 || isAddingToCart} onClick={handleAddToCart}>
                                 {isAddingToCart ? (
                                     <>
                                         <Package className="mr-2 h-4 w-4 animate-spin" />
@@ -186,11 +184,10 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                                         {product.stock > 0 ? 'Tambah ke Keranjang' : 'Stok Habis'}
                                     </>
                                 )}
-                            </Button>
+                            </Button>*/}
                             <Button
-                                variant="outline"
                                 size="lg"
-                                className="flex-1 hover:cursor-pointer"
+                                className="flex-1 py-3 hover:cursor-pointer"
                                 disabled={product.stock <= 0 || isBuyingNow}
                                 onClick={handleBuyNow}
                             >
@@ -257,6 +254,6 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                     </div>
                 )}
             </div>
-        </LayoutComponent>
+        </BuyerLayoutNonSearch>
     );
 }
