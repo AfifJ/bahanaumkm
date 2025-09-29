@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('unique_code')->unique();
             $table->string('partner_tier')->default('standard'); // premium, standard, basic
-            $table->decimal('commission_rate', 5, 2)->default(10.00); // default 10%
+            $table->decimal('commission_rate', 5, 2)->default(value: 25.00); // default 25%
             $table->timestamps();
         });
     }

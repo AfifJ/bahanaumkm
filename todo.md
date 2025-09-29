@@ -1,10 +1,13 @@
 # Todo
-- [ ] laporan transaksi untuk mitra (ongoing)
-- [ ] tempat pengiriman (list semua mitra)
+- [ ] tempat pengiriman (list semua mitra) (siang selesaikan)
+  - [ ] beli produk dengan mitra
+  - [ ] transaksi mitra (mitra dapat 25% dari total keuntungan)
+
 - [ ] sistem cart
-- [ ] transaksi mitra (mitra dapat 25% dari total keuntungan)
 - [ ] profil (ui udah)
 
+- [x] transaksi untuk mitra (ongoing) (pagi selesaikan)
+- [x] laporan penjualan untuk mitra 
 - [x] checkout produk (cek logika ketika beli sekarang)
 - [x] crud kategori dengan gambar
 - [x] beranda buyer

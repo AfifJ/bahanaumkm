@@ -1,6 +1,5 @@
 'use client';;
-import * as React from 'react';
-import { useEffect, useState, useRef, useId } from 'react';
+import { useEffect, useState, useRef, useId, forwardRef, useCallback } from 'react';
 import { User, LogOut, Settings, LayoutDashboard, SearchIcon, ShoppingCart } from 'lucide-react';
 import {
   Popover,
@@ -83,7 +82,7 @@ const HamburgerIcon = ({
 const defaultNavigationLinks = [
 ];
 
-export const Navbar04 = React.forwardRef((
+export const Navbar04 = forwardRef((
   {
     className,
     logo = <Logo />,
@@ -94,6 +93,7 @@ export const Navbar04 = React.forwardRef((
     cartText = 'Cart',
     cartHref = '#cart',
     cartCount = "",
+    menuItems,
     searchPlaceholder = 'Search...',
     categories = [],
     onSignInClick,
@@ -136,7 +136,7 @@ export const Navbar04 = React.forwardRef((
   }, []);
 
   // Combine refs
-  const combinedRef = React.useCallback((node) => {
+  const combinedRef = useCallback((node) => {
     containerRef.current = node;
     if (typeof ref === 'function') {
       ref(node);
@@ -165,114 +165,6 @@ export const Navbar04 = React.forwardRef((
         className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
         {/* Left side */}
         <div className="flex flex-1 items-center gap-2">
-          {/* Mobile menu trigger */}
-          {/* {isMobile && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
-                  variant="ghost"
-                  size="icon">
-                  <HamburgerIcon />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-fit p-1">
-                <NavigationMenu className="max-w-none">
-                  <NavigationMenuList className="flex-col items-start gap-1 p-1">
-                    {navigationLinks.map((link, index) => (
-                      <NavigationMenuItem key={index} className="w-full">
-                        <Button
-                          onClick={(e) => e.preventDefault()}
-                          variant={"ghost"}
-                        >
-                          {link.label}
-                        </Button>
-                      </NavigationMenuItem>
-                    ))}
-                    <NavigationMenuItem className="w-full" role="presentation" aria-hidden={true}>
-                      <div
-                        role="separator"
-                        aria-orientation="horizontal"
-                        className="bg-border -mx-1 my-1 h-px" />
-                    </NavigationMenuItem>
-                    {auth.user ? (
-                      <>
-                        <NavigationMenuItem className="w-full">
-                          <button
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline">
-                            <User size={16} className="mr-2" />
-                            {auth.user.name}
-                          </button>
-                        </NavigationMenuItem>
-                        {auth.user.role_id === 1 && (
-                          <NavigationMenuItem className="w-full">
-                            <Link
-                              href={route('admin.dashboard')}
-                              className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline">
-                              <LayoutDashboard size={16} className="mr-2" />
-                              Dashboard Admin
-                            </Link>
-                          </NavigationMenuItem>
-                        )}
-                        <NavigationMenuItem className="w-full">
-                          <Link
-                            href={route('profile.edit')}
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline">
-                            <Settings size={16} className="mr-2" />
-                            Profil
-                          </Link>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem className="w-full">
-                          <Link
-                            method="post"
-                            href={route('logout')}
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer no-underline">
-                            <LogOut size={16} className="mr-2" />
-                            Logout
-                          </Link>
-                        </NavigationMenuItem>
-                      </>
-                    ) : (
-                      <NavigationMenuItem className="w-full">
-                        {onSignInClick ? (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              onSignInClick();
-                            }}
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline">
-                            {signInText}
-                          </button>
-                        ) : (
-                          <Link
-                            href='/login'
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline">
-                            {signInText}
-                          </Link>
-                        )}
-                      </NavigationMenuItem>
-                    )}
-                    <NavigationMenuItem className="w-full">
-                      <Button
-                        size="sm"
-                        className="mt-0.5 w-full text-left text-sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (onCartClick) onCartClick();
-                        }}>
-                        <span className="flex items-baseline gap-2">
-                          <ShoppingCart />
-                          <span className="text-primary-foreground/60 text-xs">
-                            {cartCount}
-                          </span>
-                        </span>
-                      </Button>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
-              </PopoverContent>
-            </Popover>
-          )} */}
           <div className="flex flex-1 items-center gap-4 max-md:justify-between">
             <Link
               href="/"
@@ -321,7 +213,6 @@ export const Navbar04 = React.forwardRef((
         {!isMobile && (
           <div className="flex items-center gap-3">
             {auth.user ? (
-              // User is logged in - show user dropdown
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -334,7 +225,7 @@ export const Navbar04 = React.forwardRef((
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <UserMenuContent user={auth.user} />
+                  <UserMenuContent menuItems={menuItems} user={auth.user} />
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -362,7 +253,7 @@ export const Navbar04 = React.forwardRef((
                 </Button>
               )
             )}
-            {auth.user ?
+            {auth?.user?.role_id === 5 &&
               <Button
                 size="sm"
                 className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md shadow-sm"
@@ -380,7 +271,9 @@ export const Navbar04 = React.forwardRef((
                   }
                 </span>
               </Button>
-              :
+            }
+
+            {!auth?.user &&
               <Button
                 size="sm"
                 asChild
@@ -393,8 +286,7 @@ export const Navbar04 = React.forwardRef((
                     <ShoppingCart />
                   </span>
                 </Link>
-              </Button>
-            }
+              </Button>}
 
           </div>
         )}

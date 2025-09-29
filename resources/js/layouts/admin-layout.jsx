@@ -46,7 +46,7 @@ const mainNavItems = [
     },
     {
         title: 'Transaksi',
-        href: '/admin/orders',
+        href: '/admin/transaction',
         icon: ArrowLeftRight,
     },
 ];

@@ -202,20 +202,6 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                             </Button>
                         </div>
 
-                        {/* Product Specifications */}
-                        {/* <div className="mt-6 rounded-lg bg-gray-50 p-4">
-                            <h4 className="mb-2 font-semibold">Informasi Produk</h4>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                <span className="text-gray-600">SKU:</span>
-                                <span>#{product.id.toString().padStart(6, '0')}</span>
-                                <span className="text-gray-600">Kategori:</span>
-                                <span>{product.category?.name || '-'}</span>
-                                <span className="text-gray-600">Vendor:</span>
-                                <span>{product.vendor?.name || '-'}</span>
-                                <span className="text-gray-600">Status:</span>
-                                <span className="capitalize">{product.status}</span>
-                            </div>
-                        </div> */}
                     </div>
 
                     <div className="mb-6">
@@ -228,31 +214,34 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                 {relatedProducts.length > 0 && (
                     <div>
                         <h2 className="mb-6 text-2xl font-bold text-gray-900">Produk Terkait</h2>
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            {relatedProducts.map((relatedProduct) => (
-                                <Card key={relatedProduct.id} className="transition-shadow hover:shadow-lg">
-                                    <Link href={route('product.show', relatedProduct.slug)}>
-                                        <img
-                                            src={relatedProduct.image_url || '/placeholder-product.jpg'}
-                                            alt={relatedProduct.name}
-                                            className="h-40 w-full rounded-t-lg object-cover"
-                                        />
-                                    </Link>
-                                    <CardContent className="p-4">
-                                        <Link
-                                            href={route('product.show', relatedProduct.slug)}
-                                            className="mb-2 line-clamp-2 text-sm font-semibold text-gray-900 hover:text-blue-600"
-                                        >
-                                            {relatedProduct.name}
-                                        </Link>
-                                        <p className="text-lg font-bold text-green-600">{formatPrice(relatedProduct.sell_price)}</p>
-                                        <p className="text-xs text-gray-500">Stok: {relatedProduct.stock}</p>
-                                    </CardContent>
-                                </Card>
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                            {relatedProducts.map((product) => (
+                                <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
+                                    <div className="p-0 gap-1 group overflow-hidden rounded transition-all hover:scale-105 hover:shadow-lg">
+                                        <div className="p-0 rounded overflow-hidden">
+                                            {product.image_url ? (
+                                                <img
+                                                    src={product.image_url}
+                                                    alt={product.name}
+                                                    className="aspect-square w-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="flex aspect-square w-full items-center justify-center bg-gray-100">
+                                                    <span className="text-gray-400">📦</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-3">
+                                            <h3 className="line-clamp-2 h-10 text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                                {product.name}
+                                            </h3>
+                                            <p className="mt-2 text-lg font-bold">{formatPrice(product.sell_price)}</p>
+                                        </div>
+                                    </div>
+                                </Link>
                             ))}
                         </div>
-                    </div>
-                )}
+                    </div>)}
             </div>
         </BuyerLayoutNonSearch>
     );

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
 use Inertia\Inertia;
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
@@ -50,7 +51,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
 
     })->name('transaction');
 
-    // Route::prefix('transaction')->name('transaction.')->group(function () {
-    //     Route::get('/', [PesananCotroller::class, 'index'])->name('index');
-    // });
+    Route::prefix('transaction')->name('transaction.')->group(function () {
+        Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/{order}', [TransactionController::class, 'show'])->name('show');
+    });
 });

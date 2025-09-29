@@ -3,10 +3,76 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import BuyerLayout from '@/layouts/buyer-layout';
 import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { ArrowLeftRight, HelpCircle, LayoutDashboard, Package } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function Home({ featuredProducts, latestProducts, popularCategories }) {
     const { auth } = usePage().props;
-    const LayoutComponent = BuyerLayout;
+    const [mainNavItems, setMainNavItems] = useState([])
+
+    useEffect(() => {
+        switch (auth?.user?.role_id) {
+            case 1:
+                //admin
+                setMainNavItems(adminMainNavItems);
+                break;
+            case 2: 
+                // vendor
+            setMainNavItems(vendorMainNavItems);
+                break;
+            case 3:
+                //mitra
+                break;
+            case 4:
+                //sales
+                break;
+            default: setMainNavItems(buyerMainNavItems);
+        }
+    }, [auth])
+
+    const buyerMainNavItems = [
+        {
+            label: 'Pesanan Saya',
+            href: route('buyer.orders.index'),
+            icon: Package,
+        },
+        {
+            label: 'Pusat Bantuan',
+            href: '/bantuan',
+            icon: HelpCircle,
+        },
+    ];
+
+    const adminMainNavItems = [
+        {
+            label: 'Dashboard',
+            href: route('admin.dashboard'),
+            icon: LayoutDashboard,
+        },
+    ]
+
+    const vendorMainNavItems = [
+        {
+            label: 'Dashboard',
+            href: route('vendor.dashboard'),
+            icon: LayoutDashboard,
+        },
+        {
+            label: 'Produk Saya',
+            href: route('vendor.products.index'),
+            icon: Package,
+        },
+        {
+            label: 'Transaksi',
+            href: route('vendor.transaction.index'),
+            icon: ArrowLeftRight,
+        },
+        {
+            label: 'Pusat Bantuan',
+            href: '/bantuan',
+            icon: HelpCircle,
+        },
+    ]
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('id-ID', {
@@ -17,7 +83,7 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
     };
 
     return (
-        <LayoutComponent>
+        <BuyerLayout mainNavItems={mainNavItems}>
             <Head title="Beranda - Bahana UMKM" />
             {/* Hero Banner Section */}
             <section className="py-2">
@@ -169,6 +235,6 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
                     </Button>
                 </div>
             </section> */}
-        </LayoutComponent>
+        </BuyerLayout>
     );
 }

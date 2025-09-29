@@ -1,12 +1,11 @@
 'use client';;
-import * as React from 'react';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
 import { Button } from '../button';
 import { ChevronLeft } from 'lucide-react';
 
-export const NavbarNonSearch = React.forwardRef((
+export const NavbarNonSearch = forwardRef((
   {
     className,
     cartText = 'Cart',
@@ -43,7 +42,7 @@ export const NavbarNonSearch = React.forwardRef((
   }, []);
 
   // Combine refs
-  const combinedRef = React.useCallback((node) => {
+  const combinedRef = useCallback((node) => {
     containerRef.current = node;
     if (typeof ref === 'function') {
       ref(node);
@@ -66,7 +65,7 @@ export const NavbarNonSearch = React.forwardRef((
           <div className="flex flex-1 items-center gap-4 max-md:justify-between">
             <div className='w-full flex items-center relative'>
               {backLink &&
-                <Button asChild className={'absolute top-1/2 -translate-y-1/2'} variant={'outline'}>
+                <Button className={'absolute top-1/2 -translate-y-1/2'} variant={'outline'}>
                   <Link href={backLink} >
                     <ChevronLeft />
                   </Link>

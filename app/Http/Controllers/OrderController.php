@@ -18,8 +18,6 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        
-
         $orders = Order::with(['items.product', 'mitra'])
             ->where('buyer_id', Auth::id())
             ->orderBy('created_at', 'desc')

@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { usePage } from '@inertiajs/react';
 import { ChevronsUpDown } from 'lucide-react';
 
-export function NavUser() {
+export function NavUser({ menuItems, profileLink }) {
     const { auth } = usePage().props;
     const { state } = useSidebar();
     const isMobile = useIsMobile();
@@ -21,7 +21,7 @@ export function NavUser() {
                     </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg" align="end" side={isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'}>
-                    <UserMenuContent user={auth.user} />
+                    <UserMenuContent profileLink={profileLink} menuItems={menuItems} user={auth.user} />
                 </DropdownMenuContent>
             </DropdownMenu>
         </SidebarMenuItem>

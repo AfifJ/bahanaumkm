@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { Link } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
-export function AppSidebar({ mainNavItems, footerNavItems, homeUrl = '/' }) {
+export function AppSidebar({ mainNavItems, userMenuItems, footerNavItems, profileLink, homeUrl = '/' }) {
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -26,7 +26,7 @@ export function AppSidebar({ mainNavItems, footerNavItems, homeUrl = '/' }) {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
+                <NavUser menuItems={userMenuItems} profileLink={profileLink} />
             </SidebarFooter>
         </Sidebar>
     );

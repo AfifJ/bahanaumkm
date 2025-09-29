@@ -3,35 +3,10 @@ import { Navbar04 } from '@/components/ui/navbar-04';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import { router } from '@inertiajs/react';
-import { LayoutGrid, Package, ShoppingCart, History } from 'lucide-react';
-
-const mainNavItems = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Products',
-        href: '/products',
-        icon: Package,
-    },
-    {
-        title: 'Keranjang',
-        href: '/buyer/orders/create',
-        icon: ShoppingCart,
-    },
-    {
-        title: 'Riwayat Pesanan',
-        href: '/buyer/orders',
-        icon: History,
-    },
-];
-
-const homeUrl = route('admin.dashboard');
+import { LayoutGrid, Package, ShoppingCart, History, HelpCircle } from 'lucide-react';
 
 const footerNavItems = [];
-export default ({ children, breadcrumbs, ...props }) => {
+export default ({ children, breadcrumbs, mainNavItems, ...props }) => {
     const isMobile = useIsMobile();
 
     const handleCartClick = () => {
@@ -47,6 +22,7 @@ export default ({ children, breadcrumbs, ...props }) => {
     return (
         <div className="relative w-full">
             <Navbar04
+                menuItems={mainNavItems}
                 onSearchSubmit={handleSearchSubmit}
                 onCartClick={handleCartClick}
             />
