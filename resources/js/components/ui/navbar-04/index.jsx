@@ -1,6 +1,6 @@
 'use client';;
 import { useEffect, useState, useRef, useId, forwardRef, useCallback } from 'react';
-import { User, LogOut, Settings, LayoutDashboard, SearchIcon, ShoppingCart } from 'lucide-react';
+import { User, LogOut, Settings, LayoutDashboard, SearchIcon, ShoppingCart, Search, BaggageClaim, X } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -94,11 +94,11 @@ export const Navbar04 = forwardRef((
     cartHref = '#cart',
     cartCount = "",
     menuItems,
-    searchPlaceholder = 'Search...',
     categories = [],
     onSignInClick,
     onCartClick,
     onSearchSubmit,
+    profileLink,
     ...props
   },
   ref
@@ -107,7 +107,9 @@ export const Navbar04 = forwardRef((
   const [isMobile, setIsMobile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef(null);
+  const searchRef = useRef(null);
   const searchId = useId();
+  const [showSearch, setShowSearch] = useState(false)
 
   useEffect(() => {
     const checkWidth = () => {
@@ -157,58 +159,77 @@ export const Navbar04 = forwardRef((
     <header
       ref={combinedRef}
       className={cn(
-        'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
+        'sticky top-0 z-50 w-full bg-background px-4 md:px-6 [&_*]:no-underline',
         className
       )}
       {...props}>
       <div
         className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
         {/* Left side */}
-        <div className="flex flex-1 items-center gap-2">
-          <div className="flex flex-1 items-center gap-4 max-md:justify-between">
-            <Link
-              href="/"
-              className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer">
-              <div className="text-2xl">
-                {logo}
-              </div>
-              <span className="hidden font-bold text-xl sm:inline-block">BahanaUMKM</span>
-            </Link>
-            {/* Navigation menu */}
-            {!isMobile && (
-              <NavigationMenu className="flex">
-                <NavigationMenuList className="gap-1">
-                  {navigationLinks.map((link, index) => (
-                    <NavigationMenuItem key={index}>
-                      <NavigationMenuLink
-                        href={link.href}
-                        onClick={(e) => e.preventDefault()}
-                        className="hover:bg-transparent"
-                      >
-                        {link.label}
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  ))}
-                </NavigationMenuList>
-              </NavigationMenu>
-            )}
-            {/* Search form */}
+        {/* Search form */}
+        {showSearch &&
+          <>
             <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md">
               <Input
                 id={searchId}
                 name="search"
+                ref={searchRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="peer h-8 ps-8 pe-2"
-                placeholder={searchPlaceholder}
+                className="peer h-8 ps-10 font-light text-sm pe-4 shadow-none border-0 bg-gray-50"
+                placeholder="Cari Produk"
                 type="search" />
               <div
-                className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-2 peer-disabled:opacity-50">
+                className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-4 peer-disabled:opacity-50">
                 <SearchIcon size={16} />
               </div>
             </form>
-          </div>
-        </div>
+            <Button variant={'outline'} onClick={() => setShowSearch(false)}>
+              <X />
+            </Button>
+          </>
+        }
+        {!showSearch &&
+          <div className="flex flex-1 items-center gap-2">
+            <div className="flex flex-1 items-center gap-4 max-md:justify-between">
+              <Link
+                href="/"
+                className="flex items-center space-x-2 text-primary cursor-pointer">
+                {/* <div className="text-2xl">
+                {logo}
+              </div> */}
+                <span className="font-bold text-xl sm:inline-block">Bahana</span>
+              </Link>
+              {/* Navigation menu */}
+              {!isMobile && (
+                <NavigationMenu className="flex">
+                  <NavigationMenuList className="gap-1">
+                    {navigationLinks.map((link, index) => (
+                      <NavigationMenuItem key={index}>
+                        <NavigationMenuLink
+                          href={link.href}
+                          onClick={(e) => e.preventDefault()}
+                          className="hover:bg-transparent"
+                        >
+                          {link.label}
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                    ))}
+                  </NavigationMenuList>
+                </NavigationMenu>
+              )}
+              <div className='flex gap-2'>
+                <Button variant={'ghost'} onClick={() => { setShowSearch(true); searchRef.current.focus() }} className={'cursor-pointer'}>
+                  <Search className='h-8 w-8' />
+                </Button>
+                <Button className={'cursor-pointer'}>
+                  <ShoppingCart className='h-8 w-8' />
+                  Keranjang
+                </Button>
+              </div>
+
+            </div>
+          </div>}
         {/* Right side */}
         {!isMobile && (
           <div className="flex items-center gap-3">
@@ -225,7 +246,7 @@ export const Navbar04 = forwardRef((
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <UserMenuContent menuItems={menuItems} user={auth.user} />
+                  <UserMenuContent profileLink={profileLink} menuItems={menuItems} user={auth.user} />
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -256,7 +277,7 @@ export const Navbar04 = forwardRef((
             {auth?.user?.role_id === 5 &&
               <Button
                 size="sm"
-                className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md shadow-sm"
+                className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md"
                 onClick={(e) => {
                   e.preventDefault();
                   if (onCartClick) onCartClick();
@@ -279,7 +300,7 @@ export const Navbar04 = forwardRef((
                 asChild
               >
                 <Link
-                  className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md shadow-sm"
+                  className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md"
                   href={'/login'}
                 >
                   <span className="flex items-baseline gap-2">
@@ -291,7 +312,7 @@ export const Navbar04 = forwardRef((
           </div>
         )}
       </div>
-    </header>
+    </header >
   );
 });
 

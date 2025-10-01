@@ -262,10 +262,6 @@ export default function OrderShow({ order }) {
                             <h2 className="mb-4 text-lg font-semibold text-gray-900">Informasi Pengiriman</h2>
 
                             <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                    <MapPin className="h-4 w-4" />
-                                    <span className="break-words">{order.shipping_address}</span>
-                                </div>
 
                                 {order.mitra && (
                                     <div className="flex items-center space-x-2 text-sm text-gray-600">

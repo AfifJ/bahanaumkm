@@ -1,10 +1,13 @@
 # Todo
-- [ ] tempat pengiriman (list semua mitra) (siang selesaikan)
-  - [ ] beli produk dengan mitra
-  - [ ] transaksi mitra (mitra dapat 25% dari total keuntungan)
+- [x] tempat pengiriman (list semua mitra) (siang selesaikan)
+  - [x] beli produk dengan mitra
+  - [x] transaksi mitra (mitra dapat 25% dari total keuntungan)
 
 - [ ] sistem cart
 - [ ] profil (ui udah)
+- [ ] validasi pembayaran manual
+- [ ] manajemen diskon
+- [ ] diskon
 
 - [x] transaksi untuk mitra (ongoing) (pagi selesaikan)
 - [x] laporan penjualan untuk mitra 

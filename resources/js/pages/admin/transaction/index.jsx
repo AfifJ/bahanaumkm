@@ -21,11 +21,31 @@ import {
 } from '@/components/ui/select';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { CornerUpRight, Edit, Eye, MoveUpRight, PlusIcon, Trash } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+
+const getCurrentMonth = () => {
+    const now = new Date();
+    const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+};
 
 export default function Transaction({ orders, availableMonths = [], month: initialMonth = '' }) {
-    const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+    const [selectedMonth, setSelectedMonth] = useState(initialMonth || getCurrentMonth());
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
 
     const handleMonthChange = (value) => {
         setSelectedMonth(value);
@@ -33,16 +53,6 @@ export default function Transaction({ orders, availableMonths = [], month: initi
             preserveState: true,
             preserveScroll: true
         });
-    };
-
-    const formatMonthYear = (monthYear) => {
-        if (!monthYear) return 'Semua Bulan';
-        const [year, month] = monthYear.split('-');
-        const monthNames = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
-        return `${monthNames[parseInt(month) - 1]} ${year}`;
     };
 
     return (
@@ -58,59 +68,54 @@ export default function Transaction({ orders, availableMonths = [], month: initi
             <Head title="Transaksi" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 overflow-auto">
-                    <div className="mb-4">
-                        <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih Bulan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">Semua Bulan</SelectItem>
-                                {availableMonths.map((monthYear) => (
-                                    <SelectItem key={monthYear} value={monthYear.split('-')[1]}>
-                                        {formatMonthYear(monthYear)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Table>
-                        <TableHeader >
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>Waktu</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Aksi</TableHead>
-                                {/* <TableHead>Produk</TableHead>
-                                <TableHead>Vendor</TableHead>
-                                <TableHead>Mitra</TableHead>
-                                <TableHead>Buyer</TableHead> */}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {orders.data.map((order) =>
-                                <TableRow key={order.id}>
-                                    <TableCell>
-                                        {order.order_code}
-                                    </TableCell>
-                                    <TableCell>
-                                        {order.created_at}
-                                    </TableCell>
-                                    <TableCell>
-                                        {order.status}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button asChild>
-                                            <Link
-                                                href={route('admin.transaction.show', order.id)}
-                                            >
-                                                <Eye />
-                                            </Link>
-                                        </Button>
-                                    </TableCell>
+                    {availableMonths.length > 0 && <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                        <SelectTrigger>
+                            <SelectValue placeholder={selectedMonth || "Pilih Bulan"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableMonths.map((monthYear) => (
+                                <SelectItem key={monthYear} value={monthYear}>
+                                    {monthYear}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>}
+                    <div className="bg-white mt-6 shadow-sm rounded-lg overflow-hidden">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="font-semibold">Order Code</TableHead>
+                                    <TableHead className="font-semibold">Tanggal</TableHead>
+                                    <TableHead className="font-semibold">Status</TableHead>
+                                    <TableHead className="font-semibold">Aksi</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {orders.data.map((order) =>
+                                    <TableRow key={order.id}>
+                                        <TableCell className="font-medium">
+                                            {order.order_code}
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatDate(order.created_at)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {order.status}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button asChild>
+                                                <Link
+                                                    href={route('admin.transaction.show', order.id)}
+                                                >
+                                                    <Eye />
+                                                </Link>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             </div>
         </AdminLayout>

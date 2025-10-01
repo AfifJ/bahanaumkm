@@ -88,11 +88,9 @@ class OrderSeeder extends Seeder
             $order = Order::create([
                 'buyer_id' => $buyer->id,
                 'partner_id' => $vendor->id,
-                'shipping_address' => 'Jl. Contoh No. 123, Jakarta, Indonesia',
                 'total_amount' => $totalAmount,
                 'partner_commission' => $commission,
                 'status' => $orderData['status'],
-                'affiliate_source' => 'direct_link',
             ]);
 
             // Create order items

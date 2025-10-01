@@ -12,11 +12,9 @@ class Order extends Model
         'order_code',
         'buyer_id',
         'mitra_id',
-        'shipping_address',
         'total_amount',
         'partner_commission',
         'status',
-        'affiliate_source'
     ];
 
     protected $casts = [

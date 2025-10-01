@@ -15,7 +15,7 @@ export default function UserCreate({ role, mitraUsers }) {
         password_confirmation: '',
         hotel_name: '',
         address: '',
-        city: '',
+        // city: '',
         phone: '',
         // partner_tier: '',
         // commission_rate: '',
@@ -147,7 +147,7 @@ export default function UserCreate({ role, mitraUsers }) {
                                                 {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
                                             </div>
 
-                                            <div className="space-y-2">
+                                            {/* <div className="space-y-2">
                                                 <Label htmlFor="city">Kota</Label>
                                                 <Input
                                                     id="city"
@@ -157,7 +157,7 @@ export default function UserCreate({ role, mitraUsers }) {
                                                     required
                                                 />
                                                 {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
-                                            </div>
+                                            </div> */}
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="phone">Telepon</Label>
@@ -185,7 +185,7 @@ export default function UserCreate({ role, mitraUsers }) {
                                                 {errors.partner_tier && <p className="text-sm text-red-500">{errors.partner_tier}</p>}
                                             </div>*/}
 
-                                            <div className="space-y-2">
+                                            {/* <div className="space-y-2">
                                                 <Label htmlFor="commission_rate">Komisi (%)</Label>
                                                 <Input
                                                     id="commission_rate"
@@ -199,7 +199,7 @@ export default function UserCreate({ role, mitraUsers }) {
                                                     required
                                                 />
                                                 {errors.commission_rate && <p className="text-sm text-red-500">{errors.commission_rate}</p>}
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                 </>

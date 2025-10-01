@@ -1,11 +1,9 @@
-import MobileBottomNav from '@/components/mobile-bottom-nav';
 import { NavbarNonSearch } from '@/components/ui/navbar-04/non-search';
-import { useIsMobile } from '@/hooks/use-mobile';
+import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
 
 export default ({ children, breadcrumbs, backLink, title, navbar = true, ...props }) => {
-    const isMobile = useIsMobile();
     return (
-        <div className="relative w-full">
+        <PersistentNavigationWrapper>
             {navbar &&
                 <NavbarNonSearch
                     backLink={backLink}
@@ -13,10 +11,9 @@ export default ({ children, breadcrumbs, backLink, title, navbar = true, ...prop
                 />
             }
 
-            <main className={isMobile ? 'pb-16' : ''}>
+            <main>
                 {children}
             </main>
-            {isMobile && <MobileBottomNav />}
-        </div>
+        </PersistentNavigationWrapper>
     )
 };

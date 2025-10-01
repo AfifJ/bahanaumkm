@@ -24,7 +24,7 @@ class CategoryRequest extends FormRequest
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,png,jpeg,svg', 'max:2048']
+            'image' => ['nullable', 'mimes:jpg,png,jpeg,svg', 'max:2048']
         ];
 
         // Untuk create, image required, untuk update optional

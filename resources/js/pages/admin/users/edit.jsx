@@ -15,7 +15,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
         status: user.status,
         hotel_name: mitraProfile?.hotel_name || '',
         address: mitraProfile?.address || '',
-        city: mitraProfile?.city || '',
+        // city: mitraProfile?.city || '',
         phone: mitraProfile?.phone || '',
         // partner_tier: mitraProfile?.partner_tier || '',
         // commission_rate: mitraProfile?.commission_rate || '',
@@ -134,7 +134,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                 />
                                                 {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
                                             </div>
-
+                                            {/* 
                                             <div className="space-y-2">
                                                 <Label htmlFor="city">Kota</Label>
                                                 <Input
@@ -145,7 +145,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                     required
                                                 />
                                                 {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
-                                            </div>
+                                            </div> */}
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="phone">Telepon</Label>

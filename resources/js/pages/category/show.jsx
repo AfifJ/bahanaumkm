@@ -48,7 +48,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
         }).format(price);
     };
 
-    const LayoutComponent = layout === 'guest' ? GuestLayout : AppLayout;
+    const LayoutComponent = GuestLayout;
 
     return (
         <LayoutComponent>
@@ -185,11 +185,10 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                     {/* Previous Button */}
                                     <Link
                                         href={products.links[0].url || '#'}
-                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-                                            !products.links[0].url
+                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!products.links[0].url
                                                 ? 'cursor-not-allowed text-gray-400'
                                                 : 'text-gray-700 hover:bg-gray-50'
-                                        }`}
+                                            }`}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                         <span className="ml-1">Sebelumnya</span>
@@ -201,11 +200,10 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                             <Link
                                                 key={index}
                                                 href={link.url || '#'}
-                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${
-                                                    link.active
+                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${link.active
                                                         ? 'bg-blue-600 text-white'
                                                         : 'text-gray-700 hover:bg-gray-50'
-                                                } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                    } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
                                         ))}
@@ -214,11 +212,10 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                     {/* Next Button */}
                                     <Link
                                         href={products.links[products.links.length - 1].url || '#'}
-                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-                                            !products.links[products.links.length - 1].url
+                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!products.links[products.links.length - 1].url
                                                 ? 'cursor-not-allowed text-gray-400'
                                                 : 'text-gray-700 hover:bg-gray-50'
-                                        }`}
+                                            }`}
                                     >
                                         <span className="mr-1">Selanjutnya</span>
                                         <ChevronRight className="h-4 w-4" />

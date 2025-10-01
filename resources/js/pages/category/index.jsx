@@ -23,39 +23,43 @@ export default function CategoryIndex({ categories, layout }) {
                     />
                 </div>
 
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Kategori Produk</h1>
-                    <p className="text-gray-600">
+                <div className="mb-4">
+                    <h1 className="text-xl font-bold text-gray-900 mb-2">Kategori Produk</h1>
+                    <p className="text-gray-600 text-sm">
                         Jelajahi berbagai kategori produk yang tersedia di toko kami.
                     </p>
                 </div>
 
                 {categories.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="divide-gray-300 divide-y-[1px] space-y-2">
                         {categories.map((category) => (
-                            <Card key={category.id} className="hover:shadow-lg transition-shadow">
+                            <div key={category.id} className="py-2">
                                 <Link href={route('category.show', category.slug)}>
-                                    <CardContent className="p-6 text-center">
+                                    <div className="flex items-center gap-4 px-4">
                                         {category.image ? (
                                             <img
                                                 src={`/storage/${category.image}`}
                                                 alt={category.name}
-                                                className="w-24 h-24 mx-auto object-cover rounded-lg mb-4"
+                                                className="w-8 h-8 object-cover rounded-lg flex-shrink-0"
                                             />
                                         ) : (
-                                            <div className="w-24 h-24 mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-                                                <span className="text-gray-500 text-2xl">📦</span>
+                                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <span className="text-gray-500 text-xl">📦</span>
                                             </div>
                                         )}
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                            {category.name}
-                                        </h3>
-                                        <p className="text-sm text-gray-600">
-                                            {category.products_count} produk
-                                        </p>
-                                    </CardContent>
+                                        <div className="flex-1">
+                                            <h3 className="text-gray-900">
+                                                {category.name}
+                                            </h3>
+                                        </div>
+                                        <div className="text-gray-400">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </Link>
-                            </Card>
+                            </div>
                         ))}
                     </div>
                 ) : (

@@ -22,15 +22,76 @@ class TransactionController extends Controller
 
         // Filter by month if provided
         if ($month) {
-            $query->whereMonth('created_at', $month);
+            // Convert Indonesian month to English for parsing
+            $indonesianToEnglish = [
+                'Januari' => 'January',
+                'Februari' => 'February',
+                'Maret' => 'March',
+                'April' => 'April',
+                'Mei' => 'May',
+                'Juni' => 'June',
+                'Juli' => 'July',
+                'Agustus' => 'August',
+                'September' => 'September',
+                'Oktober' => 'October',
+                'November' => 'November',
+                'Desember' => 'December'
+            ];
+
+            $monthParts = explode(' ', $month);
+            $indonesianMonth = $monthParts[0];
+            $year = $monthParts[1];
+            $englishMonth = $indonesianToEnglish[$indonesianMonth];
+
+            $monthDate = \DateTime::createFromFormat('F Y', $englishMonth . ' ' . $year);
+            $startDate = $monthDate->format('Y-m-01');
+            $endDate = $monthDate->modify('+1 month')->format('Y-m-01');
+            $query->where('created_at', '>=', $startDate)->where('created_at', '<', $endDate);
+        } else {
+            // Default to current month
+            $currentMonth = date('Y-m');
+            $startDate = $currentMonth . '-01';
+            $endDate = date('Y-m-01', strtotime('+1 month'));
+            $query->where('created_at', '>=', $startDate)->where('created_at', '<', $endDate);
         }
 
         $orders = $query->paginate(10);
 
-        // Get available months for transactions
-        $availableMonths = Order::select(DB::raw('DISTINCT DATE_FORMAT(created_at, "%Y-%m") as month_year'))
-            ->orderBy('month_year', 'desc')
-            ->pluck('month_year');
+        // Generate available months similar to vendor controller
+        $monthStart = date('Y-m', strtotime('-6 months')); // Last 6 months
+        $currentMonth = date('Y-m');
+
+        $availableMonths = [];
+        $startDate = new \DateTime($monthStart);
+        $endDate = new \DateTime($currentMonth);
+        $endDate->modify('+1 month');
+
+        $interval = \DateInterval::createFromDateString('1 month');
+        $period = new \DatePeriod($startDate, $interval, $endDate);
+
+        foreach ($period as $dt) {
+            $englishMonth = $dt->format("F");
+            $year = $dt->format("Y");
+
+            $indonesianMonths = [
+                'January' => 'Januari',
+                'February' => 'Februari',
+                'March' => 'Maret',
+                'April' => 'April',
+                'May' => 'Mei',
+                'June' => 'Juni',
+                'July' => 'Juli',
+                'August' => 'Agustus',
+                'September' => 'September',
+                'October' => 'Oktober',
+                'November' => 'November',
+                'December' => 'Desember'
+            ];
+
+            $availableMonths[] = $indonesianMonths[$englishMonth] . ' ' . $year;
+        }
+
+        $availableMonths = array_reverse($availableMonths);
 
         return Inertia::render('admin/transaction/index', [
             'orders' => $orders,

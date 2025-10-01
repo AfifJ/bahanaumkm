@@ -10,18 +10,19 @@ use Inertia\Inertia;
 
 
 Route::name('buyer.')->group(function () {
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/transaksi', function () {
-            return Inertia::render('transaksi');
-        })->name('transaksi');
+    Route::get('/transaksi', function () {
+        return Inertia::render('transaksi');
+    })->name('transaksi');
 
-        Route::prefix('orders')->name('orders.')->group(function () {
-            Route::get('/', [OrderController::class, 'index'])->name('index');
-            Route::get('/create', [OrderController::class, 'create'])->name('create');
-            Route::post('/', [OrderController::class, 'store'])->name('store');
-            Route::get('/{order}', [OrderController::class, 'show'])->name('show');
-            Route::put('/{order}', [OrderController::class, 'update'])->name('update');
-        });
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/create', [OrderController::class, 'create'])->name('create');
+        Route::post('/', [OrderController::class, 'store'])->name('store');
+        Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+        Route::put('/{order}', [OrderController::class, 'update'])->name('update');
+    });
+
+    Route::middleware(['auth'])->group(function () {
 
         // Cart routes
         Route::prefix('cart')->name('cart.')->group(function () {

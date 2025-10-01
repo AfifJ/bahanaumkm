@@ -1,4 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import ProductList from '@/components/product-list';
 import ScrollToTop from '@/components/scroll-to-top';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -84,13 +85,13 @@ export default function ProductShow({ product, relatedProducts, layout }) {
     };
 
     return (
-        <BuyerLayoutNonSearch backLink={route('home')} title={''} >
+        <BuyerLayoutNonSearch backLink={route('home')} title={'Detail Produk'} >
             <ScrollToTop />
             <Head title={product.name} />
 
             <div className="container mx-auto px-4 py-8">
                 {/* Breadcrumb */}
-                <div className="mb-6">
+                {/*  <div className="mb-6">
                     <Breadcrumbs
                         breadcrumbs={[
                             { title: 'Home', href: route('home') },
@@ -102,13 +103,13 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                             { title: product.name },
                         ]}
                     />
-                </div>
+                </div> */}
 
                 <div className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
                     {/* Product Image */}
                     <div>
                         {product.image_url ? (
-                            <img src={product.image_url} alt={product.name} className="h-96 w-full rounded-lg object-cover shadow-md" />
+                            <img src={product.image_url} alt={product.name} className="h-96 aspect-square rounded-lg object-cover shadow-md" />
                         ) : (
                             <div className="flex h-96 w-full items-center justify-center rounded-lg bg-gray-200 shadow-md">
                                 <span className="text-gray-500">Gambar Tidak Tersedia</span>
@@ -210,38 +211,9 @@ export default function ProductShow({ product, relatedProducts, layout }) {
                     </div>
                 </div>
 
-                {/* Related Products */}
                 {relatedProducts.length > 0 && (
-                    <div>
-                        <h2 className="mb-6 text-2xl font-bold text-gray-900">Produk Terkait</h2>
-                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-                            {relatedProducts.map((product) => (
-                                <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
-                                    <div className="p-0 gap-1 group overflow-hidden rounded transition-all hover:scale-105 hover:shadow-lg">
-                                        <div className="p-0 rounded overflow-hidden">
-                                            {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="aspect-square w-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="flex aspect-square w-full items-center justify-center bg-gray-100">
-                                                    <span className="text-gray-400">📦</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="p-3">
-                                            <h3 className="line-clamp-2 h-10 text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                                {product.name}
-                                            </h3>
-                                            <p className="mt-2 text-lg font-bold">{formatPrice(product.sell_price)}</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>)}
+                    <ProductList productList={relatedProducts} />
+                )}
             </div>
         </BuyerLayoutNonSearch>
     );

@@ -1,17 +1,12 @@
-import MobileBottomNav from '@/components/mobile-bottom-nav';
 import { Navbar04 } from '@/components/ui/navbar-04';
-import { useIsMobile } from '@/hooks/use-mobile';
-import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { router } from '@inertiajs/react';
-import { LayoutGrid, Package, ShoppingCart, History, HelpCircle } from 'lucide-react';
+import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
+import { router, usePage } from '@inertiajs/react';
 
-const footerNavItems = [];
-export default ({ children, breadcrumbs, mainNavItems, ...props }) => {
-    const isMobile = useIsMobile();
+export default ({ children, mainNavItems }) => {
+    const { auth: { user } } = usePage().props;
 
     const handleCartClick = () => {
-        console.log('cart click');
-        router.visit(route('buyer.cart.index')); // atau route yang sesuai
+        router.visit(route('buyer.cart.index'));
     }
 
     const handleSearchSubmit = (query) => {
@@ -19,18 +14,19 @@ export default ({ children, breadcrumbs, mainNavItems, ...props }) => {
             router.get(route('search'), { search: query.trim() });
         }
     }
+    
     return (
-        <div className="relative w-full">
+        <PersistentNavigationWrapper>
             <Navbar04
+                profileLink={user?.role_id === 5 ? '/profile' : ""}
                 menuItems={mainNavItems}
                 onSearchSubmit={handleSearchSubmit}
                 onCartClick={handleCartClick}
             />
 
-            <main className={isMobile ? 'pb-16' : ''}>
+            <main>
                 {children}
             </main>
-            {isMobile && <MobileBottomNav />}
-        </div>
+        </PersistentNavigationWrapper>
     )
 };

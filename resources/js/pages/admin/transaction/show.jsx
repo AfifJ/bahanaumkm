@@ -1,20 +1,5 @@
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, Link } from '@inertiajs/react';
-import { CornerUpRight, Edit, Eye, MoveUpRight, PlusIcon, Trash } from 'lucide-react';
+import { Head } from '@inertiajs/react';
 
 export default function Transaction({ order }) {
     return (
@@ -35,7 +20,7 @@ export default function Transaction({ order }) {
                     </h1>
                     <div>
                         <div>Waktu Order: {order.created_at}</div>
-                        <div>Alamat Pengiriman: {order.shipping_address}</div>
+                        <div>Alamat Pengiriman: {order.mitra_id}</div>
                         <div>Status Pesanan: {order.status}</div>
                         <div>Produk: {order.items.map((item => (
                             <div className='ms-5'>

@@ -200,10 +200,10 @@ export default function OrdersIndex({ orders }) {
                                                         <span>Vendor: {order.mitra.name}</span>
                                                     </div>
                                                 )}
-                                                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                                               {/*  <div className="flex items-center space-x-2 text-sm text-gray-600">
                                                     <MapPin className="h-4 w-4" />
                                                     <span className="truncate">{order.shipping_address}</span>
-                                                </div>
+                                                </div> */}
                                             </div>
                                         </div>
 

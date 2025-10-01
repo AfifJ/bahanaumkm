@@ -17,7 +17,7 @@ class CategoryController extends Controller
     {
         $this->authorize('viewAny', Category::class);
 
-        $categories = Category::latest()->paginate(10);
+        $categories = Category::orderBy('name')->paginate(10);
 
         return Inertia::render('admin/categories/index', [
             'categories' => $categories,

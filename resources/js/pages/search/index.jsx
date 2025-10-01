@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Filter, FilterX } from 'lucide-react';
+import ProductList from '@/components/product-list';
 
 export default function SearchIndex({ products, categories, filters, layout }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -159,45 +160,10 @@ export default function SearchIndex({ products, categories, filters, layout }) {
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {products.data.map((product) => (
-                                    <Link key={product.id} href={route('product.show', product.slug)}>
-                                        <Card className="hover:shadow-lg transition-shadow p-0">
-                                            <CardHeader className="p-0">
-                                                {product.image_url ? (
-                                                    <img
-                                                        src={product.image_url}
-                                                        alt={product.name}
-                                                        className="w-full h-48 object-cover rounded-t-lg"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-lg">
-                                                        <span className="text-gray-500">Gambar Tidak Tersedia</span>
-                                                    </div>
-                                                )}
-                                            </CardHeader>
-                                            <CardContent className="p-4">
-                                                <span
-                                                    className="text-lg font-semibold text-gray-900 line-clamp-2"
-                                                >
-                                                    {product.name}
-                                                </span>
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                    {product.category?.name}
-                                                </p>
-                                                <p className="text-2xl font-bold text-green-600 mt-2">
-                                                    {formatPrice(product.sell_price)}
-                                                </p>
-                                                <p className="text-sm text-gray-500 mt-1">
-                                                    Stok: {product.stock}
-                                                </p>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                ))}
+                            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                                <ProductList productList={latestProducts} />
                             </div>
 
-                            {/* Pagination */}
                             {products.links && products.links.length > 3 && (
                                 <div className="mt-8 flex justify-center">
                                     <nav className="flex items-center gap-2">

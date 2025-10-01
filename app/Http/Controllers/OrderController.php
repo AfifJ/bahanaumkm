@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MitraProfile;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -36,12 +37,14 @@ class OrderController extends Controller
         $productId = $request->input('product_id');
         $quantity = $request->input('quantity');
 
-        // Lakukan sesuatu dengan parameter, misalnya ambil data produk
         $product = Product::find($productId);
+
+        $mitra = MitraProfile::get();
 
         return Inertia::render('orders/create', [
             'product' => $product,
             'quantity' => $quantity,
+            'mitra' => $mitra
         ]);
     }
 
@@ -54,7 +57,7 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'shipping_address' => 'required|string|min:10',
+            'mitra_id' => 'required',
         ]);
 
         try {
@@ -63,24 +66,11 @@ class OrderController extends Controller
             // Validate stock and calculate total
             $totalAmount = 0;
             $items = [];
-            $mitraId = null;
-
             foreach ($request->items as $itemData) {
                 $product = Product::findOrFail($itemData['product_id']);
 
-                // Check stock availability
                 if ($product->stock < $itemData['quantity']) {
                     throw new Exception("Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}");
-                }
-
-                // Set mitra_id from the first product
-                if (!$mitraId) {
-                    $mitraId = $product->vendor_id;
-                }
-
-                // Ensure all products are from the same vendor
-                if ($product->vendor_id !== $mitraId) {
-                    throw new Exception("Tidak dapat membeli produk dari vendor yang berbeda dalam satu pesanan");
                 }
 
                 $unitPrice = $product->sell_price;
@@ -94,22 +84,18 @@ class OrderController extends Controller
                     'total_price' => $itemTotal,
                 ];
 
-                // Reduce product stock
                 $product->decrement('stock', $itemData['quantity']);
             }
 
-            // Calculate mitra commission (10% of total amount)
-            $mitraCommission = $totalAmount * 0.10;
+            $mitraCommission = $totalAmount * 0.25;
 
             // Create order
             $order = Order::create([
                 'buyer_id' => Auth::id(),
-                'partner_id' => $mitraId,
-                'shipping_address' => $request->shipping_address,
+                'mitra_id' => $request->mitra_id,
                 'total_amount' => $totalAmount,
                 'partner_commission' => $mitraCommission,
                 'status' => 'pending',
-                'affiliate_source' => $request->affiliate_source,
             ]);
 
             // Create order items
