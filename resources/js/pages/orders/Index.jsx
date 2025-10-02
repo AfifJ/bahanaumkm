@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, MapPin, Package, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package, User, Calendar, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 
 export default function OrdersIndex({ orders }) {
@@ -40,218 +40,214 @@ export default function OrdersIndex({ orders }) {
         });
     };
 
+    // Filter orders berdasarkan status
+    const filteredOrders = orders.data.filter((order) => {
+        if (filter.status === '') {
+            return true; // Tampilkan semua
+        }
+
+        if (filter.status === 'belum_dibayar') {
+            // Status belum dibayar: pending (menunggu bayar)
+            return ['pending'].includes(order.status);
+        }
+
+        if (filter.status === 'berlangsung') {
+            // Status yang berlangsung: paid, processing, shipped
+            return ['paid', 'processing', 'shipped'].includes(order.status);
+        }
+
+        if (filter.status === 'selesai') {
+            // Status yang selesai: delivered, cancelled
+            return ['delivered', 'cancelled'].includes(order.status);
+        }
+
+        return true;
+    });
+
     return (
         <BuyerLayoutNonSearch title={'Riwayat Transaksi'}>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
 
-            <div className="container mx-auto p-4">
-                {flash?.success && <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">{flash.success}</div>}
+            <div className="min-h-screen bg-gray-50">
+                {/* Flash Messages */}
+                {flash?.success && (
+                    <div className="mx-4 mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                        {flash.success}
+                    </div>
+                )}
 
-                {flash?.error && <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{flash.error}</div>}
+                {flash?.error && (
+                    <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                        {flash.error}
+                    </div>
+                )}
+
+                {/* Filter Tabs */}
+                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+                    <div className="flex gap-2 overflow-x-auto">
+                        <Button
+                            variant={filter.status === '' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setFilter({ status: "" })}
+                            className="whitespace-nowrap text-sm"
+                        >
+                            Semua
+                        </Button>
+                        <Button
+                            variant={filter.status === 'belum_dibayar' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setFilter({ status: "belum_dibayar" })}
+                            className="whitespace-nowrap text-sm"
+                        >
+                            Belum Dibayar
+                        </Button>
+                        <Button
+                            variant={filter.status === 'berlangsung' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setFilter({ status: "berlangsung" })}
+                            className="whitespace-nowrap text-sm"
+                        >
+                            Berlangsung
+                        </Button>
+                        <Button
+                            variant={filter.status === 'selesai' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setFilter({ status: "selesai" })}
+                            className="whitespace-nowrap text-sm"
+                        >
+                            Selesai
+                        </Button>
+                    </div>
+                </div>
 
                 {/* Orders List */}
-                <div className="rounded-lg bg-white">
-                    {orders.data.length === 0 ? (
-                        <div className="py-12 text-center">
-                            <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                            <h3 className="mb-2 text-lg font-medium text-gray-900">Belum ada transaksi</h3>
-                            <p className="mb-6 text-gray-600">Mulai berbelanja untuk melihat riwayat transaksi Anda</p>
-                            <Link
-                                href={route('home')}
-                                className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                            >
-                                Mulai Belanja
-                            </Link>
+                <div className="p-4">
+                    {filteredOrders.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <ShoppingBag className="h-16 w-16 text-gray-300 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                {orders.data.length === 0 ? 'Belum ada transaksi' : 'Tidak ada transaksi dengan filter ini'}
+                            </h3>
+                            <p className="text-gray-500 mb-6 max-w-sm">
+                                {orders.data.length === 0
+                                    ? 'Mulai berbelanja untuk melihat riwayat transaksi Anda'
+                                    : 'Coba ubah filter untuk melihat transaksi lainnya'
+                                }
+                            </p>
+                            <Button asChild>
+                                <Link
+                                    href={route('home')}
+                                >
+                                    {orders.data.length === 0 ? 'Mulai Belanja' : 'Lihat Semua Transaksi'}
+                                </Link>
+                            </Button>
                         </div>
                     ) : (
-                        <>
-                            <div className='pb-4 space-y-2'>
-                                <div className="flex gap-2 overflow-auto">
-
-
-                                    {/* <Button className={'hover:cursor-pointer'} onClick={() => {
-                                        setFilter({})
-                                    }} variant={'outline'}>
-                                        Reset
-                                        <FilterX />
-                                    </Button> */}
-                                    <Button
-                                        variant={filter.status === '' ? 'default' : 'outline'}
-                                        onClick={() => {
-                                            setFilter(
-                                                {
-                                                    status: ""
-                                                }
-                                            )
-                                        }}
-                                        className={'hover:cursor-pointer'}
-                                    >
-                                        Semua
-                                    </Button>
-                                    <Button
-                                        variant={filter.status === 'berlangsung' ? 'default' : 'outline'}
-                                        onClick={() => {
-                                            setFilter(
-                                                {
-                                                    status: "berlangsung"
-                                                }
-                                            )
-                                        }}
-                                        className={'hover:cursor-pointer'} >
-                                        Berlangsung
-                                    </Button>
-                                    <Button
-                                        variant={filter.status === 'selesai' ? 'default' : 'outline'}
-                                        onClick={() => {
-                                            setFilter(
-                                                {
-                                                    status: "selesai"
-                                                }
-                                            )
-                                        }}
-                                        className={'hover:cursor-pointer'} >
-                                        Selesai
-                                    </Button>
-                                </div>
-                                {filter.status === 'berlangsung' &&
-                                    <div className="flex gap-2">
-                                        <Button variant={'ghost'} className={'hover:bg-white px-1 text-black font-semibold hover:cursor-pointer'}>
-                                            Pending
-                                        </Button>
-                                        <Button variant={'ghost'} className={'hover:bg-white px-1 text-black/60 hover:cursor-pointer'}>
-                                            Dibayar
-                                        </Button>
-                                        <Button variant={'ghost'} className={'hover:bg-white px-1 text-black/60 hover:cursor-pointer'}>
-                                            Sedang diantar
-                                        </Button>
+                        <div className="space-y-3">
+                            {filteredOrders.map((order) => (
+                                <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center space-x-2">
+                                            <Package className="h-4 w-4 text-gray-400" />
+                                            <span className="text-sm font-medium text-gray-900">#{order.order_code}</span>
+                                        </div>
+                                        <div className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(order.status)}`}>
+                                            {order.status === 'pending' && 'Menunggu Bayar'}
+                                            {order.status === 'paid' && 'Dibayar'}
+                                            {order.status === 'processing' && 'Diproses'}
+                                            {order.status === 'shipped' && 'Dikirim'}
+                                            {order.status === 'delivered' && 'Selesai'}
+                                            {order.status === 'cancelled' && 'Dibatalkan'}
+                                        </div>
                                     </div>
-                                }
-                            </div>
-                            <div className="space-y-4">
-                                {orders.data.map((order) => (
-                                    <div key={order.id} className="rounded-lg border p-3 py-2">
-                                        <div className="mb-4 flex items-center justify-between">
-                                            <div className="flex w-full items-center justify-between space-x-4">
-                                                <div className="flex items-center space-x-2">
-                                                    <Package className="h-5 w-5 text-gray-400" />
-                                                    <span className="text-sm text-gray-900">#{order.order_code}</span>
-                                                </div>
-                                                <div>
-                                                    <div
-                                                        className={`rounded-full px-2 py-1 text-center text-xs font-medium ${getStatusColor(order.status)}`}
-                                                    >
-                                                        {order.status === 'pending' && 'Menunggu Pembayaran'}
-                                                        {order.status === 'paid' && 'Sudah Dibayar'}
-                                                        {order.status === 'processing' && 'Diproses'}
-                                                        {order.status === 'shipped' && 'Dikirim'}
-                                                        {order.status === 'delivered' && 'Selesai'}
-                                                        {order.status === 'cancelled' && 'Dibatalkan'}
-                                                    </div>
-                                                    {/* <div className="flex items-center space-x-2 text-sm text-gray-500">
-                                                    <span>{formatDate(order.created_at)}</span>
-                                                </div>*/}
-                                                </div>
+
+                                    {/* Product Preview */}
+                                    <div className="mb-3">
+                                        <div className="flex items-center space-x-3">
+                                            {order.items[0]?.product?.image_url && (
+                                                <img
+                                                    src={order.items[0].product.image_url}
+                                                    alt={order.items[0].product.name}
+                                                    className="h-12 w-12 rounded-lg object-cover"
+                                                />
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    {order.items[0]?.product?.name || 'Produk'}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                                                </p>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div className="mb-4 grid grid-cols-1 gap-6 md:grid-cols-3">
-                                            {/* Order Items */}
-                                            <div className="md:col-span-2">
-                                                <h4 className="mb-3 font-medium text-gray-900">Produk yang Dipesan</h4>
-                                                <div className="space-y-3">
-                                                    {order.items.map((item) => (
-                                                        <div key={item.id} className="flex items-center space-x-3">
-                                                            {item.product.image_url && (
-                                                                <img
-                                                                    src={item.product.image_url}
-                                                                    alt={item.product.name}
-                                                                    className="h-12 w-12 rounded-md object-cover"
-                                                                />
-                                                            )}
-                                                            <div className="min-w-0 flex-1">
-                                                                <p className="truncate text-sm font-medium text-gray-900">{item.product.name}</p>
-                                                                <p className="text-sm text-gray-500">
-                                                                    {item.quantity} x {formatPrice(item.unit_price)}
-                                                                </p>
-                                                            </div>
-                                                            <p className="text-sm font-medium text-gray-900">{formatPrice(item.total_price)}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                    {/* Order Info */}
+                                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-1">
+                                                <Calendar className="h-3 w-3" />
+                                                <span>{formatDate(order.created_at)}</span>
                                             </div>
-
-                                            {/* Order Summary */}
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between">
-                                                    <span className="text-sm text-gray-600">Total Pesanan</span>
-                                                    <span className="text-sm font-medium text-gray-900">{formatPrice(order.total_amount)}</span>
+                                            {/* {order.mitra && (
+                                                <div className="flex items-center space-x-1">
+                                                    <User className="h-3 w-3" />
+                                                    <span>{order.mitra.name}</span>
                                                 </div>
-                                                {order.mitra && (
-                                                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                                        <User className="h-4 w-4" />
-                                                        <span>Vendor: {order.mitra.name}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            )} */}
                                         </div>
+                                        <div className="text-sm font-semibold text-gray-900">
+                                            {formatPrice(order.total_amount)}
+                                        </div>
+                                    </div>
 
-                                        <div className="flex items-center justify-between">
-                                            <div className="ms-auto flex space-x-2">
-                                                <Link
-                                                    href={route('buyer.orders.show', order.id)}
-                                                    className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                                >
-                                                    Lihat Detail
-                                                </Link>
-                                                {order.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => {
-                                                            if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-                                                                router.put(
-                                                                    route('buyer.orders.update', order.id),
-                                                                    {
-                                                                        status: 'cancelled',
-                                                                    },
-                                                                    {
-                                                                        onSuccess: () => {
-                                                                            console.log('Cancel successful');
-                                                                        },
-                                                                        onError: (errors) => {
-                                                                            console.error('Cancel failed:', errors);
-                                                                        },
-                                                                        onFinish: () => {
-                                                                            console.log('Request cancel finished');
-                                                                        },
-                                                                    },
-                                                                );
+                                    {/* Actions */}
+                                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                        <Link
+                                            href={route('buyer.orders.show', order.id)}
+                                            className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                        >
+                                            <span>Lihat Detail</span>
+                                            <ArrowRight className="h-3 w-3" />
+                                        </Link>
+                                        {order.status === 'pending' && (
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
+                                                        router.put(
+                                                            route('buyer.orders.update', order.id),
+                                                            { status: 'cancelled' },
+                                                            {
+                                                                onSuccess: () => console.log('Cancel successful'),
+                                                                onError: (errors) => console.error('Cancel failed:', errors),
                                                             }
-                                                        }}
-                                                        className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                                                    >
-                                                        Batalkan
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
+                                                        );
+                                                    }
+                                                }}
+                                                className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                            >
+                                                Batalkan
+                                            </button>
+                                        )}
                                     </div>
-                                ))}
-                            </div>
-                        </>
+                                </div>
+                            ))}
+                        </div>
                     )}
 
                     {/* Pagination */}
-                    {orders.data.length > 0 && (
-                        <div className="border-t border-gray-200 px-6 py-4">
+                    {filteredOrders.length > 0 && (
+                        <div className="mt-6 border-t border-gray-200 pt-4">
                             <div className="flex items-center justify-between">
-                                <div className="text-sm text-gray-700">
-                                    {orders.from} - {orders.to} ({orders.total})
+                                <div className="text-xs text-gray-500">
+                                    Menampilkan {filteredOrders.length} dari {orders.total} transaksi
                                 </div>
                                 <div className="flex items-center space-x-1">
                                     {/* Previous Button */}
                                     <Link
                                         href={orders.links[0].url || '#'}
-                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!orders.links[0].url ? 'cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
+                                        className={`inline-flex items-center rounded-lg p-2 text-sm ${!orders.links[0].url ? 'cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-100'}`}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Link>
@@ -262,8 +258,7 @@ export default function OrdersIndex({ orders }) {
                                             <Link
                                                 key={index}
                                                 href={link.url || '#'}
-                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${link.active ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-50'
-                                                    } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium ${link.active ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'} ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
                                         ))}
@@ -272,10 +267,7 @@ export default function OrdersIndex({ orders }) {
                                     {/* Next Button */}
                                     <Link
                                         href={orders.links[orders.links.length - 1].url || '#'}
-                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!orders.links[orders.links.length - 1].url
-                                            ? 'cursor-not-allowed text-gray-400'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
+                                        className={`inline-flex items-center rounded-lg p-2 text-sm ${!orders.links[orders.links.length - 1].url ? 'cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-100'}`}
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </Link>
@@ -285,6 +277,6 @@ export default function OrdersIndex({ orders }) {
                     )}
                 </div>
             </div>
-        </BuyerLayoutNonSearch >
+        </BuyerLayoutNonSearch>
     );
 }

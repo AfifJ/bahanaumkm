@@ -31,9 +31,6 @@ export default function Index({ products, can }) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex flex-row items-center justify-between pb-4">
-                        <Link href={route('admin.products.create')}>
-                            Add Product Witch
-                        </Link>
                         <h2 className="text-2xl font-bold">Product List</h2>
                         {can.create && route('admin.products.create') && (
                             <Button asChild>

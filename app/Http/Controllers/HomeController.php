@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\MitraProfile;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -36,10 +37,14 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
+        // Get all mitra/hotels for location selection
+        $mitra = MitraProfile::get();
+
         return Inertia::render('home', [
             'featuredProducts' => $featuredProducts,
             'latestProducts' => $latestProducts,
             'popularCategories' => $popularCategories,
+            'mitra' => $mitra,
         ]);
     }
 }

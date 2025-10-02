@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ShippingSettingController;
 use Inertia\Inertia;
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/', function () {
@@ -54,5 +55,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::prefix('transaction')->name('transaction.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{order}', [TransactionController::class, 'show'])->name('show');
+        Route::put('/{order}', [TransactionController::class, 'update'])->name('update');
+    });
+
+    // Shipping Settings Routes
+    Route::prefix('shipping-settings')->name('shipping-settings.')->group(function () {
+        Route::get('/', [ShippingSettingController::class, 'index'])->name('index');
+        Route::put('/', [ShippingSettingController::class, 'update'])->name('update');
     });
 });

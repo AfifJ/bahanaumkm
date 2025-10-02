@@ -1,14 +1,3 @@
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -22,8 +11,32 @@ import {
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import { CornerUpRight, Edit, Eye, MoveUpRight, PlusIcon, Trash } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Eye } from 'lucide-react';
+import { useState } from 'react';
+
+const getStatusBadgeVariant = (status) => {
+    switch (status) {
+        case 'pending': return 'secondary';
+        case 'paid': return 'default';
+        case 'processed': return 'outline';
+        case 'shipped': return 'secondary';
+        case 'delivered': return 'default';
+        case 'cancelled': return 'destructive';
+        default: return 'secondary';
+    }
+};
+
+const getStatusLabel = (status) => {
+    const labels = {
+        'pending': 'Menunggu Pembayaran',
+        'paid': 'Sudah Dibayar',
+        'processed': 'Diproses',
+        'shipped': 'Dikirim',
+        'delivered': 'Selesai',
+        'cancelled': 'Dibatalkan'
+    };
+    return labels[status] || status;
+};
 
 const getCurrentMonth = () => {
     const now = new Date();
@@ -100,7 +113,9 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                                             {formatDate(order.created_at)}
                                         </TableCell>
                                         <TableCell>
-                                            {order.status}
+                                            <Badge variant={getStatusBadgeVariant(order.status)}>
+                                                {getStatusLabel(order.status)}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>
                                             <Button asChild>

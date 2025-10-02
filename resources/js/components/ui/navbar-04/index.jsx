@@ -222,10 +222,10 @@ export const Navbar04 = forwardRef((
                 <Button variant={'ghost'} onClick={() => { setShowSearch(true); searchRef.current.focus() }} className={'cursor-pointer'}>
                   <Search className='h-8 w-8' />
                 </Button>
-                <Button className={'cursor-pointer'}>
+                {/* <Button className={'cursor-pointer'}>
                   <ShoppingCart className='h-8 w-8' />
                   Keranjang
-                </Button>
+                </Button> */}
               </div>
 
             </div>

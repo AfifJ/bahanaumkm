@@ -59,9 +59,19 @@ class ProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $request->user()->id,
+        ]);
+
+        $user = $request->user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+
+        return redirect()->route('buyer.profile.index')->with('success', 'Profil berhasil diperbarui');
     }
 
     public function editPassword()

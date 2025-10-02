@@ -133,6 +133,7 @@ class UserController extends Controller
                 $mitraData = $request->validate([
                     'hotel_name' => 'required|string|max:255',
                     'address' => 'required|string',
+                    'distance_from_warehouse' => 'required|integer|min:0',
                     'city' => 'required|string|max:100',
                     'phone' => 'nullable|string|max:20',
                     // 'partner_tier' => 'required|in:premium,standard,basic',

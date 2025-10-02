@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AffiliateController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
@@ -21,9 +20,6 @@ Route::get('/product/{product}', [CatalogController::class, 'productShow'])->nam
 Route::get('/promo', function () {
     return Inertia::render('promo');
 })->name('promo');
-
-Route::get('/affiliate/{code}', [AffiliateController::class, 'processVisit'])
-    ->name('affiliate.redirect');
 
 Route::get('/about', function () {
     return Inertia::render(component: 'buyer/profile/tentang-kami');

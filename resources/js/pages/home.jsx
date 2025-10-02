@@ -1,15 +1,18 @@
 import ProductList from '@/components/product-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { LocationSelector } from '@/components/location-selector';
 import BuyerLayout from '@/layouts/buyer-layout';
 import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeftRight, ChevronDown, HelpCircle, LayoutDashboard, MapPin, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useLocationStorage } from '@/hooks/use-location-storage';
 
-export default function Home({ featuredProducts, latestProducts, popularCategories }) {
+export default function Home({ featuredProducts, latestProducts, popularCategories, mitra }) {
     const { auth } = usePage().props;
     const [mainNavItems, setMainNavItems] = useState([])
+    const { selectedLocation, saveLocation } = useLocationStorage();
 
     useEffect(() => {
         switch (auth?.user?.role_id) {
@@ -30,6 +33,10 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
             default: setMainNavItems(buyerMainNavItems);
         }
     }, [auth])
+
+    const handleLocationSelect = (location) => {
+        saveLocation(location);
+    };
 
     const buyerMainNavItems = [
         {
@@ -81,14 +88,12 @@ export default function Home({ featuredProducts, latestProducts, popularCategori
             {/* Hero Banner Section */}
             <section className="px-4 pb-2">
                 <span className='text-sm font-light text-black/80'>Lokasi Anda</span>
-                <div className='flex gap-2 py-1'>
-                    <svg className='text-red-700' xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M10.115 21.811c.606.5 1.238.957 1.885 1.403a27 27 0 0 0 1.885-1.403a28 28 0 0 0 2.853-2.699C18.782 16.877 21 13.637 21 10a9 9 0 1 0-18 0c0 3.637 2.218 6.876 4.262 9.112a28 28 0 0 0 2.853 2.7M12 13.25a3.25 3.25 0 1 1 0-6.5a3.25 3.25 0 0 1 0 6.5" />
-                    </svg>
-                    <span>
-                        Hotel Mitra, Yogyakarta
-                    </span>
-                    <ChevronDown className='w-4' />
+                <div className='py-1'>
+                    <LocationSelector 
+                        mitra={mitra || []}
+                        onSelect={handleLocationSelect}
+                        selectedLocation={selectedLocation}
+                    />
                 </div>
             </section>
             <section className="pb-2">

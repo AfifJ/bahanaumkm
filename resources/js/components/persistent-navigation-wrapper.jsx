@@ -1,7 +1,7 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileBottomNav from './mobile-bottom-nav';
 
-export default function PersistentNavigationWrapper({ children }) {
+export default function PersistentNavigationWrapper({ withBottomNav = true, children }) {
     const isMobile = useIsMobile();
 
     return (
@@ -9,7 +9,9 @@ export default function PersistentNavigationWrapper({ children }) {
             <div className={isMobile ? 'pb-16' : ''}>
                 {children}
             </div>
-            <MobileBottomNav />
+            {withBottomNav &&
+                <MobileBottomNav />
+            }
         </div>
     );
 }

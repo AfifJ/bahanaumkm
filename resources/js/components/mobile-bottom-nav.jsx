@@ -20,10 +20,10 @@ const MobileBottomNav = memo(function MobileBottomNav() {
             active: url === '/orders',
         },
         {
-            name: 'Promo',
-            href: route('promo'),
+            name: 'Wishlist',
+            href: route('buyer.wishlist'),
             icon: Tag,
-            active: url === '/promo',
+            active: url === '/wishlist',
         },
         {
             name: 'Akun',

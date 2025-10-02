@@ -55,7 +55,7 @@ export const NavbarNonSearch = forwardRef((
     <header
       ref={combinedRef}
       className={cn(
-        'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
+        'sticky top-0 z-50 w-full border-b bg-primary text-white px-4 md:px-6 [&_*]:no-underline',
         className
       )}
       {...props}>
@@ -65,7 +65,7 @@ export const NavbarNonSearch = forwardRef((
           <div className="flex flex-1 items-center gap-4 max-md:justify-between">
             <div className='w-full flex items-center relative'>
               {backLink &&
-                <Button className={'absolute top-1/2 -translate-y-1/2'} variant={'outline'}>
+                <Button asChild className={'absolute top-1/2 -translate-y-1/2'} variant={'ghost'}>
                   <Link href={backLink} >
                     <ChevronLeft />
                   </Link>

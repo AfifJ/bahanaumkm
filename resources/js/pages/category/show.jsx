@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import ScrollToTop from '@/components/scroll-to-top';
 import { ChevronLeft, ChevronRight, Filter, FilterX } from 'lucide-react';
+import ProductList from '@/components/product-list';
 
 export default function CategoryShow({ products, categories, currentCategory, filters, layout }) {
     const { url } = usePage();
@@ -55,9 +56,9 @@ export default function CategoryShow({ products, categories, currentCategory, fi
             <ScrollToTop />
             <Head title={`Produk ${currentCategory.name}`} />
 
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4">
                 {/* Breadcrumb */}
-                <div className="mb-6">
+                <div className="mb-4">
                     <Breadcrumbs
                         breadcrumbs={[
                             { title: 'Home', href: route('home') },
@@ -137,43 +138,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
 
                 {products.data.length > 0 ? (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {products.data.map((product) => (
-                                <Link key={product.id} href={route('product.show', product.slug)}>
-                                    <Card className="hover:shadow-lg transition-shadow p-0">
-                                        <CardHeader className="p-0">
-                                            {product.image_url ? (
-                                                <img
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    className="w-full h-48 object-cover rounded-t-lg"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-lg">
-                                                    <span className="text-gray-500">Gambar Tidak Tersedia</span>
-                                                </div>
-                                            )}
-                                        </CardHeader>
-                                        <CardContent className="p-4">
-                                            <span
-                                                className="text-lg font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
-                                            >
-                                                {product.name}
-                                            </span>
-                                            <p className="text-sm text-gray-600 mt-1">
-                                                {product.category?.name}
-                                            </p>
-                                            <p className="text-2xl font-bold text-green-600 mt-2">
-                                                {formatPrice(product.sell_price)}
-                                            </p>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                Stok: {product.stock}
-                                            </p>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
-                            ))}
-                        </div>
+                        <ProductList productList={products.data} />
 
                         {/* Pagination */}
                         {products.links && products.links.length > 3 && (
@@ -186,8 +151,8 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                     <Link
                                         href={products.links[0].url || '#'}
                                         className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!products.links[0].url
-                                                ? 'cursor-not-allowed text-gray-400'
-                                                : 'text-gray-700 hover:bg-gray-50'
+                                            ? 'cursor-not-allowed text-gray-400'
+                                            : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
@@ -201,8 +166,8 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                                 key={index}
                                                 href={link.url || '#'}
                                                 className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${link.active
-                                                        ? 'bg-blue-600 text-white'
-                                                        : 'text-gray-700 hover:bg-gray-50'
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'text-gray-700 hover:bg-gray-50'
                                                     } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
@@ -213,8 +178,8 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                     <Link
                                         href={products.links[products.links.length - 1].url || '#'}
                                         className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!products.links[products.links.length - 1].url
-                                                ? 'cursor-not-allowed text-gray-400'
-                                                : 'text-gray-700 hover:bg-gray-50'
+                                            ? 'cursor-not-allowed text-gray-400'
+                                            : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                     >
                                         <span className="mr-1">Selanjutnya</span>

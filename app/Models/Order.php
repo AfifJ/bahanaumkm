@@ -29,7 +29,7 @@ class Order extends Model
 
     public function mitra(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'mitra_id');
+        return $this->belongsTo(MitraProfile::class, 'mitra_id');
     }
 
     public function items(): HasMany

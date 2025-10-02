@@ -20,6 +20,7 @@ class MitraProfile extends Model
         'user_id',
         'hotel_name',
         'address',
+        'distance_from_warehouse',
         'city',
         'phone',
         // 'partner_tier',

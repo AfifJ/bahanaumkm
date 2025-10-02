@@ -15,6 +15,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
         status: user.status,
         hotel_name: mitraProfile?.hotel_name || '',
         address: mitraProfile?.address || '',
+        distance_from_warehouse: mitraProfile?.distance_from_warehouse || 0,
         // city: mitraProfile?.city || '',
         phone: mitraProfile?.phone || '',
         // partner_tier: mitraProfile?.partner_tier || '',
@@ -156,6 +157,31 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                     placeholder="Masukkan nomor telepon"
                                                 />
                                                 {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="distance_from_warehouse">
+                                                    Jarak dari Gudang (meter)
+                                                </Label>
+                                                <Input
+                                                    id="distance_from_warehouse"
+                                                    type="number"
+                                                    min="0"
+                                                    step="100"
+                                                    value={data.distance_from_warehouse}
+                                                    onChange={(e) => setData('distance_from_warehouse', parseInt(e.target.value) || 0)}
+                                                    placeholder="Masukkan jarak dalam meter"
+                                                    required
+                                                />
+                                                {errors.distance_from_warehouse && (
+                                                    <p className="text-sm text-red-500">{errors.distance_from_warehouse}</p>
+                                                )}
+                                                <p className="text-sm text-gray-500">
+                                                    Jarak dalam meter dari gudang ke hotel mitra. 
+                                                    {data.distance_from_warehouse > 0 && (
+                                                        <span> ({data.distance_from_warehouse / 1000} KM)</span>
+                                                    )}
+                                                </p>
                                             </div>
 
                                             {/* <div className="space-y-2">

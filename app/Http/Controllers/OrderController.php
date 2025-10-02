@@ -6,6 +6,7 @@ use App\Models\MitraProfile;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ShippingSetting;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,10 +42,13 @@ class OrderController extends Controller
 
         $mitra = MitraProfile::get();
 
+        $shippingSetting = ShippingSetting::first();
+
         return Inertia::render('orders/create', [
             'product' => $product,
             'quantity' => $quantity,
-            'mitra' => $mitra
+            'mitra' => $mitra,
+            'shippingSetting' => $shippingSetting
         ]);
     }
 
@@ -87,13 +91,27 @@ class OrderController extends Controller
                 $product->decrement('stock', $itemData['quantity']);
             }
 
+            // Calculate shipping cost
+            $shippingCost = 0;
+            
+            if ($request->mitra_id) {
+                $mitraProfile = MitraProfile::find($request->mitra_id);
+                $shippingSetting = ShippingSetting::first();
+                
+                if ($mitraProfile && $shippingSetting && $mitraProfile->distance_from_warehouse > 0) {
+                    // Convert meters to KM and calculate shipping cost
+                    $distanceInKm = $mitraProfile->distance_from_warehouse / 1000;
+                    $shippingCost = $distanceInKm * $shippingSetting->price_per_km;
+                }
+            }
+
             $mitraCommission = $totalAmount * 0.25;
 
             // Create order
             $order = Order::create([
                 'buyer_id' => Auth::id(),
                 'mitra_id' => $request->mitra_id,
-                'total_amount' => $totalAmount,
+                'total_amount' => $totalAmount + $shippingCost,
                 'partner_commission' => $mitraCommission,
                 'status' => 'pending',
             ]);

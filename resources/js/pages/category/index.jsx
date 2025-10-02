@@ -13,8 +13,8 @@ export default function CategoryIndex({ categories, layout }) {
             <ScrollToTop />
             <Head title="Kategori Produk" />
 
-            <div className="container mx-auto px-4 py-8">
-                <div className="mb-6">
+            <div className="container mx-auto px-4">
+                <div className="mb-4">
                     <Breadcrumbs
                         breadcrumbs={[
                             { title: 'Home', href: route('home') },

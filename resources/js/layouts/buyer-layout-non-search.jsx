@@ -1,9 +1,9 @@
 import { NavbarNonSearch } from '@/components/ui/navbar-04/non-search';
 import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
 
-export default ({ children, breadcrumbs, backLink, title, navbar = true, ...props }) => {
+export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar = true, ...props }) => {
     return (
-        <PersistentNavigationWrapper>
+        <PersistentNavigationWrapper withBottomNav={withBottomNav}>
             {navbar &&
                 <NavbarNonSearch
                     backLink={backLink}

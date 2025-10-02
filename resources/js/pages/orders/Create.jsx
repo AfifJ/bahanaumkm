@@ -3,9 +3,11 @@ import BuyerLayout from '@/layouts/buyer-layout';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { Package, MapPin, DollarSign, Plus, Minus, X, Clipboard, Wallet } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { MitraComboBox } from './mitra-combo-box';
+import { MitraSelector } from '@/components/mitra-selector';
+import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import { useLocationStorage } from '@/hooks/use-location-storage';
 
-export default function OrderCreate({ flash, product, quantity, mitra }) {
+export default function OrderCreate({ flash, product, quantity, mitra, shippingSetting }) {
     const { data, setData, processing, errors } = useForm({
         product_id: product?.id || '',
         quantity: quantity || 1,
@@ -14,10 +16,24 @@ export default function OrderCreate({ flash, product, quantity, mitra }) {
 
     const [currentQuantity, setCurrentQuantity] = useState(Number(quantity) || 1);
     const [totalAmount, setTotalAmount] = useState(0);
+    const [shippingCost, setShippingCost] = useState(0);
+    const [selectedMitra, setSelectedMitra] = useState(null);
     const [submitError, setSubmitError] = useState('');
+    const { selectedLocation } = useLocationStorage();
 
     const handleMitraSelect = (selectedMitra) => {
         setData('mitra_id', selectedMitra.id);
+        setSelectedMitra(selectedMitra);
+        
+        // Calculate shipping cost when mitra is selected
+        if (selectedMitra && selectedMitra.distance_from_warehouse > 0) {
+            const pricePerKm = shippingSetting?.price_per_km || 5000;
+            const distanceInKm = selectedMitra.distance_from_warehouse / 1000;
+            const calculatedShippingCost = distanceInKm * pricePerKm;
+            setShippingCost(calculatedShippingCost);
+        } else {
+            setShippingCost(0);
+        }
     };
 
     const formatPrice = (price) => {
@@ -43,6 +59,16 @@ export default function OrderCreate({ flash, product, quantity, mitra }) {
             setData('quantity', currentQuantity);
         }
     }, [currentQuantity, product]);
+
+    // Auto-select mitra based on saved location
+    useEffect(() => {
+        if (selectedLocation && mitra && mitra.length > 0) {
+            const savedMitra = mitra.find(item => item.id === selectedLocation.id);
+            if (savedMitra) {
+                handleMitraSelect(savedMitra);
+            }
+        }
+    }, [selectedLocation, mitra]);
 
     const updateQuantity = (newQuantity) => {
         if (newQuantity < 1) return;
@@ -130,17 +156,10 @@ export default function OrderCreate({ flash, product, quantity, mitra }) {
     }
 
     return (
-        <BuyerLayout>
+        <BuyerLayoutNonSearch withBottomNav={false} backLink={route('product.show', product)} title={'Checkout Pesanan'}>
             <Head title="Checkout - Bahana UMKM" />
             <form onSubmit={handleSubmit}>
                 <div className="container mx-auto py-2 *:px-4 *:py-4 divide-y-4">
-                    {/* Header */}
-                    <div className="">
-                        <h1 className="text-xl font-bold text-gray-900 mb-2">Checkout</h1>
-                        <p className="text-gray-600">Lengkapi informasi untuk menyelesaikan pesanan Anda</p>
-                    </div>
-
-                    {/* Flash Messages */}
                     {flash?.error && (
                         <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-700 border border-red-200">
                             {flash.error}
@@ -171,10 +190,10 @@ export default function OrderCreate({ flash, product, quantity, mitra }) {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Hotel Tujuan *
                             </label>
-                            <MitraComboBox
+                            <MitraSelector
                                 mitra={mitra || []}
                                 onSelect={handleMitraSelect}
-                                placeholder="Cari hotel..."
+                                selectedMitra={selectedMitra}
                             />
                             {errors.mitra_id && (
                                 <p className="mt-1 text-sm text-red-600">{errors.mitra_id}</p>
@@ -254,13 +273,21 @@ export default function OrderCreate({ flash, product, quantity, mitra }) {
 
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Ongkos kirim</span>
-                                    <span className="font-medium">Gratis</span>
+                                    <span className="font-medium">
+                                        {shippingCost > 0 ? formatPrice(shippingCost) : 'Gratis'}
+                                    </span>
                                 </div>
+
+                                {selectedMitra  && (
+                                    <div className="text-sm text-gray-500">
+                                        Jarak: {selectedMitra.distance_from_warehouse} meter ({selectedMitra.distance_from_warehouse / 1000} KM)
+                                    </div>
+                                )}
 
                                 <div className="border-t pt-3">
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span>Total</span>
-                                        <span>{formatPrice(totalAmount)}</span>
+                                        <span>{formatPrice(totalAmount + shippingCost)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -313,6 +340,6 @@ export default function OrderCreate({ flash, product, quantity, mitra }) {
                     </div>
                 </div>
             </form>
-        </BuyerLayout >
+        </BuyerLayoutNonSearch >
     );
 }

@@ -149,10 +149,20 @@ class CatalogController extends Controller
         // Determine layout based on user role
         $layout = $this->getCatalogLayout();
 
+        // Check if product is in user's wishlist
+        $isInWishlist = false;
+        if (auth()->check()) {
+            $user = auth()->user();
+            $isInWishlist = \App\Models\Wishlist::where('user_id', $user->id)
+                ->where('product_id', $product->id)
+                ->exists();
+        }
+
         return Inertia::render('product/show', [
             'product' => $product,
             'relatedProducts' => $relatedProducts,
-            'layout' => $layout
+            'layout' => $layout,
+            'isInWishlist' => $isInWishlist
         ]);
     }
 

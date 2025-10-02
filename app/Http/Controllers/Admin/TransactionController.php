@@ -121,7 +121,7 @@ class TransactionController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load(['items.product.vendor', 'mitra',]);
+        $order->load(['items.product.vendor', 'mitra', 'buyer']);
 
 
 
@@ -143,9 +143,45 @@ class TransactionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Order $order)
     {
-        //
+        $request->validate([
+            'status' => 'required|in:pending,paid,processed,shipped,delivered,cancelled',
+        ]);
+
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
+
+        // Define allowed status transitions
+        $allowedTransitions = [
+            'pending' => ['paid', 'cancelled'],
+            'paid' => ['processed', 'cancelled'],
+            'processed' => ['shipped', 'cancelled'],
+            'shipped' => ['delivered'],
+            'delivered' => [],
+            'cancelled' => [],
+        ];
+
+        // Check if the transition is allowed
+        if (!in_array($newStatus, $allowedTransitions[$oldStatus])) {
+            return back()->with('error', 'Tidak dapat mengubah status dari ' . $oldStatus . ' ke ' . $newStatus);
+        }
+
+        // Handle cancellation - restore stock
+        if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            $order->load('items.product');
+
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+        }
+
+        // Update order status
+        $order->update(['status' => $newStatus]);
+
+        return back()->with('success', 'Status pesanan berhasil diubah dari ' . $oldStatus . ' ke ' . $newStatus);
     }
 
     /**

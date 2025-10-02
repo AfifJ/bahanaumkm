@@ -1,14 +1,20 @@
 # Todo
-- [x] tempat pengiriman (list semua mitra) (siang selesaikan)
-  - [x] beli produk dengan mitra
-  - [x] transaksi mitra (mitra dapat 25% dari total keuntungan)
+Priority High
+- [x] profil (ui udah)
+- [ ] validasi pembayaran manual
+- [x] wishlist
+- [x] sistem ongkir
+
+Priority Low
+- [ ] variasi
 
 - [ ] sistem cart
-- [ ] profil (ui udah)
-- [ ] validasi pembayaran manual
 - [ ] manajemen diskon
 - [ ] diskon
 
+- [x] tempat pengiriman (list semua mitra) (siang selesaikan)
+  - [x] beli produk dengan mitra
+  - [x] transaksi mitra (mitra dapat 25% dari total keuntungan)
 - [x] transaksi untuk mitra (ongoing) (pagi selesaikan)
 - [x] laporan penjualan untuk mitra 
 - [x] checkout produk (cek logika ketika beli sekarang)
