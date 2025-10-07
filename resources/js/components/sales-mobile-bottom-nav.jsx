@@ -1,35 +1,35 @@
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
-import { Home, ShoppingBag, ShoppingCart, Tag, User } from 'lucide-react';
+import { BarChart3, Home, Package, ShoppingBag, User } from 'lucide-react';
 import { memo } from 'react';
 
-const MobileBottomNav = memo(function MobileBottomNav() {
+const SalesMobileBottomNav = memo(function SalesMobileBottomNav() {
     const { url } = usePage();
 
     const navItems = [
         {
-            name: 'Beranda',
-            href: route('home'),
+            name: 'Home',
+            href: route('sales.dashboard'),
             icon: Home,
-            active: url === '/',
+            active: url === '/sales/dashboard',
+        },
+        {
+            name: 'Produk',
+            href: route('sales.products.index'),
+            icon: Package,
+            active: url === '/sales/products',
         },
         {
             name: 'Transaksi',
-            href: route('buyer.orders.index'),
+            href: route('sales.transactions'),
             icon: ShoppingBag,
-            active: url === '/orders',
-        },
-        {
-            name: 'Wishlist',
-            href: route('buyer.wishlist'),
-            icon: Tag,
-            active: url === '/wishlist',
+            active: url === '/sales/transactions',
         },
         {
             name: 'Akun',
-            href: route('buyer.profile.index'),
+            href: '/sales/profile', // TODO: Update with actual route when available
             icon: User,
-            active: url.startsWith('/profile'),
+            active: url.startsWith('/sales/profile'),
         },
     ];
 
@@ -41,11 +41,11 @@ const MobileBottomNav = memo(function MobileBottomNav() {
                         key={item.name}
                         href={item.href}
                         className={cn(
-                            'p-1 transition-colors',
+                            'transition-colors',
                             item.active ? 'text-primary' : 'text-gray-600 hover:text-gray-900',
                         )}
                     >
-                        <div className={cn('flex flex-1 flex-col items-center justify-center p-1 rounded-lg', item.active && 'bg-green-600/20')}>
+                        <div className={cn('flex flex-1 flex-col items-center justify-center rounded-lg')}>
                             <item.icon size={20} className='mb-1 transition-transform' />
                             <span className="text-xs font-medium">{item.name}</span>
                         </div>
@@ -56,4 +56,4 @@ const MobileBottomNav = memo(function MobileBottomNav() {
     );
 });
 
-export default MobileBottomNav;
+export default SalesMobileBottomNav;

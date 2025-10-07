@@ -12,6 +12,7 @@ class Order extends Model
         'order_code',
         'buyer_id',
         'mitra_id',
+        'sale_id',
         'total_amount',
         'partner_commission',
         'status',
@@ -35,6 +36,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function sale(): BelongsTo
+    {
+        return $this->belongsTo(Sales::class);
     }
 
     protected static function boot()

@@ -71,6 +71,11 @@ class User extends Authenticatable
         return $this->role->name === 'Mitra';
     }
 
+    public function isSales()
+    {
+        return $this->role->name === 'Sales Lapangan';
+    }
+
     public function mitraProfile(): HasOne
     {
         return $this->hasOne(MitraProfile::class);

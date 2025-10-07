@@ -55,12 +55,12 @@ export const NavbarNonSearch = forwardRef((
     <header
       ref={combinedRef}
       className={cn(
-        'sticky top-0 z-50 w-full border-b bg-primary text-white px-4 md:px-6 [&_*]:no-underline',
+        'sticky top-0 z-50 w-full bg-white border-b px-4 md:px-6 [&_*]:no-underline',
         className
       )}
       {...props}>
       <div
-        className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
+        className="container mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4">
         <div className="flex flex-1 items-center gap-2">
           <div className="flex flex-1 items-center gap-4 max-md:justify-between">
             <div className='w-full flex items-center relative'>
@@ -71,7 +71,7 @@ export const NavbarNonSearch = forwardRef((
                   </Link>
                 </Button>
               }
-              <h1 className='text-xl mx-auto font-bold'>
+              <h1 className='text-lg mx-auto font-bold'>
                 {title}
               </h1>
             </div>

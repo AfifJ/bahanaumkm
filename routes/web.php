@@ -7,7 +7,12 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use function Termwind\render;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', function () {
+    if (auth()->check() && auth()->user()->role_id === 1) {
+        return redirect('/admin/dashboard');
+    }
+    return app(HomeController::class)->index();
+})->name('home');
 
 Route::get('/category', [CatalogController::class, 'categoryIndex'])->name('category.index');
 Route::get('/category/{category}', [CatalogController::class, 'categoryShow'])->name('category.show');
@@ -30,3 +35,4 @@ require __DIR__ . '/auth.php';
 require __DIR__ . '/admin.php';
 require __DIR__ . '/vendor.php';
 require __DIR__ . '/buyer.php';
+require __DIR__ . '/sales.php';
