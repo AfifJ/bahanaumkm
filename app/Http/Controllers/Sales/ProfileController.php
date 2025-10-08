@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sales;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,50 +13,40 @@ class ProfileController extends Controller
      */
     public function index()
     {
+        $user = auth()->user()->only(['name', 'email', 'phone']);
         return Inertia::render('sales/profile/index', [
-            'user' => auth()->user(),
+            'user' => $user,
         ]);
     }
 
     /**
-     * Show the form for creating a new sales profile.
+     * Show the form for editing the sales profile.
      */
-    public function create()
+    public function edit()
     {
-        // Check if user already has a sales profile
-        $existingProfile = Sales::where('user_id', auth()->id())->first();
-        
-        if ($existingProfile) {
-            return redirect()->route('sales.dashboard');
-        }
-
-        return Inertia::render('sales/profile/create');
+        $user = auth()->user()->only(['name', 'email', 'phone']);
+        return Inertia::render('sales/profile/edit', [
+            'user' => $user,
+        ]);
     }
 
     /**
-     * Store a newly created sales profile.
+     * Update the sales profile in storage.
      */
-    public function store(Request $request)
+    public function update(Request $request)
     {
         $request->validate([
-            'phone' => 'required|string|max:20',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $request->user()->id,
+            'phone' => 'nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
         ]);
 
-        // Check if user already has a sales profile
-        $existingProfile = Sales::where('user_id', auth()->id())->first();
-        
-        if ($existingProfile) {
-            return redirect()->route('sales.dashboard');
-        }
+        $user = $request->user();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->save();
 
-        // Create new sales profile
-        Sales::create([
-            'user_id' => auth()->id(),
-            'phone' => $request->phone,
-            'status' => 'active',
-        ]);
-
-        return redirect()->route('sales.dashboard')
-            ->with('success', 'Profile sales berhasil dibuat!');
+        return redirect()->route('sales.profile.index')->with('success', 'Profil berhasil diperbarui');
     }
 }

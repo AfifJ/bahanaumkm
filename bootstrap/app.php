@@ -21,7 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => CheckRole::class,
             'not_admin' => CheckNotAdmin::class,
-            'check-sale' => \App\Http\Middleware\CheckSale::class,
         ]);
 
         $middleware->web(append: [

@@ -34,11 +34,7 @@ export default function ProductsIndex({ auth, borrowedProducts = [] }) {
                 <div className="bg-white rounded-lg border border-gray-200">
                     {borrowedProducts.length === 0 ? (
                         <div className="text-center py-12">
-                            <Button asChild>
-                                <Link href="/sales/products/new">
-                                    Pinjam Produk Pertama
-                                </Link>
-                            </Button>
+                            Belum ada produk
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-200">

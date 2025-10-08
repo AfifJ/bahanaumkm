@@ -14,7 +14,7 @@ class ProfileController extends Controller
     public function index()
     {
 
-        $user = auth()->user()->only(['name', 'email']);
+        $user = auth()->user()->only(['name', 'email', 'phone']);
         return Inertia::render('buyer/profile/index', [
             'user' => $user,
         ]);
@@ -50,7 +50,7 @@ class ProfileController extends Controller
      */
     public function edit()
     {
-        $user = auth()->user()->only(['name', 'email']);
+        $user = auth()->user()->only(['name', 'email', 'phone']);
         return Inertia::render('buyer/profile/edit', [
             'user' => $user,
         ]);
@@ -64,11 +64,13 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $request->user()->id,
+            'phone' => 'nullable|string|max:20|regex:/^[0-9+\-\s()]+$/',
         ]);
 
         $user = $request->user();
         $user->name = $request->name;
         $user->email = $request->email;
+        $user->phone = $request->phone;
         $user->save();
 
         return redirect()->route('buyer.profile.index')->with('success', 'Profil berhasil diperbarui');

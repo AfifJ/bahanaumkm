@@ -19,7 +19,7 @@ const formatCurrency = (amount) => {
 export default function NewTransaction({ products = [] }) {
   const { flash } = usePage().props;
   const [items, setItems] = useState([
-    { id: 1, productId: '', quantity: 1, price: 0, subtotal: 0 }
+    { id: 0, productId: '', quantity: 1, price: 0, subtotal: 0 }
   ]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [submitError, setSubmitError] = useState('');

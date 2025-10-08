@@ -3,24 +3,26 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sales;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\BorrowedProduct;
+use Exception;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TransactionController extends Controller
 {
     public function index()
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        if (!$sale) {
-            return redirect()->route('sales.profile.create');
+        $user = auth()->user();
+        if (!$user->hasPhone()) {
+            return redirect()->route('sales.profile.edit')
+                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
         }
 
-        $transactions = Order::where('sale_id', $sale->id)
+        $transactions = Order::where('sale_id', $user->id)
             ->with(['items.product'])
             ->orderBy('created_at', 'desc')
             ->get()
@@ -47,64 +49,18 @@ class TransactionController extends Controller
 
     public function create()
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        if (!$sale) {
-            return redirect()->route('sales.profile.create')
-                ->with('error', 'Profil sales belum lengkap. Silakan lengkapi profil terlebih dahulu.');
+        $user = auth()->user();
+        if (!$user->hasPhone()) {
+            return redirect()->route('sales.profile.edit')
+                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
         }
 
-        // Debug: Log basic info
-        \Log::info('Transaction create debug:', [
-            'sale_id' => $sale->id,
-            'user_id' => auth()->id()
-        ]);
-
-        // Debug: Check borrowed products existence and status
-        $allBorrowedProducts = BorrowedProduct::where('sale_id', $sale->id)->get();
-        \Log::info('All borrowed products for sale:', [
-            'count' => $allBorrowedProducts->count(),
-            'products' => $allBorrowedProducts->map(function ($bp) {
-                return [
-                    'id' => $bp->id,
-                    'product_id' => $bp->product_id,
-                    'status' => $bp->status,
-                    'borrowed_quantity' => $bp->borrowed_quantity,
-                    'sold_quantity' => $bp->sold_quantity,
-                    'current_stock' => $bp->current_stock
-                ];
-            })->toArray()
-        ]);
-
-        // Start with simple query
-        $query = BorrowedProduct::where('sale_id', $sale->id);
-        \Log::info('Query 1 - By sale_id:', ['count' => $query->count()]);
-
-        // Add status filter (status is 'borrowed', not 'active')
-        $query->where('status', 'borrowed');
-        \Log::info('Query 2 - With status filter:', ['count' => $query->count()]);
-
-        // Add stock filter (using DB::raw for PostgreSQL)
-        $query->where('borrowed_quantity', '>', DB::raw('sold_quantity'));
-        \Log::info('Query 3 - With stock filter:', ['count' => $query->count()]);
-
-        // Add relations
-        $borrowedProducts = $query->with(['product.category'])->get();
-        \Log::info('Query 4 - With relations:', ['count' => $borrowedProducts->count()]);
-
-        // Debug: Check individual products
-        foreach ($borrowedProducts as $bp) {
-            \Log::info('Borrowed product details:', [
-                'id' => $bp->id,
-                'product_id' => $bp->product_id,
-                'borrowed_quantity' => $bp->borrowed_quantity,
-                'sold_quantity' => $bp->sold_quantity,
-                'current_stock' => $bp->current_stock,
-                'product_exists' => $bp->product ? true : false,
-                'product_name' => $bp->product ? $bp->product->name : 'NULL'
-            ]);
-        }
-
-        $products = $borrowedProducts
+        // Get available products for sales
+        $products = BorrowedProduct::where('sale_id', $user->id)
+            ->where('status', 'borrowed')
+            ->where('borrowed_quantity', '>', DB::raw('sold_quantity'))
+            ->with(['product.category'])
+            ->get()
             ->filter(function ($borrowedProduct) {
                 return $borrowedProduct->current_stock > 0;
             })
@@ -123,11 +79,6 @@ class TransactionController extends Controller
                 ];
             });
 
-        \Log::info('Final products result:', [
-            'count' => $products->count(),
-            'products' => $products->toArray()
-        ]);
-
         return Inertia::render('sales/transactions/new', [
             'products' => $products
         ]);
@@ -135,13 +86,13 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        if (!$sale) {
-            return redirect()->route('sales.profile.create')
-                ->with('error', 'Profil sales belum lengkap. Silakan lengkapi profil terlebih dahulu.');
+        $user = auth()->user();
+        if (!$user->hasPhone()) {
+            return redirect()->route('sales.profile.edit')
+                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'items' => 'required|array|min:1',
             'items.*.productId' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -151,7 +102,6 @@ class TransactionController extends Controller
             'items.required' => 'Harap tambahkan minimal 1 produk',
             'items.min' => 'Harap tambahkan minimal 1 produk',
             'items.*.productId.required' => 'Produk harus dipilih',
-            'items.*.productId.integer' => 'ID produk tidak valid',
             'items.*.productId.exists' => 'Produk tidak valid',
             'items.*.quantity.required' => 'Jumlah harus diisi',
             'items.*.quantity.min' => 'Jumlah minimal 1',
@@ -162,47 +112,44 @@ class TransactionController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $errors = $validator->errors()->toArray();
-            $errorMessages = array_map(fn($messages) => implode(', ', (array) $messages), $errors);
-
             return back()
                 ->withErrors($validator)
-                ->withInput()
-                ->with('error', 'Validasi gagal: ' . implode(', ', $errorMessages));
+                ->withInput();
         }
 
         try {
             DB::beginTransaction();
 
+            $totalAmount = 0;
             foreach ($request->items as $item) {
-                $borrowedProduct = BorrowedProduct::where('sale_id', $sale->id)
+                $borrowedProduct = BorrowedProduct::where('sale_id', $user->id)
                     ->where('product_id', $item['productId'])
                     ->first();
 
                 if (!$borrowedProduct) {
-                    throw new \Exception("Produk tidak tersedia untuk sales ini");
+                    throw new Exception("Produk tidak tersedia untuk sales ini");
                 }
 
                 if ($borrowedProduct->current_stock < $item['quantity']) {
-                    throw new \Exception("Stok tidak mencukupi untuk produk: {$borrowedProduct->product->name}. Stok tersedia: {$borrowedProduct->current_stock}");
+                    throw new Exception("Stok tidak mencukupi untuk produk: {$borrowedProduct->product->name}. Stok tersedia: {$borrowedProduct->current_stock}");
                 }
 
                 if (abs($borrowedProduct->product->sell_price - $item['price']) > 0.01) {
-                    throw new \Exception("Harga produk {$borrowedProduct->product->name} tidak sesuai dengan harga saat ini");
+                    throw new Exception("Harga produk {$borrowedProduct->product->name} tidak sesuai dengan harga saat ini");
                 }
-            }
 
-            $totalAmount = collect($request->items)->sum('subtotal');
+                $totalAmount += $item['subtotal'];
+            }
 
             $order = Order::create([
                 'buyer_id' => null,
-                'sale_id' => $sale->id,
+                'sale_id' => $user->id,
                 'total_amount' => $totalAmount,
                 'status' => 'completed',
             ]);
 
             foreach ($request->items as $item) {
-                $borrowedProduct = BorrowedProduct::where('sale_id', $sale->id)
+                $borrowedProduct = BorrowedProduct::where('sale_id', $user->id)
                     ->where('product_id', $item['productId'])
                     ->first();
 
@@ -221,9 +168,9 @@ class TransactionController extends Controller
             DB::commit();
 
             return redirect()->route('sales.transactions')
-                ->with('success', 'Transaksi berhasil disimpan! Total: ' . number_format($totalAmount, 0, ',', '.'));
+                ->with('success', 'Transaksi berhasil disimpan! Total: Rp ' . number_format($totalAmount, 0, ',', '.'));
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return back()
@@ -234,12 +181,13 @@ class TransactionController extends Controller
 
     public function show($transactionId)
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        if (!$sale) {
-            return redirect()->route('sales.profile.create');
+        $user = auth()->user();
+        if (!$user->hasPhone()) {
+            return redirect()->route('sales.profile.edit')
+                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
         }
 
-        $order = Order::where('sale_id', $sale->id)
+        $order = Order::where('sale_id', $user->id)
             ->where('id', $transactionId)
             ->with(['items.product', 'items.product.category'])
             ->first();
@@ -278,8 +226,4 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function selectProducts()
-    {
-        return Inertia::render('sales/transactions/new/products');
     }
-}

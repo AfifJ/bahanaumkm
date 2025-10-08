@@ -32,11 +32,6 @@ export default function ProductsOld({ auth, returnedProducts = [] }) {
                     {returnedProducts.length === 0 ? (
                         <div className="text-center py-12">
                             <p className="text-gray-500 mb-4">Belum ada riwayat produk yang dikembalikan</p>
-                            <Button asChild>
-                                <Link href="/sales/products">
-                                    Lihat Produk yang Sedang Dipinjam
-                                </Link>
-                            </Button>
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-200">

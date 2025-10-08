@@ -9,6 +9,7 @@ const Profile = ({ user }) => {
     const { data, setData, patch, processing, errors } = useForm({
         name: user.name,
         email: user.email,
+        phone: user.phone || '',
     });
 
     const handleSubmit = (e) => {
@@ -47,6 +48,16 @@ const Profile = ({ user }) => {
                             disabled={processing}
                         />
                         {errors.email && <div className="text-red-500 text-sm">{errors.email}</div>}
+
+                        <div className='font-semibold'>Nomor Telepon (Opsional)</div>
+                        <Input
+                            className=""
+                            value={data.phone}
+                            onChange={(e) => setData('phone', e.target.value)}
+                            disabled={processing}
+                            placeholder="Contoh: 081234567890"
+                        />
+                        {errors.phone && <div className="text-red-500 text-sm">{errors.phone}</div>}
                     </div>
                 </div>
                 <Button type="submit" className='w-full' disabled={processing}>

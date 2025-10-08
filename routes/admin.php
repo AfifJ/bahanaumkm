@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\SalesProductController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ShippingSettingController;
@@ -56,6 +57,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{order}', [TransactionController::class, 'show'])->name('show');
         Route::put('/{order}', [TransactionController::class, 'update'])->name('update');
+    });
+
+    // Sales Product Management Routes
+    Route::prefix('sales-products')->name('sales-products.')->group(function () {
+        Route::get('/', [SalesProductController::class, 'index'])->name('index');
+        Route::get('/create', [SalesProductController::class, 'create'])->name('create');
+        Route::post('/', [SalesProductController::class, 'store'])->name('store');
+        Route::get('/{borrowedProduct}', [SalesProductController::class, 'show'])->name('show');
+        Route::get('/{borrowedProduct}/edit', [SalesProductController::class, 'edit'])->name('edit');
+        Route::put('/{borrowedProduct}', [SalesProductController::class, 'update'])->name('update');
+        Route::put('/{borrowedProduct}/return', [SalesProductController::class, 'return'])->name('return');
+        Route::delete('/{borrowedProduct}', [SalesProductController::class, 'destroy'])->name('destroy');
     });
 
     // Shipping Settings Routes

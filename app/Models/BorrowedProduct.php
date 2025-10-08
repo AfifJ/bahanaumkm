@@ -23,11 +23,19 @@ class BorrowedProduct extends Model
     ];
 
     /**
-     * Get the sale that owns the borrowed product.
+     * Get the user (sales) that owns the borrowed product.
      */
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sales::class);
+        return $this->belongsTo(User::class, 'sale_id');
+    }
+
+    /**
+     * Get the user (sales) that owns the borrowed product.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sale_id');
     }
 
     /**

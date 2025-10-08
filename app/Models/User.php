@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'status',
         'role_id'
@@ -76,6 +77,11 @@ class User extends Authenticatable
         return $this->role->name === 'Sales Lapangan';
     }
 
+    public function hasPhone()
+    {
+        return !empty($this->phone);
+    }
+
     public function mitraProfile(): HasOne
     {
         return $this->hasOne(MitraProfile::class);
@@ -94,5 +100,15 @@ class User extends Authenticatable
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    public function borrowedProducts(): HasMany
+    {
+        return $this->hasMany(BorrowedProduct::class, 'sale_id');
+    }
+
+    public function salesOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'sale_id');
     }
 }

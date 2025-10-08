@@ -27,7 +27,7 @@ const SalesMobileBottomNav = memo(function SalesMobileBottomNav() {
         },
         {
             name: 'Akun',
-            href: '/sales/profile', // TODO: Update with actual route when available
+            href: route('sales.profile.index'),
             icon: User,
             active: url.startsWith('/sales/profile'),
         },

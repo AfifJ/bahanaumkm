@@ -40,7 +40,15 @@ class Order extends Model
 
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sales::class);
+        return $this->belongsTo(User::class, 'sale_id');
+    }
+
+    /**
+     * Get the user (sales) for the order.
+     */
+    public function salesUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sale_id');
     }
 
     protected static function boot()

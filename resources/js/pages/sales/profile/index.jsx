@@ -1,158 +1,73 @@
-import ScrollToTop from '@/components/scroll-to-top';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
-import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeftRight, LayoutGrid, Lock, LogOutIcon, LucideUsers2, Newspaper, Package, Pencil } from 'lucide-react';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { useState } from 'react';
+import { Edit, Mail, Phone, User } from 'lucide-react';
 import SalesLayout from '@/layouts/sales-layout';
 
-const Profile = ({ user }) => {
-    const cleanup = useMobileNavigation();
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    const handleLogout = () => {
-        cleanup();
-        router.post(route('logout'));
-        setShowLogoutDialog(false);
-    };
-
+const SalesProfile = ({ user }) => {
     return (
-        <SalesLayout
-            title={'Profile'}
-        >
-            <Head title="Profile" />
-            <div className="w-full p-3 pb-20">
-                {/* Header Profile yang Clean */}
-                <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10">
-                    <div className="flex w-full items-center gap-3">
-                        <Avatar className="h-14 w-14 border border-white/50 shadow-sm">
-                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-sm font-medium">
-                                {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-base font-semibold text-foreground truncate">{user.name}</div>
-                            <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                            <div className="mt-0.5 text-xs text-primary/80 font-medium">Sales aktif</div>
+        <SalesLayout>
+            <Head title="Profil Sales" />
+
+            <div className="p-4 pb-20">
+                <div className="max-w-md mx-auto">
+                    {/* Profile Header */}
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <div className="flex relative aspect-square h-24 w-24 items-center justify-center rounded-full bg-blue-100 text-blue-600 mb-4">
+                                <User size={48} />
+                            </div>
+                            <h1 className="text-xl font-semibold text-gray-900">{user.name}</h1>
+                            <p className="text-sm text-gray-600">Sales Lapangan</p>
                         </div>
-                        <Button asChild variant={'ghost'} size={'sm'} className="shrink-0 h-8 w-8 p-0">
-                            <Link href={route('sales.profile.create')}>
-                                <Pencil className="h-3.5 w-3.5" />
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
 
-                {/* Menu Items yang Clean */}
-                <div className="space-y-1">
-                    {/* Section Header */}
-                    <div className="px-3 py-2">
-                        <div className="text-sm font-semibold text-muted-foreground">Menu Sales</div>
-                    </div>
+                        {/* Profile Information */}
+                        <div className="space-y-4">
+                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <User className="h-5 w-5 text-gray-600" />
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">Nama</p>
+                                    <p className="text-sm text-gray-600">{user.name}</p>
+                                </div>
+                            </div>
 
-                    {/* Menu Items */}
-                    <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-3 px-4 py-3 text-sm font-normal hover:bg-accent/50"
-                        asChild
-                    >
-                        <Link href={route('sales.dashboard')}>
-                            <LayoutGrid className="h-4 w-4 text-primary" />
-                            Dashboard
+                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <Mail className="h-5 w-5 text-gray-600" />
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">Email</p>
+                                    <p className="text-sm text-gray-600">{user.email}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <Phone className="h-5 w-5 text-gray-600" />
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">Nomor Telepon</p>
+                                    <p className="text-sm text-gray-600">
+                                        {user.phone || 'Belum diisi'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {!user.phone && (
+                            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800">
+                                    ⚠️ Nomor telepon belum diisi. Lengkapi profil Anda untuk dapat mengakses fitur transaksi.
+                                </p>
+                            </div>
+                        )}
+
+                        <Link href={route('sales.profile.edit')}>
+                            <Button className="w-full mt-6" variant="outline">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Profil
+                            </Button>
                         </Link>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        asChild
-                        className="w-full justify-start gap-3 px-4 py-3 text-sm font-normal hover:bg-accent/50"
-                    >
-                        <Link href={route('sales.products.index')}>
-                            <Package className="h-4 w-4 text-primary" />
-                            Produk Saya
-                        </Link>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        asChild
-                        className="w-full justify-start gap-3 px-4 py-3 text-sm font-normal hover:bg-accent/50"
-                    >
-                        <Link href={route('sales.transactions')}>
-                            <ArrowLeftRight className="h-4 w-4 text-primary" />
-                            Transaksi
-                        </Link>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        asChild
-                        className="w-full justify-start gap-3 px-4 py-3 text-sm font-normal hover:bg-accent/50"
-                    >
-                        <Link href={route('sales.reports')}>
-                            <Newspaper className="h-4 w-4 text-primary" />
-                            Laporan
-                        </Link>
-                    </Button>
-
-                    {/* Section Header */}
-                    <div className="px-3 py-2 mt-4">
-                        <div className="text-sm font-semibold text-muted-foreground">Pengaturan</div>
-                    </div>
-
-                    <Button
-                        variant="ghost"
-                        asChild
-                        className="w-full justify-start gap-3 px-4 py-3 text-sm font-normal hover:bg-accent/50"
-                    >
-                        {/* <Link href={route('profile.password')}>
-                            <Lock className="h-4 w-4 text-primary" />
-                            Ganti Password
-                        </Link> */}
-                    </Button>
-
-                    {/* Logout */}
-                    <div className="mt-4">
-                        <Button
-                            variant="ghost"
-                            className="w-full justify-start gap-3 px-4 py-3 text-sm font-normal text-red-600 hover:bg-red-50"
-                            onClick={() => setShowLogoutDialog(true)}
-                        >
-                            <LogOutIcon className="h-4 w-4" />
-                            Keluar Akun
-                        </Button>
                     </div>
                 </div>
             </div>
-
-            {/* Logout Confirmation Dialog */}
-            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-                <AlertDialogContent className="rounded-lg">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Apakah Anda yakin ingin keluar dari akun Anda?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleLogout}>
-                            Logout
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </SalesLayout>
     );
 };
 
-export default Profile;
+export default SalesProfile;

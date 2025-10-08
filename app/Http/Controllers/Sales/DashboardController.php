@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sales;
+use App\Models\User;
 use App\Models\BorrowedProduct;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -13,15 +13,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        
-        // This should not happen because of middleware, but just in case
-        if (!$sale) {
-            return redirect()->route('sales.profile.create');
-        }
+        $user = auth()->user();
 
         $borrowedProducts = BorrowedProduct::with('product')
-            ->where('sale_id', $sale->id)
+            ->where('sale_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -40,15 +35,10 @@ class DashboardController extends Controller
 
     public function reports()
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        
-        // This should not happen because of middleware, but just in case
-        if (!$sale) {
-            return redirect()->route('sales.profile.create');
-        }
+        $user = auth()->user();
 
         $borrowedProducts = BorrowedProduct::with('product')
-            ->where('sale_id', $sale->id)
+            ->where('sale_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -59,13 +49,6 @@ class DashboardController extends Controller
 
     public function transactions()
     {
-        $sale = Sales::where('user_id', auth()->id())->first();
-        
-        // This should not happen because of middleware, but just in case
-        if (!$sale) {
-            return redirect()->route('sales.profile.create');
-        }
-
         return Inertia::render('sales/transactions/index');
     }
 }

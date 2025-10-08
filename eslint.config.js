@@ -21,11 +21,6 @@ export default [
             'react/prop-types': 'off',
             'react/no-unescaped-entities': 'off',
         },
-        settings: {
-            react: {
-                version: 'detect',
-            },
-        },
     },
     {
         plugins: {

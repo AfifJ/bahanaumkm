@@ -8,8 +8,16 @@ use Inertia\Inertia;
 use function Termwind\render;
 
 Route::get('/', function () {
-    if (auth()->check() && auth()->user()->role_id === 1) {
-        return redirect('/admin/dashboard');
+    if (auth()->check()) {
+        if (auth()->user()->role_id === 1) {
+            return redirect('/admin/dashboard');
+        }
+        if (auth()->user()->isSales()) {
+            return redirect('/sales/dashboard');
+        }
+        if (auth()->user()->isMitra()) {
+            return redirect('/mitra/dashboard');
+        }
     }
     return app(HomeController::class)->index();
 })->name('home');
