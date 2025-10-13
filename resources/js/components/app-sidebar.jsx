@@ -3,7 +3,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link } from '@inertiajs/react';
-import AppLogo from './app-logo';
+import { Logo } from '@/components/ui/navbar-04/logo';
 
 export function AppSidebar({ mainNavItems, userMenuItems, footerNavItems, profileLink, homeUrl = '/' }) {
     return (
@@ -11,9 +11,11 @@ export function AppSidebar({ mainNavItems, userMenuItems, footerNavItems, profil
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton asChild>
                             <Link href={homeUrl} prefetch>
-                                <AppLogo />
+                                <div className='h-8'>
+                                    <Logo />
+                                </div>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

@@ -1,4 +1,4 @@
-import AppLogoIcon from '@/components/app-logo-icon';
+import { Logo } from '@/components/ui/navbar-04/logo';
 import { Link } from '@inertiajs/react';
 import { ChevronLeft, MoveLeft } from 'lucide-react';
 
@@ -13,7 +13,7 @@ export default function AuthSimpleLayout({ children, title, description }) {
                         </Link>
                         <div className="flex flex-col items-center gap-2 font-medium">
                             <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white"/>
+                                <Logo className="size-9"/>
                             </div>
                             <span className="sr-only">{title}</span>
                         </div>

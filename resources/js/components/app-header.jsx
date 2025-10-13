@@ -14,8 +14,7 @@ import { cn } from '@/lib/utils';
 import { Link, router, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import { useState } from 'react';
-import AppLogo from './app-logo';
-import AppLogoIcon from './app-logo-icon';
+import { Logo } from '@/components/ui/navbar-04/logo';
 
 const mainNavItems = [
     {
@@ -67,7 +66,7 @@ export function AppHeader({ breadcrumbs = [] }) {
                             <SheetContent side="left" className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar">
                                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white"/>
+                                    <Logo className="h-6 fill-current text-black dark:text-white"/>
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
@@ -91,7 +90,7 @@ export function AppHeader({ breadcrumbs = [] }) {
                     </div>
 
                     <Link href="/dashboard" prefetch className="flex items-center space-x-2">
-                        <AppLogo />
+                        <Logo />
                     </Link>
 
                     {/* Desktop Navigation */}

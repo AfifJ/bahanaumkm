@@ -1,6 +1,6 @@
-export const Logo = () => {
+export const Logo = ({ className = "h-8 w-fit" }) => {
   return (
-    <svg className='h-8 w-fit' width="259" height="64" viewBox="0 0 259 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={className} width="259" height="64" viewBox="0 0 259 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M20.1528 3.90967C21.8097 3.90967 23.1528 5.25284 23.1528 6.90967V12.1987H74.4985C77.3342 12.1989 79.1064 15.2683 77.689 17.7241L65.5747 38.7065C64.9166 39.8462 63.7003 40.5483 62.3843 40.5483H30.48C29.1639 40.5483 27.9477 39.8462 27.2896 38.7065L15.1772 17.7251H6.81201C5.15536 17.7251 3.81227 16.3817 3.81201 14.7251V6.90967C3.81205 5.25287 5.15522 3.90971 6.81201 3.90967H20.1528Z" fill="#FFB300" />
       <path d="M46.926 16.4583L64.8222 47.4554H29.0298L46.926 16.4583Z" stroke="#01897B" stroke-width="6.79232" stroke-linejoin="round" />
       <circle cx="23.7284" cy="56.1759" r="3.91422" fill="#01897B" />
