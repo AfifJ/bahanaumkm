@@ -6,6 +6,7 @@ import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Upload, Image as ImageIcon } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 
 export default function Edit({ carousel }) {
     const { data, setData, put, processing, errors, reset } = useForm({
@@ -52,13 +53,13 @@ export default function Edit({ carousel }) {
         if (file) {
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                alert('Please select an image file');
+                toast.error('Please select an image file');
                 return;
             }
 
             // Validate file size (2MB max)
             if (file.size > 2 * 1024 * 1024) {
-                alert('File size must be less than 2MB');
+                toast.error('File size must be less than 2MB');
                 return;
             }
 

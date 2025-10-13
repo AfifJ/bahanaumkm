@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { RatingStars } from '@/components/rating-stars';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import { Trash2, User, Calendar } from 'lucide-react';
 import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -17,20 +18,18 @@ export function ReviewCard({ review, showActions = false, onDelete, canDelete = 
     };
 
     const handleDelete = () => {
-        if (confirm('Apakah Anda yakin ingin menghapus review ini?')) {
-            setIsDeleting(true);
-            destroy(route('reviews.destroy', review.id), {
-                onSuccess: () => {
-                    setIsDeleting(false);
-                    if (onDelete) {
-                        onDelete(review.id);
-                    }
-                },
-                onError: () => {
-                    setIsDeleting(false);
+        setIsDeleting(true);
+        destroy(route('reviews.destroy', review.id), {
+            onSuccess: () => {
+                setIsDeleting(false);
+                if (onDelete) {
+                    onDelete(review.id);
                 }
-            });
-        }
+            },
+            onError: () => {
+                setIsDeleting(false);
+            }
+        });
     };
 
     return (
@@ -69,15 +68,24 @@ export function ReviewCard({ review, showActions = false, onDelete, canDelete = 
                 {/* Actions */}
                 {showActions && canDelete && (
                     <div className="ml-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleDelete}
+                        <ConfirmationDialog
+                            title="Hapus Review"
+                            description="Apakah Anda yakin ingin menghapus review ini?"
+                            confirmText="Hapus"
+                            cancelText="Batal"
+                            variant="destructive"
+                            onConfirm={handleDelete}
                             disabled={processing || isDeleting}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={processing || isDeleting}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </ConfirmationDialog>
                     </div>
                 )}
             </div>

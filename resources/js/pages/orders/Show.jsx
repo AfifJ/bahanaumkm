@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import BuyerLayout from '@/layouts/buyer-layout';
 import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
@@ -58,25 +59,23 @@ export default function OrderShow({ order, canReviewProducts }) {
     };
 
     const handleCancelOrder = () => {
-        if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-            router.put(
-                route('buyer.orders.update', order.id),
-                {
-                    status: 'cancelled',
+        router.put(
+            route('buyer.orders.update', order.id),
+            {
+                status: 'cancelled',
+            },
+            {
+                onSuccess: () => {
+                    console.log('Cancel successful');
                 },
-                {
-                    onSuccess: () => {
-                        console.log('Cancel successful');
-                    },
-                    onError: (errors) => {
-                        console.error('Cancel failed:', errors);
-                    },
-                    onFinish: () => {
-                        console.log('Request cancel finished');
-                    },
+                onError: (errors) => {
+                    console.error('Cancel failed:', errors);
                 },
-            );
-        }
+                onFinish: () => {
+                    console.log('Request cancel finished');
+                },
+            },
+        );
     };
 
     const handleBayarSekarang = () => {
@@ -391,13 +390,22 @@ export default function OrderShow({ order, canReviewProducts }) {
                                         Bayar dengan QRIS
                                     </Link>
                                 </Button>
-                                <Button
-                                    onClick={handleCancelOrder}
+                                <ConfirmationDialog
+                                    title="Batalkan Pesanan"
+                                    description="Apakah Anda yakin ingin membatalkan pesanan ini?"
+                                    confirmText="Batalkan"
+                                    cancelText="Batal"
+                                    variant="destructive"
+                                    onConfirm={handleCancelOrder}
                                     disabled={processed}
-                                    className="w-full rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
                                 >
-                                    {processed ? 'Membatalkan...' : 'Batalkan Pesanan'}
-                                </Button>
+                                    <Button
+                                        disabled={processed}
+                                        className="w-full rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+                                    >
+                                        {processed ? 'Membatalkan...' : 'Batalkan Pesanan'}
+                                    </Button>
+                                </ConfirmationDialog>
                             </div>
                         </div>
                     )}

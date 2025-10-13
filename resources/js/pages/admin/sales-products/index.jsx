@@ -134,9 +134,10 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
                                         <TableCell className="text-center">{user.total_sold}</TableCell>
                                         <TableCell className="text-right">
                                             {user.assigned_products > 0 && (
-                                                <Link href={`/admin/users/Sales Lapangan/${user.id}/edit`}>
+                                                <Link href={route('admin.sales-products.sales', user)}>
                                                     <Button variant="outline" size="sm">
-                                                        <Eye className="h-4 w-4" />
+                                                        <Eye className="h-4 w-4 mr-2" />
+                                                        Lihat Produk
                                                     </Button>
                                                 </Link>
                                             )}

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import BuyerLayout from '@/layouts/buyer-layout';
 import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -53,10 +54,6 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
     };
 
     const handleRemoveItem = async (cartId) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus produk ini dari keranjang?')) {
-            return;
-        }
-
         try {
             await router.delete(route('buyer.cart.destroy', cartId));
         } catch (error) {
@@ -65,10 +62,6 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
     };
 
     const handleClearCart = async () => {
-        if (!confirm('Apakah Anda yakin ingin mengosongkan keranjang Anda?')) {
-            return;
-        }
-
         try {
             await router.delete(route('buyer.cart.clear'));
         } catch (error) {
@@ -131,10 +124,19 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
 
                     {cartItems.length > 0 && (
                         <div className="flex items-center space-x-3">
-                            <Button variant="outline" size="sm" onClick={handleClearCart}>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Kosongkan
-                            </Button>
+                            <ConfirmationDialog
+                                title="Kosongkan Keranjang"
+                                description="Apakah Anda yakin ingin mengosongkan keranjang Anda?"
+                                confirmText="Kosongkan"
+                                cancelText="Batal"
+                                variant="destructive"
+                                onConfirm={handleClearCart}
+                            >
+                                <Button variant="outline" size="sm">
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Kosongkan
+                                </Button>
+                            </ConfirmationDialog>
                         </div>
                     )}
                 </div>
@@ -273,15 +275,23 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                 </div>
                                             </div>
 
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleRemoveItem(item.id)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            <ConfirmationDialog
+                                                title="Hapus Item"
+                                                description="Apakah Anda yakin ingin menghapus produk ini dari keranjang?"
+                                                confirmText="Hapus"
+                                                cancelText="Batal"
+                                                variant="destructive"
+                                                onConfirm={() => handleRemoveItem(item.id)}
                                             >
-                                                <Trash2 className="h-4 w-4 mr-1" />
-                                                Hapus
-                                            </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                >
+                                                    <Trash2 className="h-4 w-4 mr-1" />
+                                                    Hapus
+                                                </Button>
+                                            </ConfirmationDialog>
                                         </div>
                                     </div>
                                 );

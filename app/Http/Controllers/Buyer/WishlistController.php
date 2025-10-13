@@ -17,7 +17,7 @@ class WishlistController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $wishlists = $user->wishlists()->with('product.category', 'product.vendor')->get();
+        $wishlists = $user->wishlists()->with('product.category', 'product.vendor', 'product.primaryImage', 'product.images')->get();
 
         return Inertia::render('buyer/profile/wishlist', [
             'user' => $user->only(['name', 'email']),
@@ -31,6 +31,8 @@ class WishlistController extends Controller
                         'sell_price' => $wishlist->product->sell_price,
                         'stock' => $wishlist->product->stock,
                         'image_url' => $wishlist->product->image_url,
+                        'primary_image' => $wishlist->product->primaryImage,
+                        'images' => $wishlist->product->images,
                         'category' => $wishlist->product->category->name ?? null,
                         'vendor' => $wishlist->product->vendor->name ?? null,
                     ],

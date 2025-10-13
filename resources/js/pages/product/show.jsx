@@ -139,26 +139,34 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                 {/* Product Image Gallery */}
                 <div className="mb-4">
                     <ProductImageGallery product={product} />
-
-                    {/* Wishlist Button */}
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm hover:bg-white"
-                        onClick={handleWishlistToggle}
-                        disabled={isWishlistLoading}
-                    >
-                        <Heart
-                            className={`h-5 w-5 ${isInWishlist ? 'fill-red-600 text-red-600' : 'text-gray-600'}`}
-                        />
-                    </Button>
                 </div>
 
                 {/* Product Info - Compact Layout */}
                 <div className="space-y-4 mb-6">
                     {/* Product Name and Category */}
                     <div>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex-1">{product.name}</h1>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-shrink-0 px-3 py-2 hover:cursor-pointer"
+                                disabled={isWishlistLoading}
+                                onClick={handleWishlistToggle}
+                            >
+                                {isWishlistLoading ? (
+                                    <>
+                                        <Heart className="h-4 w-4 animate-spin" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <Heart
+                                            className={`h-4 w-4 ${isInWishlist ? 'fill-red-600 text-red-600' : 'text-gray-600'}`}
+                                        />
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span className="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
                                 {product.category?.name}
@@ -223,6 +231,44 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                         </div>
                     )}
 
+                    {/* Desktop Action Buttons */}
+                    {product.stock > 0 && (
+                        <div className="hidden sm:flex gap-3 pt-2">
+                            <Button
+                                variant="outline"
+                                className="flex-1 py-2 hover:cursor-pointer"
+                                disabled={product.stock <= 0 || isAddingToCart}
+                                onClick={handleAddToCart}
+                            >
+                                {isAddingToCart ? (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                                        Menambahkan...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4" />
+                                        Tambah ke Keranjang
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                className="flex-1 py-2 hover:cursor-pointer"
+                                disabled={product.stock <= 0 || isBuyingNow}
+                                onClick={handleBuyNow}
+                            >
+                                {isBuyingNow ? (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                                        Memproses...
+                                    </>
+                                ) : (
+                                    `Beli Sekarang - ${formatPrice(product.sell_price * quantity)}`
+                                )}
+                            </Button>
+                        </div>
+                    )}
+
                     {/* Product Description */}
                     <div className="pt-2">
                         <h3 className="text-lg font-semibold mb-2">Deskripsi Produk</h3>
@@ -284,24 +330,43 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                     )}
                 </div>
 
-                {/* Sticky Action Button for Mobile */}
+                {/* Sticky Action Buttons for Mobile */}
                 {product.stock > 0 && (
                     <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 shadow-lg sm:hidden">
-                        <Button
-                            size="lg"
-                            className="w-full py-3 hover:cursor-pointer"
-                            disabled={product.stock <= 0 || isBuyingNow}
-                            onClick={handleBuyNow}
-                        >
-                            {isBuyingNow ? (
-                                <>
-                                    <Package className="mr-2 h-4 w-4 animate-spin" />
-                                    Memproses...
-                                </>
-                            ) : (
-                                `Beli Sekarang - ${formatPrice(product.sell_price * quantity)}`
-                            )}
-                        </Button>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                className="flex-1 py-3 hover:cursor-pointer"
+                                disabled={product.stock <= 0 || isAddingToCart}
+                                onClick={handleAddToCart}
+                            >
+                                {isAddingToCart ? (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                                        Menambahkan...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4" />
+                                        Keranjang
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                className="flex-1 py-3 hover:cursor-pointer"
+                                disabled={product.stock <= 0 || isBuyingNow}
+                                onClick={handleBuyNow}
+                            >
+                                {isBuyingNow ? (
+                                    <>
+                                        <Package className="mr-2 h-4 w-4 animate-spin" />
+                                        Memproses...
+                                    </>
+                                ) : (
+                                    `Beli Sekarang`
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 )}
 

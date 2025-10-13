@@ -212,6 +212,46 @@ class SalesProductController extends Controller
         ]);
     }
 
+    public function salesProducts(User $user)
+    {
+        if ($user->role_id !== 4) { // Sales Lapangan role
+            abort(404);
+        }
+
+        $borrowedProducts = BorrowedProduct::with(['product.category'])
+            ->where('sale_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($borrowedProduct) {
+                return [
+                    'id' => $borrowedProduct->id,
+                    'product' => [
+                        'id' => $borrowedProduct->product->id,
+                        'name' => $borrowedProduct->product->name,
+                        'category' => $borrowedProduct->product->category->name ?? 'Uncategorized',
+                        'image_url' => $borrowedProduct->product->image_url,
+                    ],
+                    'borrowed_quantity' => $borrowedProduct->borrowed_quantity,
+                    'sold_quantity' => $borrowedProduct->sold_quantity,
+                    'current_stock' => $borrowedProduct->current_stock,
+                    'status' => $borrowedProduct->status,
+                    'borrowed_date' => $borrowedProduct->borrowed_date->format('Y-m-d'),
+                    'return_date' => $borrowedProduct->return_date?->format('Y-m-d'),
+                ];
+            });
+
+        return Inertia::render('admin/sales-products/sales-products', [
+            'sales' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'status' => $user->status,
+            ],
+            'borrowedProducts' => $borrowedProducts,
+        ]);
+    }
+
     public function edit(BorrowedProduct $borrowedProduct)
     {
         if ($borrowedProduct->status === 'returned') {
@@ -315,6 +355,69 @@ class SalesProductController extends Controller
             DB::rollBack();
 
             return back()->with('error', 'Gagal mengembalikan produk: ' . $e->getMessage());
+        }
+    }
+
+    public function returnProduct(Request $request, BorrowedProduct $borrowedProduct)
+    {
+        if ($borrowedProduct->status === 'returned') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Produk sudah dikembalikan'
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'return_date' => 'required|date',
+            'return_all' => 'required|boolean',
+            'return_quantity' => 'required_if:return_all,false|integer|min:1|max:' . $borrowedProduct->current_stock,
+        ], [
+            'return_date.required' => 'Tanggal pengembalian harus diisi',
+            'return_quantity.required_if' => 'Jumlah pengembalian harus diisi',
+            'return_quantity.max' => 'Jumlah pengembalian tidak boleh melebihi stok tersedia',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $returnQuantity = $request->return_all ? $borrowedProduct->current_stock : $request->return_quantity;
+
+            // Return specified quantity to product stock
+            $borrowedProduct->product->increment('stock', $returnQuantity);
+
+            // Update borrowed product
+            $borrowedProduct->update([
+                'sold_quantity' => $borrowedProduct->sold_quantity + $returnQuantity,
+                'status' => 'returned',
+                'return_date' => $request->return_date,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk berhasil dikembalikan ke stok',
+                'data' => [
+                    'return_quantity' => $returnQuantity,
+                    'return_date' => $request->return_date,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengembalikan produk: ' . $e->getMessage()
+            ], 500);
         }
     }
 

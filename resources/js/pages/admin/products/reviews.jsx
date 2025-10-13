@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Trash2, User, Calendar, Star, Package } from 'lucide-react';
@@ -7,16 +8,14 @@ import { toast } from 'sonner';
 
 export default function ProductReviews({ product, reviews, canDeleteReviews }) {
     const handleDeleteReview = (reviewId) => {
-        if (confirm('Apakah Anda yakin ingin menghapus review ini?')) {
-            router.delete(route('reviews.destroy', reviewId), {
-                onSuccess: () => {
-                    toast.success('Review berhasil dihapus!');
-                },
-                onError: () => {
-                    toast.error('Gagal menghapus review.');
-                }
-            });
-        }
+        router.delete(route('reviews.destroy', reviewId), {
+            onSuccess: () => {
+                toast.success('Review berhasil dihapus!');
+            },
+            onError: () => {
+                toast.error('Gagal menghapus review.');
+            }
+        });
     };
 
     const formatDate = (dateString) => {
@@ -174,14 +173,22 @@ export default function ProductReviews({ product, reviews, canDeleteReviews }) {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 {canDeleteReviews && (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleDeleteReview(review.id)}
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    <ConfirmationDialog
+                                                        title="Hapus Review"
+                                                        description="Apakah Anda yakin ingin menghapus review ini?"
+                                                        confirmText="Hapus"
+                                                        cancelText="Batal"
+                                                        variant="destructive"
+                                                        onConfirm={() => handleDeleteReview(review.id)}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </ConfirmationDialog>
                                                 )}
                                             </TableCell>
                                         </TableRow>

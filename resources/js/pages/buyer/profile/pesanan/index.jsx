@@ -10,6 +10,7 @@
 // export default Pesanan
 
 import { Button } from '@/components/ui/button';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import BuyerLayout from '@/layouts/buyer-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, MapPin, Package, User } from 'lucide-react';
@@ -50,6 +51,26 @@ export default function OrdersIndex({ orders }) {
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    const handleCancelOrder = (orderId) => {
+        router.put(
+            route('buyer.orders.update', orderId),
+            {
+                status: 'cancelled',
+            },
+            {
+                onSuccess: () => {
+                    console.log('Cancel successful');
+                },
+                onError: (errors) => {
+                    console.error('Cancel failed:', errors);
+                },
+                onFinish: () => {
+                    console.log('Request cancel finished');
+                },
+            },
+        );
     };
 
     return (
@@ -218,33 +239,21 @@ export default function OrdersIndex({ orders }) {
                                                     Lihat Detail
                                                 </Link>
                                                 {order.status === 'pending' && (
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => {
-                                                            if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-                                                                router.put(
-                                                                    route('buyer.orders.update', order.id),
-                                                                    {
-                                                                        status: 'cancelled',
-                                                                    },
-                                                                    {
-                                                                        onSuccess: () => {
-                                                                            console.log('Cancel successful');
-                                                                        },
-                                                                        onError: (errors) => {
-                                                                            console.error('Cancel failed:', errors);
-                                                                        },
-                                                                        onFinish: () => {
-                                                                            console.log('Request cancel finished');
-                                                                        },
-                                                                    },
-                                                                );
-                                                            }
-                                                        }}
-                                                        className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                                                    <ConfirmationDialog
+                                                        title="Batalkan Pesanan"
+                                                        description="Apakah Anda yakin ingin membatalkan pesanan ini?"
+                                                        confirmText="Batalkan"
+                                                        cancelText="Batal"
+                                                        variant="destructive"
+                                                        onConfirm={() => handleCancelOrder(order.id)}
                                                     >
-                                                        Batalkan
-                                                    </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                                                        >
+                                                            Batalkan
+                                                        </Button>
+                                                    </ConfirmationDialog>
                                                 )}
                                             </div>
                                         </div>

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Package, User, Calendar, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -38,6 +39,17 @@ export default function OrdersIndex({ orders }) {
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    const handleCancelOrder = (orderId) => {
+        router.put(
+            route('buyer.orders.update', orderId),
+            { status: 'cancelled' },
+            {
+                onSuccess: () => console.log('Cancel successful'),
+                onError: (errors) => console.error('Cancel failed:', errors),
+            }
+        );
     };
 
     // Filter orders berdasarkan status
@@ -212,25 +224,22 @@ export default function OrdersIndex({ orders }) {
                                             <ArrowRight className="h-3 w-3" />
                                         </Link>
                                         {order.status === 'pending' && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
-                                                        router.put(
-                                                            route('buyer.orders.update', order.id),
-                                                            { status: 'cancelled' },
-                                                            {
-                                                                onSuccess: () => console.log('Cancel successful'),
-                                                                onError: (errors) => console.error('Cancel failed:', errors),
-                                                            }
-                                                        );
-                                                    }
-                                                }}
-                                                className="text-sm text-red-600 hover:text-red-700 font-medium hover:bg-red-50"
+                                            <ConfirmationDialog
+                                                title="Batalkan Pesanan"
+                                                description="Apakah Anda yakin ingin membatalkan pesanan ini?"
+                                                confirmText="Batalkan"
+                                                cancelText="Batal"
+                                                variant="destructive"
+                                                onConfirm={() => handleCancelOrder(order.id)}
                                             >
-                                                Batalkan
-                                            </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-sm text-red-600 hover:text-red-700 font-medium hover:bg-red-50"
+                                                >
+                                                    Batalkan
+                                                </Button>
+                                            </ConfirmationDialog>
                                         )}
                                     </div>
                                 </div>

@@ -3,6 +3,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RatingStars } from '@/components/rating-stars';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function ReviewForm({ productId, orderId, onSubmit, onCancel, isLoading = false }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -18,7 +19,7 @@ export function ReviewForm({ productId, orderId, onSubmit, onCancel, isLoading =
         e.preventDefault();
 
         if (data.rating === 0) {
-            alert('Silakan pilih rating terlebih dahulu');
+            toast.error('Silakan pilih rating terlebih dahulu');
             return;
         }
 

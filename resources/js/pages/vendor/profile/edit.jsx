@@ -6,6 +6,8 @@ import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Upload, X, User, Mail, Phone, ArrowLeft } from 'lucide-react';
 import { useState, useRef } from 'react';
+import { toast } from 'sonner';
+import { ConfirmationDialog } from '@/components/confirmation-dialog';
 
 export default function Edit({ user }) {
     const { data, setData, put, processing, errors, reset } = useForm({
@@ -39,13 +41,13 @@ export default function Edit({ user }) {
         if (file) {
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                alert('Harap pilih file gambar');
+                toast.error('Harap pilih file gambar');
                 return;
             }
 
             // Validate file size (2MB max)
             if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran file maksimal 2MB');
+                toast.error('Ukuran file maksimal 2MB');
                 return;
             }
 
@@ -80,17 +82,17 @@ export default function Edit({ user }) {
     };
 
     const handleRemoveAvatar = () => {
-        if (confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
-            router.delete(route('vendor.profile.avatar.remove'), {
-                onSuccess: () => {
-                    setAvatarPreview(null);
-                    fileInputRef.current.value = '';
-                },
-                onError: (errors) => {
-                    console.error('Avatar removal failed:', errors);
-                },
-            });
-        }
+        router.delete(route('vendor.profile.avatar.remove'), {
+            onSuccess: () => {
+                setAvatarPreview(null);
+                fileInputRef.current.value = '';
+                toast.success('Foto profil berhasil dihapus');
+            },
+            onError: (errors) => {
+                console.error('Avatar removal failed:', errors);
+                toast.error('Gagal menghapus foto profil');
+            },
+        });
     };
 
     const getInitials = (name) => {

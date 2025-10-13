@@ -71,7 +71,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::get('/{borrowedProduct}/edit', [SalesProductController::class, 'edit'])->name('edit');
         Route::put('/{borrowedProduct}', [SalesProductController::class, 'update'])->name('update');
         Route::put('/{borrowedProduct}/return', [SalesProductController::class, 'return'])->name('return');
+        Route::post('/{borrowedProduct}/return-product', [SalesProductController::class, 'returnProduct'])->name('return-product');
         Route::delete('/{borrowedProduct}', [SalesProductController::class, 'destroy'])->name('destroy');
+        Route::get('/sales/{user}', [SalesProductController::class, 'salesProducts'])->name('sales');
     });
 
     // Settings Routes

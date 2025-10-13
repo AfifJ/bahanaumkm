@@ -4,6 +4,7 @@ import { Head, Link, router } from "@inertiajs/react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useEffect } from "react"
+import { route } from 'ziggy-js'
 
 const Wishlist = ({ wishlists, flash }) => {
     // Handle flash messages
@@ -15,6 +16,28 @@ const Wishlist = ({ wishlists, flash }) => {
             toast.error(flash.error);
         }
     }, [flash]);
+
+    const getImageUrl = (product) => {
+        // Try primary_image first (new system)
+        if (product.primary_image?.image_path) {
+            return '/storage/' + product.primary_image.image_path;
+        }
+
+        // Try images array (new system)
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            const firstImage = product.images.find(img => img && img.image_path);
+            if (firstImage) {
+                return '/storage/' + firstImage.image_path;
+            }
+        }
+
+        // Fallback: legacy image_url field (old system)
+        if (product.image_url) {
+            return product.image_url;
+        }
+
+        return null;
+    };
     const formatPrice = (price) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -34,10 +57,7 @@ const Wishlist = ({ wishlists, flash }) => {
         });
     };
 
-    const handleProductClick = (productSlug) => {
-        router.visit(route('products.show', productSlug));
-    };
-
+  
     if (wishlists.length === 0) {
         return (
             <BuyerLayoutNonSearch title="Wishlist">
@@ -62,71 +82,63 @@ const Wishlist = ({ wishlists, flash }) => {
         <BuyerLayoutNonSearch title="Wishlist">
             <Head title="Wishlist" />
             <div className="container mx-auto px-3 py-4">
-                <div className="space-y-3">
-                    {wishlists.map((wishlist) => (
-                        <Link href={route('product.show', wishlist.product)} key={wishlist.id} className="bg-white rounded-lg overflow-hidden">
-                            <div className="flex items-center">
-                                {/* Product Image - Aspect Square */}
-                                <div
-                                    className="w-20 h-20 bg-gray-100 cursor-pointer flex-shrink-0"
-                                    onClick={() => handleProductClick(wishlist.product.slug)}
-                                >
-                                    {wishlist.product.image_url ? (
-                                        <img
-                                            src={wishlist.product.image_url}
-                                            alt={wishlist.product.name}
-                                            className="w-full h-full rounded-md object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <span className="text-gray-500 text-xs">No Image</span>
-                                        </div>
-                                    )}
-                                </div>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+                    {wishlists.map((wishlist) => {
+                        const imageUrl = getImageUrl(wishlist.product);
 
-                                {/* Product Info - Compact */}
-                                <div className="flex-1 p-3">
-                                    <div
-                                        className="cursor-pointer mb-1"
-                                        onClick={() => handleProductClick(wishlist.product.slug)}
-                                    >
-                                        <h3 className="font-medium text-gray-900 line-clamp-2 text-sm leading-tight hover:text-blue-600">
+                        return (
+                        <div key={wishlist.id} className="relative group">
+                            <Link href={route('product.show', wishlist.product)} preserveScroll>
+                                <div className="p-0 gap-1 group overflow-hidden rounded">
+                                    <div className="p-0 rounded overflow-hidden relative bg-gray-100">
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                alt={wishlist.product.name}
+                                                className="aspect-square w-full object-contain"
+                                                loading="lazy"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerHTML = `
+                                                        <div class="flex aspect-square w-full items-center justify-center bg-gray-100">
+                                                            <span class="text-gray-400">📦</span>
+                                                        </div>
+                                                    `;
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="flex aspect-square w-full items-center justify-center bg-gray-100">
+                                                <span className="text-gray-400">📦</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="py-3">
+                                        <h3 className="line-clamp-2 h-5 text-sm font-medium text-gray-900">
                                             {wishlist.product.name}
                                         </h3>
-                                    </div>
-
-                                    <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
-                                        {/* <span className="inline-block rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] text-blue-800">
-                                            {wishlist.product.category}
-                                        </span> */}
-                                        <span className="text-gray-400">•</span>
-                                        <span className="truncate">Oleh: {wishlist.product.vendor}</span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-base font-bold text-green-600">
-                                            {formatPrice(wishlist.product.sell_price)}
-                                        </p>
-                                        <p className={`text-xs ${wishlist.product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        <p className="mt-2 text-lg font-bold text-primary">{formatPrice(wishlist.product.sell_price)}</p>
+                                        <p className="text-xs text-gray-500 truncate">oleh {wishlist.product.vendor}</p>
+                                        <p className={`text-xs mt-1 ${wishlist.product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                             Stok: {wishlist.product.stock ?? 'Stok habis'}
                                         </p>
                                     </div>
                                 </div>
+                            </Link>
 
-                                {/* Love Button - Right Side */}
-                                <div className="pr-3">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                                        onClick={() => handleRemoveFromWishlist(wishlist.product.id)}
-                                    >
-                                        <Heart className="h-4 w-4 fill-current" />
-                                    </Button>
-                                </div>
+                            {/* Love Button - Top Right Corner */}
+                            <div className="absolute top-2 right-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0 bg-white/90 backdrop-blur-sm"
+                                    onClick={() => handleRemoveFromWishlist(wishlist.product.id)}
+                                >
+                                    <Heart className="h-4 w-4 fill-current" />
+                                </Button>
                             </div>
-                        </Link>
-                    ))}
+                        </div>
+                        );
+                    })}
                 </div>
             </div>
         </BuyerLayoutNonSearch>
