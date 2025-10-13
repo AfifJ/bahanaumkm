@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function RatingStars({ rating, size = 'sm', readOnly = false, onChange }) {
     const sizes = {
@@ -19,11 +20,13 @@ export function RatingStars({ rating, size = 'sm', readOnly = false, onChange })
         const isHalfStar = position === Math.ceil(rating) && rating % 1 !== 0;
 
         return (
-            <button
+            <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => handleRatingClick(position)}
                 disabled={readOnly}
-                className={`${sizes[size]} ${!readOnly ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'} ${position > 1 ? 'ml-1' : ''}`}
+                className={`${sizes[size]} ${!readOnly ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'} ${position > 1 ? 'ml-1' : ''} p-0`}
                 aria-label={`Rate ${position} star${position === 1 ? '' : 's'}`}
             >
                 <Star
@@ -33,7 +36,7 @@ export function RatingStars({ rating, size = 'sm', readOnly = false, onChange })
                             : 'text-gray-300'
                     }`}
                 />
-            </button>
+            </Button>
         );
     };
 

@@ -212,7 +212,9 @@ export default function OrdersIndex({ orders }) {
                                             <ArrowRight className="h-3 w-3" />
                                         </Link>
                                         {order.status === 'pending' && (
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => {
                                                     if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
                                                         router.put(
@@ -225,10 +227,10 @@ export default function OrdersIndex({ orders }) {
                                                         );
                                                     }
                                                 }}
-                                                className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                                className="text-sm text-red-600 hover:text-red-700 font-medium hover:bg-red-50"
                                             >
                                                 Batalkan
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
                                 </div>

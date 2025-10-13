@@ -1,4 +1,5 @@
 import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+import { Button } from '@/components/ui/button'
 
 const TentangKami = () => {
     return (
@@ -146,12 +147,12 @@ const TentangKami = () => {
                         Jadilah bagian dari revolusi digital UMKM Indonesia. Daftarkan bisnis Anda sekarang dan perluas jangkauan pasar bersama kami.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                        <button className="bg-white text-blue-600 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors shadow-sm">
+                        <Button className="bg-white text-blue-600 px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors shadow-sm">
                             Daftar sebagai UMKM
-                        </button>
-                        <button className="border border-white text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+                        </Button>
+                        <Button variant="outline" className="border border-white text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
                             Pelajari Lebih Lanjut
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

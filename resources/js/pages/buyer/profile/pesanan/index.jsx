@@ -218,7 +218,8 @@ export default function OrdersIndex({ orders }) {
                                                     Lihat Detail
                                                 </Link>
                                                 {order.status === 'pending' && (
-                                                    <button
+                                                    <Button
+                                                        variant="outline"
                                                         onClick={() => {
                                                             if (confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) {
                                                                 router.put(
@@ -243,7 +244,7 @@ export default function OrdersIndex({ orders }) {
                                                         className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                                                     >
                                                         Batalkan
-                                                    </button>
+                                                    </Button>
                                                 )}
                                             </div>
                                         </div>

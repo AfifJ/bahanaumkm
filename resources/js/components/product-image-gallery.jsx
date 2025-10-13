@@ -144,10 +144,11 @@ const ProductImageGallery = ({ product }) => {
             {images.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {images.map((image, index) => (
-                        <button
+                        <Button
+                            variant="ghost"
                             key={index}
                             onClick={() => handleThumbnailClick(index)}
-                            className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+                            className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all p-0 ${
                                 selectedImageIndex === index
                                     ? 'border-blue-500 ring-2 ring-blue-200'
                                     : 'border-gray-200 hover:border-gray-300'
@@ -167,7 +168,7 @@ const ProductImageGallery = ({ product }) => {
                                     `;
                                 }}
                             />
-                        </button>
+                        </Button>
                     ))}
                 </div>
             )}

@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Mail, Phone, User } from 'lucide-react';
@@ -30,9 +30,9 @@ const SalesProfileEdit = ({ user }) => {
                             asChild
                             className="mr-3"
                         >
-                            <a href={route('sales.profile.index')}>
+                            <Link href={route('sales.profile.index')}>
                                 <ArrowLeft className="h-4 w-4" />
-                            </a>
+                            </Link>
                         </Button>
                         <h1 className="text-xl font-semibold">Edit Profil</h1>
                     </div>

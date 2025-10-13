@@ -2,6 +2,7 @@
 
 import { Check, ChevronDown, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef } from "react"
 
@@ -49,16 +50,16 @@ export function MitraSelector({ mitra = [], onSelect, selectedMitra }) {
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Mitra Display Button */}
-            <button
-                type="button"
+            <Button
+                variant="ghost"
                 onClick={() => setOpen(!open)}
-                className="flex gap-2 py-2 px-3 items-center w-full text-left border border-gray-300 rounded-md hover:border-gray-400 transition-colors bg-white"
+                className="flex gap-2 py-2 px-3 items-center w-full text-left border border-gray-300 rounded-md hover:border-gray-400 transition-colors bg-white justify-start h-auto"
             >
                 <span className="flex-1 text-gray-700">
                     {selectedMitra ? `${selectedMitra.hotel_name} - ${selectedMitra.address}` : "Cari hotel..."}
                 </span>
                 <ChevronDown className={cn("w-4 transition-transform text-gray-500", open ? "rotate-180" : "")} />
-            </button>
+            </Button>
 
             {/* Dropdown Menu */}
             {open && (

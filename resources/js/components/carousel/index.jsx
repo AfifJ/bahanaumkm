@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
 
 export default function Carousel({ carousels = [], autoPlay = true, interval = 5000 }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -144,29 +145,34 @@ export default function Carousel({ carousels = [], autoPlay = true, interval = 5
                     </div>
 
                     {/* Navigation Buttons */}
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={goToPrevious}
                         className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
                         aria-label="Previous slide"
                     >
                         <ChevronLeft className="h-6 w-6" />
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={goToNext}
                         className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/70 focus:outline-none focus:ring-2 focus:ring-white"
                         aria-label="Next slide"
                     >
                         <ChevronRight className="h-6 w-6" />
-                    </button>
+                    </Button>
 
                     {/* Dots Indicators */}
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
                         {carousels.map((_, index) => (
-                            <button
+                            <Button
                                 key={index}
+                                variant="ghost"
                                 onClick={() => goToSlide(index)}
-                                className={`h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white ${
+                                className={`h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white p-0 ${
                                     index === currentIndex
                                         ? 'w-8 bg-white'
                                         : 'w-2 bg-white/50 hover:bg-white/75'

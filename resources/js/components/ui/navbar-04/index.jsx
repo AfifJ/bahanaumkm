@@ -8,7 +8,6 @@ import { Input } from '../input';
 import {
   NavigationMenu,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList
 } from '../navigation-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '../popover';
@@ -149,13 +148,12 @@ export const Navbar04 = forwardRef((
                   <NavigationMenuList className="gap-1">
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index}>
-                        <NavigationMenuLink
+                        <Link
                           href={link.href}
-                          onClick={(e) => e.preventDefault()}
-                          className="hover:bg-transparent"
+                          className="text-sm font-medium transition-colors hover:text-primary px-3 py-2 rounded-md hover:bg-accent"
                         >
                           {link.label}
-                        </NavigationMenuLink>
+                        </Link>
                       </NavigationMenuItem>
                     ))}
                   </NavigationMenuList>

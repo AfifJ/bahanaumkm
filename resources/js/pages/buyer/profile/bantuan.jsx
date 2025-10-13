@@ -1,4 +1,5 @@
 import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+import { Button } from '@/components/ui/button'
 import { useState } from "react"
 
 const Bantuan = () => {
@@ -130,9 +131,10 @@ const Bantuan = () => {
                         <div className="space-y-3 sm:space-y-4">
                             {category.items.map(item => (
                                 <div key={item.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
-                                    <button
+                                    <Button
+                                        variant="ghost"
                                         onClick={() => toggleItem(item.id)}
-                                        className="w-full px-4 sm:px-6 py-3 sm:py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors rounded-xl"
+                                        className="w-full px-4 sm:px-6 py-3 sm:py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors rounded-xl h-auto"
                                     >
                                         <span className="text-sm sm:text-base font-medium text-gray-900 pr-2 text-left">
                                             {item.question}
@@ -147,7 +149,7 @@ const Bantuan = () => {
                                         >
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
-                                    </button>
+                                    </Button>
                                     {openItems[item.id] && (
                                         <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
                                             <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{item.answer}</p>

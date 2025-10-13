@@ -254,13 +254,15 @@ export default function OrderShow({ order, canReviewProducts }) {
                 <div className="mb-4 rounded-lg border bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-semibold text-gray-900">Ringkasan Pesanan</h2>
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setShowDetails(!showDetails)}
                             className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700"
                         >
                             <span>Detail</span>
                             {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="mt-3 space-y-2">
@@ -301,13 +303,14 @@ export default function OrderShow({ order, canReviewProducts }) {
 
                 {/* Timeline Section - Collapsible */}
                 <div className="mb-4 rounded-lg border bg-white p-4 shadow-sm">
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={() => setShowTimeline(!showTimeline)}
-                        className="flex w-full items-center justify-between text-left"
+                        className="flex w-full items-center justify-between text-left h-auto p-0"
                     >
                         <h2 className="text-base font-semibold text-gray-900">Status Pesanan</h2>
                         {showTimeline ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
+                    </Button>
 
                     {showTimeline && (
                         <div className="mt-3 space-y-3">
@@ -408,12 +411,14 @@ export default function OrderShow({ order, canReviewProducts }) {
                             {order.payment_proof && (
                                 <div className="mb-3">
                                     <span className="text-xs text-blue-700">Bukti Pembayaran: </span>
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => window.open(`/storage/${order.payment_proof}`, '_blank')}
-                                        className="text-xs text-blue-600 hover:underline ml-1"
+                                        className="text-xs text-blue-600 hover:underline ml-1 p-0 h-auto"
                                     >
                                         Lihat Bukti
-                                    </button>
+                                    </Button>
                                 </div>
                             )}
                         </div>

@@ -3,11 +3,13 @@ import PersistentNavigationWrapper from '@/components/persistent-navigation-wrap
 import { router, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { useCart } from '@/hooks/use-cart';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default ({ children, mainNavItems }) => {
     const { auth } = usePage().props;
     const user = auth?.user;
     const { cartCount } = useCart();
+    const isMobile = useIsMobile();
 
     const handleCartClick = () => {
         router.visit(route('buyer.cart.index'));
@@ -19,11 +21,32 @@ export default ({ children, mainNavItems }) => {
         }
     }
 
+    // Desktop navigation items for buyer
+    const navigationLinks = [
+        {
+            label: 'Beranda',
+            href: route('home'),
+        },
+        {
+            label: 'Transaksi',
+            href: route('buyer.orders.index'),
+        },
+        {
+            label: 'Wishlist',
+            href: route('buyer.wishlist'),
+        },
+        {
+            label: 'Profil',
+            href: route('buyer.profile.index'),
+        },
+    ];
+
     return (
-        <PersistentNavigationWrapper>
+        <PersistentNavigationWrapper withBottomNav={isMobile} navType="buyer">
             <Navbar04
                 profileLink={user?.role_id === 5 ? '/profile' : ""}
                 menuItems={mainNavItems}
+                navigationLinks={!isMobile ? navigationLinks : []}
                 onSearchSubmit={handleSearchSubmit}
                 onCartClick={handleCartClick}
                 cartCount={cartCount}
