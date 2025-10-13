@@ -10,7 +10,7 @@
 // export default Pesanan
 
 import { Button } from '@/components/ui/button';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayout from '@/layouts/buyer-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, MapPin, Package, User } from 'lucide-react';
 import { useState } from 'react';
@@ -24,7 +24,8 @@ export default function OrdersIndex({ orders }) {
     const getStatusColor = (status) => {
         const colors = {
             pending: 'bg-yellow-100 text-yellow-800',
-            paid: 'bg-blue-100 text-blue-800',
+            validation: 'bg-blue-100 text-blue-800',
+            paid: 'bg-green-100 text-green-800',
             processing: 'bg-purple-100 text-purple-800',
             shipped: 'bg-indigo-100 text-indigo-800',
             delivered: 'bg-green-100 text-green-800',
@@ -149,6 +150,7 @@ export default function OrdersIndex({ orders }) {
                                                         className={`rounded-full px-2 py-1 text-center text-xs font-medium ${getStatusColor(order.status)}`}
                                                     >
                                                         {order.status === 'pending' && 'Menunggu Pembayaran'}
+                                                        {order.status === 'validation' && 'Menunggu Validasi'}
                                                         {order.status === 'paid' && 'Sudah Dibayar'}
                                                         {order.status === 'processing' && 'Diproses'}
                                                         {order.status === 'shipped' && 'Dikirim'}

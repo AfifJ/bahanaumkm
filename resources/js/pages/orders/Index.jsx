@@ -155,7 +155,7 @@ export default function OrdersIndex({ orders }) {
                                         <div className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(order.status)}`}>
                                             {order.status === 'pending' && 'Menunggu Bayar'}
                                             {order.status === 'paid' && 'Dibayar'}
-                                            {order.status === 'processing' && 'Diproses'}
+                                            {order.status === 'processed' && 'Diproses'}
                                             {order.status === 'shipped' && 'Dikirim'}
                                             {order.status === 'delivered' && 'Selesai'}
                                             {order.status === 'cancelled' && 'Dibatalkan'}

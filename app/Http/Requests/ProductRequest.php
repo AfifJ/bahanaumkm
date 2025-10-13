@@ -28,17 +28,22 @@ class ProductRequest extends FormRequest
             'sell_price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'vendor_id' => 'required|exists:users,id',
             'category_id' => 'required|exists:categories,id',
         ];
 
         if ($this->isMethod('POST')) {
-            $rules['image'] = 'required|image|mimes:jpeg,png,jpg,webp|max:2048';
+            // For creating new products
+            $rules['images'] = 'required|array|min:1|max:5';
+            $rules['images.*'] = 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240';
+            // Backward compatibility for single image
+            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240';
         } else {
-            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048';
+            // For updating products
+            $rules['images'] = 'nullable|array|min:1|max:5';
+            $rules['images.*'] = 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240';
+            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240';
         }
-
 
         return $rules;
     }

@@ -3,8 +3,13 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
+import { PaymentStatusBadge } from '@/components/admin/payment-status-badge';
+import { PaymentCard } from '@/components/admin/payment-card';
+import { PaymentValidationActions } from '@/components/admin/payment-validation-actions';
+import { Calendar, User, MapPin, Package, CreditCard, AlertCircle } from 'lucide-react';
 
 const getStatusBadgeVariant = (status) => {
     switch (status) {
@@ -21,6 +26,7 @@ const getStatusBadgeVariant = (status) => {
 const getStatusLabel = (status) => {
     const labels = {
         'pending': 'Menunggu Pembayaran',
+        'validation': 'Menunggu Validasi',
         'paid': 'Sudah Dibayar',
         'processed': 'Diproses',
         'shipped': 'Dikirim',
@@ -32,7 +38,8 @@ const getStatusLabel = (status) => {
 
 const getNextAvailableStatuses = (currentStatus) => {
     const transitions = {
-        'pending': ['paid', 'cancelled'],
+        'pending': ['validation', 'cancelled'],
+        'validation': ['paid', 'cancelled'],
         'paid': ['processed', 'cancelled'],
         'processed': ['shipped', 'cancelled'],
         'shipped': ['delivered'],
@@ -50,9 +57,16 @@ export default function Transaction({ order }) {
     const [selectedStatus, setSelectedStatus] = useState(order.status);
 
     const handleStatusUpdate = () => {
-        router.put(route('admin.transaction.update', order.id), {
+        const payload = {
             status: selectedStatus,
-        }, {
+        };
+
+        // Set paid_at when status is changed to paid
+        if (selectedStatus === 'paid' && order.status !== 'paid') {
+            payload.paid_at = new Date().toISOString();
+        }
+
+        router.put(route('admin.transaction.update', order.id), payload, {
             preserveScroll: true,
             onSuccess: () => {
                 // Status will be updated via page reload
@@ -80,6 +94,19 @@ export default function Transaction({ order }) {
         }).format(amount);
     };
 
+    const handleViewProof = (proofPath) => {
+        if (!proofPath) return;
+        window.open(`/storage/${proofPath}`, '_blank');
+    };
+
+    const handleImageError = (event) => {
+        event.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f3f4f6"/%3E%3Ctext x="50" y="50" font-family="Arial" font-size="12" fill="%236b7280" text-anchor="middle" dy=".3em"%3EGambar tidak tersedia%3C/text%3E%3C/svg%3E';
+    };
+
+    const handlePaymentAction = () => {
+        router.reload();
+    };
+
     const availableStatuses = getNextAvailableStatuses(order.status);
 
     return (
@@ -97,139 +124,258 @@ export default function Transaction({ order }) {
             ]}
         >
             <Head title={`Transaksi - ${order.order_code}`} />
-            <div className="py-12">
-                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-                        {/* Header */}
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h1 className="text-xl font-semibold text-gray-900">
-                                        {order.order_code}
-                                    </h1>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Dibuat pada {formatDate(order.created_at)}
-                                    </p>
+
+            <div className="space-y-6">
+                {/* Header */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <CardTitle className="text-2xl">#{order.order_code}</CardTitle>
+                                <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>Dibuat pada {formatDate(order.created_at)}</span>
                                 </div>
-                                <Badge variant={getStatusBadgeVariant(order.status)}>
-                                    {getStatusLabel(order.status)}
-                                </Badge>
                             </div>
+                            <PaymentStatusBadge status={order.status} size="lg" />
                         </div>
+                    </CardHeader>
+                </Card>
 
-                        {/* Status Update Section */}
-                        {availableStatuses.length > 0 && (
-                            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
-                                        <h3 className="text-base font-medium text-gray-900 mb-2">
-                                            Update Status Pesanan
-                                        </h3>
-                                        <div className="flex items-center gap-4">
-                                            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                                <SelectTrigger className="w-64">
-                                                    <SelectValue>
-                                                        {selectedStatus ? getStatusLabel(selectedStatus) : "Pilih status baru"}
-                                                    </SelectValue>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {availableStatuses.map((status) => (
-                                                        <SelectItem key={status} value={status}>
-                                                            {getStatusLabel(status)}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <Button 
-                                                onClick={handleStatusUpdate}
-                                                disabled={processing || selectedStatus === order.status}
-                                            >
-                                                {processing ? 'Memproses...' : 'Update Status'}
-                                            </Button>
-                                        </div>
-                                        {selectedStatus === 'cancelled' && (
-                                            <p className="text-xs text-red-600 mt-2">
-                                                <strong>Peringatan:</strong> Membatalkan pesanan akan mengembalikan stok produk.
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Order Details */}
-                        <div className="px-6 py-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Buyer Information */}
-                                <div>
-                                    <h3 className="text-base font-medium text-gray-900 mb-3">Informasi Pembeli</h3>
-                                    <div className="space-y-2 text-sm">
-                                        <div>
-                                            <span className="font-medium">Nama:</span> {order.buyer?.name || '-'}
-                                        </div>
-                                        <div>
-                                            <span className="font-medium">Email:</span> {order.buyer?.email || '-'}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Mitra Information */}
-                                <div>
-                                    <h3 className="text-base font-medium text-gray-900 mb-3">Informasi Mitra</h3>
-                                    <div className="space-y-2 text-sm">
-                                        <div>
-                                            <span className="font-medium">Nama:</span> {order.mitra?.hotel_name || '-'}
-                                        </div>
-                                        <div>
-                                            <span className="font-medium">Alamat:</span> {order.mitra?.address || '-'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Payment Validation Actions */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5" />
+                                    Validasi Pembayaran
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <PaymentValidationActions
+                                    order={order}
+                                    onSuccess={handlePaymentAction}
+                                    showQuickActions={true}
+                                />
+                            </CardContent>
+                        </Card>
 
                         {/* Order Items */}
-                        <div className="px-6 py-4 border-t border-gray-200">
-                            <h3 className="text-base font-medium text-gray-900 mb-3">Detail Produk</h3>
-                            <div className="space-y-3">
-                                {order.items.map((item, index) => (
-                                    <div key={item.id} className="flex justify-between items-start border-b border-gray-100 pb-3">
-                                        <div className="flex-1">
-                                            <div className="font-medium text-sm">{item.product.name}</div>
-                                            <div className="text-xs text-gray-600 mt-1">
-                                                Vendor: {item.product.vendor?.name || '-'}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Package className="h-5 w-5" />
+                                    Detail Produk
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {order.items.map((item, index) => (
+                                        <div key={item.id} className="flex justify-between items-start border-b border-gray-100 pb-4 last:border-b-0">
+                                            <div className="flex-1">
+                                                <div className="font-medium text-base">{item.product.name}</div>
+                                                <div className="text-sm text-gray-600 mt-1">
+                                                    Vendor: {item.product.vendor?.name || '-'}
+                                                </div>
+                                                <div className="text-sm text-gray-600">
+                                                    {item.quantity} × {formatCurrency(item.unit_price)}
+                                                </div>
                                             </div>
-                                            <div className="text-xs text-gray-600">
-                                                Jumlah: {item.quantity} x {formatCurrency(item.unit_price)}
+                                            <div className="text-right">
+                                                <div className="font-semibold text-base">
+                                                    {formatCurrency(item.total_price)}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="font-medium text-sm">
-                                                {formatCurrency(item.total_price)}
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Payment Details */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <CreditCard className="h-5 w-5" />
+                                    Informasi Pembayaran
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Metode Pembayaran</p>
+                                        <p className="font-semibold uppercase">{order.payment_method || 'QRIS'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Total Pembayaran</p>
+                                        <p className="font-semibold text-lg text-green-600">{formatCurrency(order.total_amount)}</p>
+                                    </div>
+                                </div>
+
+                                {order.payment_proof && (
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600 mb-2">Bukti Pembayaran</p>
+                                        <div className="bg-gray-50 rounded-lg p-4">
+                                            <img
+                                                src={`/storage/${order.payment_proof}`}
+                                                alt="Payment Proof"
+                                                className="h-40 w-auto mx-auto rounded cursor-pointer hover:opacity-80 transition-opacity border"
+                                                onClick={() => handleViewProof(order.payment_proof)}
+                                                onError={handleImageError}
+                                            />
+                                            <div className="mt-2 text-center">
+                                                <Button variant="outline" size="sm" onClick={() => handleViewProof(order.payment_proof)}>
+                                                    Lihat Gambar Asli
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
+                                )}
+
+                                {order.paid_at && (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 text-green-700">
+                                            <AlertCircle className="h-5 w-5" />
+                                            <span className="font-medium">Pembayaran Terverifikasi</span>
+                                        </div>
+                                        <p className="text-sm text-green-600 mt-1">
+                                            Dibayar pada: {formatDate(order.paid_at)}
+                                        </p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Buyer Notes */}
+                        {order.notes && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <AlertCircle className="h-5 w-5" />
+                                        Catatan dari Pembeli
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                                            {order.notes}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Customer Information */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <User className="h-5 w-5" />
+                                    Informasi Pembeli
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Nama</p>
+                                    <p className="font-medium">{order.buyer?.name || '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Email</p>
+                                    <p className="text-sm text-gray-900">{order.buyer?.email || '-'}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Delivery Information */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <MapPin className="h-5 w-5" />
+                                    Informasi Pengiriman
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Mitra</p>
+                                    <p className="font-medium">{order.mitra?.hotel_name || '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">Alamat</p>
+                                    <p className="text-sm text-gray-900">{order.mitra?.address || '-'}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Order Summary */}
-                        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                            <div className="flex justify-between items-center">
-                                <div className="text-base font-medium text-gray-900">
-                                    Total Pesanan
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Ringkasan Pesanan</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600">Total Items</span>
+                                    <span className="font-medium">{order.items?.length || 0} produk</span>
                                 </div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {formatCurrency(order.total_amount)}
+                                <div className="border-t pt-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-semibold">Total Pembayaran</span>
+                                        <span className="text-xl font-bold text-green-600">{formatCurrency(order.total_amount)}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            {order.partner_commission > 0 && (
-                                <div className="flex justify-between items-center mt-2 text-xs text-gray-600">
-                                    <div>Komisi Mitra:</div>
-                                    <div>{formatCurrency(order.partner_commission)}</div>
-                                </div>
-                            )}
-                        </div>
+                                {order.partner_commission > 0 && (
+                                    <div className="text-xs text-gray-600 pt-2 border-t">
+                                        <div className="flex justify-between">
+                                            <span>Komisi Mitra:</span>
+                                            <span>{formatCurrency(order.partner_commission)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Status Management */}
+                        {availableStatuses.length > 0 && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Kelola Status</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Update Status</label>
+                                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                            <SelectTrigger>
+                                                <SelectValue>
+                                                    {selectedStatus ? getStatusLabel(selectedStatus) : "Pilih status baru"}
+                                                </SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableStatuses.map((status) => (
+                                                    <SelectItem key={status} value={status}>
+                                                        {getStatusLabel(status)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button
+                                        onClick={handleStatusUpdate}
+                                        disabled={processing || selectedStatus === order.status}
+                                        className="w-full"
+                                    >
+                                        {processing ? 'Memproses...' : 'Update Status'}
+                                    </Button>
+                                    {selectedStatus === 'cancelled' && (
+                                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                                            <strong>Peringatan:</strong> Membatalkan pesanan akan mengembalikan stok produk.
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </div>
             </div>

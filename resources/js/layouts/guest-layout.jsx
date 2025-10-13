@@ -1,7 +1,6 @@
 import { Navbar04 } from '@/components/ui/navbar-04';
-import MobileBottomNav from '@/components/mobile-bottom-nav';
+import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
 import { BookOpen, Folder, LayoutGrid, ShoppingCart } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { router } from '@inertiajs/react';
 
 const mainNavItems = [
@@ -31,22 +30,21 @@ const footerNavItems = [
 ];
 
 const Example = ({ children }) => {
-    const isMobile = useIsMobile();
-    
     const handleSearchSubmit = (query) => {
         if (query.trim()) {
             router.get(route('search'), { search: query.trim() });
         }
     };
-    
+
     return (
-        <div className="relative w-full">
+        <PersistentNavigationWrapper>
             <Navbar04 onSearchSubmit={handleSearchSubmit} />
-            <main className={isMobile ? 'pb-16' : ''}>
-                {children}
+            <main className="w-full">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                    {children}
+                </div>
             </main>
-            {isMobile && <MobileBottomNav />}
-        </div>
+        </PersistentNavigationWrapper>
     );
 };
 

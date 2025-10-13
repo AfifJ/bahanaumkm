@@ -30,6 +30,16 @@ Route::get('/search', [CatalogController::class, 'search'])->name('search');
 
 Route::get('/product/{product}', [CatalogController::class, 'productShow'])->name('product.show');
 
+Route::get('/vendor/profile/{vendor}', [CatalogController::class, 'vendorShow'])->name('vendor.show');
+
+// Review Routes
+Route::middleware(['auth'])->group(function () {
+    Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+    Route::put('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/products/{product}/reviews', [App\Http\Controllers\ReviewController::class, 'index'])->name('reviews.index');
+});
+
 Route::get('/promo', function () {
     return Inertia::render('promo');
 })->name('promo');
@@ -44,3 +54,4 @@ require __DIR__ . '/admin.php';
 require __DIR__ . '/vendor.php';
 require __DIR__ . '/buyer.php';
 require __DIR__ . '/sales.php';
+require __DIR__ . '/mitra.php';

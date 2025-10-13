@@ -27,7 +27,7 @@ class ReportController extends Controller
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->where('products.vendor_id', $vendorId)
-            ->where('orders.status', 'paid');
+            ->whereIn('orders.status', ['paid', 'validation']);
 
         // Filter by month jika ada
         if ($month) {

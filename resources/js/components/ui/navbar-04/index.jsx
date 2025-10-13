@@ -1,11 +1,8 @@
-'use client';;
-import { useEffect, useState, useRef, useId, forwardRef, useCallback } from 'react';
-import { User, LogOut, Settings, LayoutDashboard, SearchIcon, ShoppingCart, Search, BaggageClaim, X } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '../popover';
+'use client';
+
+import { forwardRef, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { usePage, Link, router } from '@inertiajs/react';
+
 import { Button } from '../button';
 import { Input } from '../input';
 import {
@@ -14,87 +11,27 @@ import {
   NavigationMenuLink,
   NavigationMenuList
 } from '../navigation-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '../popover';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../dropdown-menu';
+
+import { SearchIcon, ShoppingCart, User, X } from 'lucide-react';
+
 import { UserMenuContent } from '@/components/user-menu-content';
 import { cn } from '@/lib/utils';
-import { usePage, Link, router } from '@inertiajs/react';
-
-// Simple logo component for the navbar
-const Logo = (props) => {
-  return (
-    <svg
-      width='1em'
-      height='1em'
-      viewBox='0 0 324 323'
-      fill='currentColor'
-      xmlns='http://www.w3.org/2000/svg'
-      {...props}>
-      <rect
-        x='88.1023'
-        y='144.792'
-        width='151.802'
-        height='36.5788'
-        rx='18.2894'
-        transform='rotate(-38.5799 88.1023 144.792)'
-        fill='currentColor' />
-      <rect
-        x='85.3459'
-        y='244.537'
-        width='151.802'
-        height='36.5788'
-        rx='18.2894'
-        transform='rotate(-38.5799 85.3459 244.537)'
-        fill='currentColor' />
-    </svg>
-  );
-};
-
-// Hamburger icon component
-const HamburgerIcon = ({
-  className,
-  ...props
-}) => (
-  <svg
-    className={cn('pointer-events-none', className)}
-    width={16}
-    height={16}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    xmlns="http://www.w3.org/2000/svg"
-    {...props}>
-    <path
-      d="M4 12L20 12"
-      className="origin-center -translate-y-[7px] transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)] group-aria-expanded:translate-x-0 group-aria-expanded:translate-y-0 group-aria-expanded:rotate-[315deg]" />
-    <path
-      d="M4 12H20"
-      className="origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.8)] group-aria-expanded:rotate-45" />
-    <path
-      d="M4 12H20"
-      className="origin-center translate-y-[7px] transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)] group-aria-expanded:translate-y-0 group-aria-expanded:rotate-[135deg]" />
-  </svg>
-);
+import { Logo } from './logo';
+import { HamburgerIcon } from './hamburger-icon';
 
 // Default navigation links
-const defaultNavigationLinks = [
-];
+const defaultNavigationLinks = [];
 
 export const Navbar04 = forwardRef((
   {
     className,
     logo = <Logo />,
-    logoHref = '#',
     navigationLinks = defaultNavigationLinks,
     signInText = 'Sign In',
-    signInHref = '#signin',
-    cartText = 'Cart',
-    cartHref = '#cart',
     cartCount = "",
     menuItems,
-    categories = [],
     onSignInClick,
     onCartClick,
     onSearchSubmit,
@@ -147,26 +84,33 @@ export const Navbar04 = forwardRef((
     }
   }, [ref]);
 
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = useCallback((e) => {
     e.preventDefault();
     if (searchQuery.trim() && onSearchSubmit) {
       onSearchSubmit(searchQuery.trim());
-      setSearchQuery(''); // Clear search after submit
+      setSearchQuery('');
     }
-  };
+  }, [searchQuery, onSearchSubmit]);
+
+  const toggleSearch = useCallback(() => {
+    setShowSearch(prev => !prev);
+  }, []);
+
+  const handleSearchClick = useCallback(() => {
+    setShowSearch(true);
+    setTimeout(() => searchRef.current?.focus(), 0);
+  }, []);
 
   return (
     <header
       ref={combinedRef}
       className={cn(
-        'sticky top-0 z-50 w-full bg-background px-4 md:px-6 [&_*]:no-underline',
+        'sticky top-0 z-50 w-full bg-background px-4 md:px-6 [&_*]:no-underline border-b',
         className
       )}
       {...props}>
       <div
         className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
-        {/* Left side */}
-        {/* Search form */}
         {showSearch &&
           <>
             <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md">
@@ -184,7 +128,7 @@ export const Navbar04 = forwardRef((
                 <SearchIcon size={16} />
               </div>
             </form>
-            <Button variant={'outline'} onClick={() => setShowSearch(false)}>
+            <Button variant={'outline'} onClick={toggleSearch}>
               <X />
             </Button>
           </>
@@ -195,10 +139,9 @@ export const Navbar04 = forwardRef((
               <Link
                 href="/"
                 className="flex items-center space-x-2 text-primary cursor-pointer">
-                {/* <div className="text-2xl">
-                {logo}
-              </div> */}
-                <span className="font-bold text-xl sm:inline-block">Bahana</span>
+                <div className='h-8'>
+                  {logo}
+                </div>
               </Link>
               {/* Navigation menu */}
               {!isMobile && (
@@ -219,13 +162,9 @@ export const Navbar04 = forwardRef((
                 </NavigationMenu>
               )}
               <div className='flex gap-2'>
-                <Button variant={'ghost'} onClick={() => { setShowSearch(true); searchRef.current.focus() }} className={'cursor-pointer'}>
-                  <Search className='h-8 w-8' />
+                <Button variant={'ghost'} onClick={handleSearchClick} className={'cursor-pointer'}>
+                  <SearchIcon className='h-8 w-8' />
                 </Button>
-                {/* <Button className={'cursor-pointer'}>
-                  <ShoppingCart className='h-8 w-8' />
-                  Keranjang
-                </Button> */}
               </div>
 
             </div>
@@ -268,7 +207,7 @@ export const Navbar04 = forwardRef((
                   size="sm"
                   className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
                   asChild>
-                  <Link href={route('login')}>
+                  <Link href="/login">
                     {signInText}
                   </Link>
                 </Button>
@@ -283,7 +222,6 @@ export const Navbar04 = forwardRef((
                   if (onCartClick) onCartClick();
                 }}>
                 <span className="flex items-baseline gap-2">
-                  {/* {cartText} */}
                   <ShoppingCart />
                   {cartCount > 0 &&
                     <span className="text-primary-foreground/60 text-xs">
@@ -317,5 +255,3 @@ export const Navbar04 = forwardRef((
 });
 
 Navbar04.displayName = 'Navbar04';
-
-export { Logo, HamburgerIcon };

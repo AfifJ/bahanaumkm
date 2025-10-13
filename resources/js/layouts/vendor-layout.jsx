@@ -1,5 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { ArrowLeftRight, LayoutGrid, Newspaper, Package } from 'lucide-react';
+import { ArrowLeftRight, LayoutGrid, Newspaper, Package, Settings } from 'lucide-react';
 
 const mainNavItems = [
     {
@@ -22,6 +22,11 @@ const mainNavItems = [
         // href: route('vendor.report.index'),
         href: '/vendor/report',
         icon: Newspaper,
+    },
+    {
+        title: 'Pengaturan',
+        href: '/vendor/profile',
+        icon: Settings,
     },
 ];
 

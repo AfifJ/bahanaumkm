@@ -1,6 +1,17 @@
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
-import { Home, ShoppingBag, ShoppingCart, Tag, User } from 'lucide-react';
+import {
+    HomeIcon,
+    ShoppingBagIcon,
+    HeartIcon,
+    UserIcon
+} from '@heroicons/react/24/outline';
+import {
+    HomeIcon as HomeIconSolid,
+    ShoppingBagIcon as ShoppingBagIconSolid,
+    HeartIcon as HeartIconSolid,
+    UserIcon as UserIconSolid
+} from '@heroicons/react/24/solid';
 import { memo } from 'react';
 
 const MobileBottomNav = memo(function MobileBottomNav() {
@@ -10,25 +21,29 @@ const MobileBottomNav = memo(function MobileBottomNav() {
         {
             name: 'Beranda',
             href: route('home'),
-            icon: Home,
+            outlineIcon: HomeIcon,
+            solidIcon: HomeIconSolid,
             active: url === '/',
         },
         {
             name: 'Transaksi',
             href: route('buyer.orders.index'),
-            icon: ShoppingBag,
+            outlineIcon: ShoppingBagIcon,
+            solidIcon: ShoppingBagIconSolid,
             active: url === '/orders',
         },
         {
             name: 'Wishlist',
             href: route('buyer.wishlist'),
-            icon: Tag,
+            outlineIcon: HeartIcon,
+            solidIcon: HeartIconSolid,
             active: url === '/wishlist',
         },
         {
             name: 'Akun',
             href: route('buyer.profile.index'),
-            icon: User,
+            outlineIcon: UserIcon,
+            solidIcon: UserIconSolid,
             active: url.startsWith('/profile'),
         },
     ];
@@ -45,9 +60,15 @@ const MobileBottomNav = memo(function MobileBottomNav() {
                             item.active ? 'text-primary' : 'text-gray-600 hover:text-gray-900',
                         )}
                     >
-                        <div className={cn('flex flex-1 flex-col items-center justify-center p-1 rounded-lg', item.active && 'bg-green-600/20')}>
-                            <item.icon size={20} className='mb-1 transition-transform' />
-                            <span className="text-xs font-medium">{item.name}</span>
+                        <div className={cn('flex flex-1 flex-col items-center justify-center p-1 rounded-lg transition-all')}>
+                            {item.active ? (
+                                <item.solidIcon className="h-5 w-5 mb-1 transition-transform" />
+                            ) : (
+                                <item.outlineIcon className="h-5 w-5 mb-1 transition-transform" />
+                            )}
+                            <span className={cn('text-xs font-medium transition-colors', item.active ? 'text-primary' : 'text-gray-600')}>
+                                {item.name}
+                            </span>
                         </div>
                     </Link>
                 ))}

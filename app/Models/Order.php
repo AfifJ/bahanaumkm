@@ -16,11 +16,22 @@ class Order extends Model
         'total_amount',
         'partner_commission',
         'status',
+        'payment_method',
+        'notes',
+        'payment_proof',
+        'paid_at',
+        'processed_at',
+        'shipped_at',
+        'delivered_at',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
-        'partner_commission' => 'decimal:2'
+        'partner_commission' => 'decimal:2',
+        'paid_at' => 'datetime',
+        'processed_at' => 'datetime',
+        'shipped_at' => 'datetime',
+        'delivered_at' => 'datetime',
     ];
 
     public function buyer(): BelongsTo

@@ -1,5 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { ArrowLeftRight, LayoutGrid, Package, Tag, Truck, Users } from 'lucide-react';
+import { ArrowLeftRight, LayoutGrid, Package, Settings, Tag, Truck, Users, Image as ImageIcon } from 'lucide-react';
 
 const mainNavItems = [
     {
@@ -16,6 +16,11 @@ const mainNavItems = [
         title: 'Categories',
         href: '/admin/categories',
         icon: Tag,
+    },
+    {
+        title: 'Carousel',
+        href: '/admin/carousels',
+        icon: ImageIcon,
     },
     {
         title: 'Pengguna',
@@ -53,6 +58,11 @@ const mainNavItems = [
         title: 'Transaksi',
         href: '/admin/transaction',
         icon: ArrowLeftRight,
+    },
+    {
+        title: 'Pengaturan',
+        href: '/admin/settings',
+        icon: Settings,
     },
 ];
 

@@ -49,19 +49,29 @@ export default function Index({ products }) {
                             {products.data.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell>
-                                        {product.image_url ? (
-                                            <div className="h-10 w-10 overflow-hidden rounded-md border">
-                                                <img src={product.image_url} alt={product.name} className="h-full w-full object-contain" />
-                                            </div>
-                                        ) : (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200">
-                                                <span className="text-sm font-medium text-gray-600">
-                                                    {product.name.substring(0, 2).toUpperCase()}
-                                                </span>
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const imageUrl = product.primaryImage?.url || product.image_url;
+                                            return imageUrl ? (
+                                                <div className="h-10 w-10 overflow-hidden rounded-md border">
+                                                    <img src={imageUrl} alt={product.name} className="h-full w-full object-contain" loading="lazy" />
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200">
+                                                    <span className="text-sm font-medium text-gray-600">
+                                                        {product.name.substring(0, 2).toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </TableCell>
-                                    <TableCell className="font-medium">{product.name}</TableCell>
+                                    <TableCell className="font-medium">
+    <Link
+        href={route('vendor.products.show', product)}
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                        {product.name}
+                    </Link>
+                </TableCell>
                                     <TableCell>{product.category?.name || '-'}</TableCell>
                                     <TableCell className="text-right">
                                         {new Intl.NumberFormat('id-ID', {

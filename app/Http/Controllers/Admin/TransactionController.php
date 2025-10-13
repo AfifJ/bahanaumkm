@@ -146,7 +146,7 @@ class TransactionController extends Controller
     public function update(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,paid,processed,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,validation,paid,processed,shipped,delivered,cancelled',
         ]);
 
         $oldStatus = $order->status;
@@ -154,7 +154,8 @@ class TransactionController extends Controller
 
         // Define allowed status transitions
         $allowedTransitions = [
-            'pending' => ['paid', 'cancelled'],
+            'pending' => ['validation', 'cancelled'],
+            'validation' => ['paid', 'cancelled'],
             'paid' => ['processed', 'cancelled'],
             'processed' => ['shipped', 'cancelled'],
             'shipped' => ['delivered'],
@@ -179,9 +180,66 @@ class TransactionController extends Controller
         }
 
         // Update order status
-        $order->update(['status' => $newStatus]);
+        $updateData = ['status' => $newStatus];
+
+        // Set timestamps when status changes
+        if ($newStatus === 'paid' && $oldStatus !== 'paid') {
+            $updateData['paid_at'] = now();
+        }
+        if ($newStatus === 'processed' && $oldStatus !== 'processed') {
+            $updateData['processed_at'] = now();
+        }
+        if ($newStatus === 'shipped' && $oldStatus !== 'shipped') {
+            $updateData['shipped_at'] = now();
+        }
+        if ($newStatus === 'delivered' && $oldStatus !== 'delivered') {
+            $updateData['delivered_at'] = now();
+        }
+
+        $order->update($updateData);
 
         return back()->with('success', 'Status pesanan berhasil diubah dari ' . $oldStatus . ' ke ' . $newStatus);
+    }
+
+    /**
+     * Bulk update multiple transactions.
+     */
+    public function bulkUpdate(Request $request)
+    {
+        $request->validate([
+            'order_ids' => 'required|array',
+            'order_ids.*' => 'exists:orders,id',
+            'action' => 'required|in:approve,reject',
+        ]);
+
+        $orderIds = $request->order_ids;
+        $action = $request->action;
+        $updatedCount = 0;
+
+        DB::transaction(function () use ($orderIds, $action, &$updatedCount) {
+            $orders = Order::whereIn('id', $orderIds)->get();
+
+            foreach ($orders as $order) {
+                if ($action === 'approve' && $order->status === 'validation') {
+                    $order->update([
+                        'status' => 'paid',
+                        'paid_at' => now(),
+                    ]);
+                    $updatedCount++;
+                } elseif ($action === 'reject' && in_array($order->status, ['pending', 'validation'])) {
+                    $order->update([
+                        'status' => 'rejected',
+                    ]);
+                    $updatedCount++;
+                }
+            }
+        });
+
+        $message = $action === 'approve'
+            ? "Berhasil memvalidasi {$updatedCount} transaksi"
+            : "Berhasil menolak {$updatedCount} transaksi";
+
+        return back()->with('success', $message);
     }
 
     /**

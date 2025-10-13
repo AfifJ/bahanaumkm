@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,13 +9,13 @@ import { Truck } from 'lucide-react';
 export default function ShippingSettingsIndex() {
     const { shippingSetting } = usePage().props;
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, processing, errors } = useForm({
         price_per_km: shippingSetting?.price_per_km || 0,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('admin.shipping-settings.update'));
+        router.put(route('admin.shipping-settings.update'));
     };
 
     const formatPrice = (price) => {

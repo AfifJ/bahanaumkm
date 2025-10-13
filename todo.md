@@ -4,9 +4,19 @@ Priority High
 - [ ] validasi pembayaran manual
 - [x] wishlist
 - [x] sistem ongkir
+- [x] ketika sedang diproses, tampilan status tidak benar
+- [ ] profil vendor
+  - [ ] tampilkan di halaman detail produk
+  - [ ] di vendor produk list
+- [ ] carousel home (dah)
+  - [ ] admin edit carousel (dah)
+- [ ] responsible 
+  - [ ] vendor
+  - [ ] buyer
 
 Priority Low
 - [ ] variasi
+- [x] rating
 
 - [ ] sistem cart
 - [ ] manajemen diskon

@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Buyer\CartController;
 use App\Http\Controllers\Buyer\PesananController;
+use App\Http\Controllers\Buyer\PaymentController;
 use App\Http\Controllers\Buyer\ProfileController;
 use App\Http\Controllers\Buyer\WishlistController;
 use App\Http\Controllers\HomeController;
@@ -23,12 +25,30 @@ Route::name('buyer.')->middleware(['auth', 'role:Buyer'])->group(function () {
         Route::put('/{order}', [OrderController::class, 'update'])->name('update');
     });
 
+    // Payment routes
+    Route::prefix('payment')->name('payment.')->group(function () {
+        Route::get('/{order}', [PaymentController::class, 'show'])->name('show');
+        Route::post('/{order}', [PaymentController::class, 'uploadProof'])->name('upload');
+    });
+
     Route::middleware(['auth'])->group(function () {
 
-        // Cart routes
+        // Cart page routes
         Route::prefix('cart')->name('cart.')->group(function () {
+            Route::get('/', [CartController::class, 'index'])->name('index');
+            Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+            Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout.submit');
+            Route::patch('/{cart}', [CartController::class, 'update'])->name('update');
+            Route::delete('/{cart}', [CartController::class, 'destroy'])->name('destroy');
+            Route::delete('/', [CartController::class, 'clear'])->name('clear');
+        });
+
+        // Cart API routes
+        Route::prefix('api/cart')->name('cart.api.')->group(function () {
             Route::get('/', [OrderController::class, 'getCart'])->name('index');
             Route::post('/add', [OrderController::class, 'addToCart'])->name('add');
+            Route::patch('/{cart}', [OrderController::class, 'updateCartItem'])->name('update');
+            Route::delete('/{cart}', [OrderController::class, 'removeFromCart'])->name('remove');
         });
 
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');

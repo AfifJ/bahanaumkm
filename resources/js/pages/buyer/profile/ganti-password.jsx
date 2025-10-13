@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
-import { Head, useForm } from "@inertiajs/react"
+import { Head, useForm, router } from "@inertiajs/react"
 
 const GantiPassword = () => {
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, processing, errors, reset } = useForm({
         current_password: '',
         password: '',
         password_confirmation: '',
@@ -12,7 +12,7 @@ const GantiPassword = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('buyer.profile.password.update'), {
+        router.put(route('buyer.profile.password.update'), {
             onSuccess: () => reset(),
         });
     };

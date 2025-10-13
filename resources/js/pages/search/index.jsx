@@ -160,9 +160,7 @@ export default function SearchIndex({ products, categories, filters, layout }) {
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-                                <ProductList productList={latestProducts} />
-                            </div>
+                            <ProductList productList={products.data} />
 
                             {products.links && products.links.length > 3 && (
                                 <div className="mt-8 flex justify-center">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Carousel;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\MitraProfile;
@@ -14,8 +15,12 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // Get active carousels
+        $carousels = Carousel::forHome()->get();
+
         // Get featured products
-        $featuredProducts = Product::with(['category', 'vendor'])
+        $featuredProducts = Product::with(['category', 'vendor', 'primaryImage'])
+            ->withCount('images')
             ->where('is_featured', true)
             ->where('status', 'active')
             ->where('stock', '>', 0)
@@ -24,7 +29,8 @@ class HomeController extends Controller
             ->get();
 
         // Get latest products
-        $latestProducts = Product::with(['category', 'vendor'])
+        $latestProducts = Product::with(['category', 'vendor', 'primaryImage'])
+            ->withCount('images')
             ->where('status', 'active')
             ->where('stock', '>', 0)
             ->orderBy('created_at', 'desc')
@@ -41,6 +47,7 @@ class HomeController extends Controller
         $mitra = MitraProfile::get();
 
         return Inertia::render('home', [
+            'carousels' => $carousels,
             'featuredProducts' => $featuredProducts,
             'latestProducts' => $latestProducts,
             'popularCategories' => $popularCategories,

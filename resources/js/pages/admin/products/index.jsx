@@ -14,9 +14,34 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link } from '@inertiajs/react';
-import { CornerUpRight, Edit, MoveUpRight, PlusIcon, Trash } from 'lucide-react';
+import { CornerUpRight, Edit, MoveUpRight, PlusIcon, Star, Trash, MessageSquare } from 'lucide-react';
 
 export default function Index({ products, can }) {
+    const renderRating = (avgRating, reviewsCount) => {
+        if (!avgRating || reviewsCount === 0) {
+            return (
+                <div className="flex items-center text-xs text-gray-500">
+                    <Star className="h-3 w-3 mr-1" />
+                    No reviews
+                </div>
+            );
+        }
+
+        return (
+            <div className="flex items-center">
+                <div className="flex items-center">
+                    <Star className="h-3 w-3 mr-1 text-yellow-400 fill-yellow-400" />
+                    <span className="text-xs font-medium">
+                        {parseFloat(avgRating).toFixed(1)}
+                    </span>
+                    <span className="text-xs text-gray-500 ml-1">
+                        ({reviewsCount})
+                    </span>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <AdminLayout
             title="Products"
@@ -49,6 +74,7 @@ export default function Index({ products, can }) {
                                 <TableHead>Vendor</TableHead>
                                 <TableHead className="text-right">Buy Price</TableHead>
                                 <TableHead className="text-right">Sell Price</TableHead>
+                                <TableHead className="text-center">Rating</TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
@@ -58,17 +84,20 @@ export default function Index({ products, can }) {
                             {products.data.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell>
-                                        {product.image_url ? (
-                                            <div className="h-10 w-10 overflow-hidden rounded-md border">
-                                                <img src={product.image_url} alt={product.name} className="h-full w-full object-contain" />
-                                            </div>
-                                        ) : (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200">
-                                                <span className="text-sm font-medium text-gray-600">
-                                                    {product.name.substring(0, 2).toUpperCase()}
-                                                </span>
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const imageUrl = product.primaryImage?.url || product.image_url;
+                                            return imageUrl ? (
+                                                <div className="h-10 w-10 overflow-hidden rounded-md border">
+                                                    <img src={imageUrl} alt={product.name} className="h-full w-full object-contain" loading="lazy" />
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200">
+                                                    <span className="text-sm font-medium text-gray-600">
+                                                        {product.name.substring(0, 2).toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </TableCell>
                                     <TableCell className="font-medium text-blue-600 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis" title={product.name}>
                                         {can.edit && (
@@ -94,11 +123,21 @@ export default function Index({ products, can }) {
                                             maximumFractionDigits: 0,
                                         }).format(product.sell_price)}
                                     </TableCell>
+                                    <TableCell className="text-center">
+                                        {renderRating(product.reviews_avg_rating, product.reviews_count)}
+                                    </TableCell>
                                     <TableCell className="text-right">{product.stock}</TableCell>
                                     <TableCell>
                                         <Badge variant="outline">{product.status}</Badge>
                                     </TableCell>
                                     <TableCell className="space-x-2 text-right">
+                                        {product.reviews_count > 0 && (
+                                            <Button asChild variant="outline" size="sm" title="Manage Reviews">
+                                                <Link href={route('admin.products.reviews', product)}>
+                                                    <MessageSquare className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        )}
                                         {can.edit && (
                                             <Button asChild variant="outline" size="sm">
                                                 <Link href={route('admin.products.edit', product)}>

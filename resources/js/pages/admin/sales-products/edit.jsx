@@ -3,17 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
 
 export default function SalesProductEdit({ assignment }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, processing, errors } = useForm({
         borrowed_quantity: assignment.borrowed_quantity.toString(),
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('admin.sales-products.update', assignment.id));
+        router.put(route('admin.sales-products.update', assignment.id));
     };
 
     return (

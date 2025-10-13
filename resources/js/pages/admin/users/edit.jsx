@@ -5,11 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
 export default function UserEdit({ user, role, mitraProfile }) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         status: user.status,
@@ -32,7 +32,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.users.update', { role: role.name, user: user.id }));
+        router.put(route('admin.users.update', { role: role.name, user: user.id }));
     };
 
     return (

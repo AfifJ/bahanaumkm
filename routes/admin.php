@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CarouselController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SalesProductController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ShippingSettingController;
@@ -12,27 +15,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         return 'admin index';
     })->name('index');
 
-    Route::get('dashboard', function () {
-        // return Inertia::render('dashboard');
-        $user = auth()->user()->load('role');
-        return Inertia::render('admin/dashboard', [
-            'auth' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role ? $user->role->name : null,
-                ]
-            ]
-        ]);
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Carousel Management Routes
+    Route::resource('carousels', CarouselController::class)
+        ->middleware(['auth', 'verified']);
+    Route::post('carousels/{carousel}/toggle-status', [CarouselController::class, 'toggleStatus'])->name('carousels.toggle-status');
+    Route::post('carousels/update-order', [CarouselController::class, 'updateOrder'])->name('carousels.update-order');
 
     Route::resource('products', ProductController::class)
         ->middleware(['auth', 'verified']);
 
+    // Product Image Management Routes
+    Route::prefix('products/{product}')->name('products.')->group(function () {
+        Route::put('/images/{image}/primary', [ProductController::class, 'setPrimaryImage'])->name('images.setPrimary');
+        Route::delete('/images/{image}', [ProductController::class, 'deleteImage'])->name('images.delete');
+        Route::get('/reviews', [ProductController::class, 'reviews'])->name('reviews');
+    });
+
     Route::resource('categories', CategoryController::class)
         ->middleware(['auth', 'verified']);
-
 
     Route::get('/users', function () {
         return redirect()->route('admin.users.index', ['role' => 'Admin']);
@@ -57,6 +59,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::get('/', [TransactionController::class, 'index'])->name('index');
         Route::get('/{order}', [TransactionController::class, 'show'])->name('show');
         Route::put('/{order}', [TransactionController::class, 'update'])->name('update');
+        Route::post('/bulk-update', [TransactionController::class, 'bulkUpdate'])->name('bulk.update');
     });
 
     // Sales Product Management Routes
@@ -69,6 +72,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::put('/{borrowedProduct}', [SalesProductController::class, 'update'])->name('update');
         Route::put('/{borrowedProduct}/return', [SalesProductController::class, 'return'])->name('return');
         Route::delete('/{borrowedProduct}', [SalesProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Settings Routes
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('index');
+        Route::put('/', [SettingController::class, 'update'])->name('update');
+        Route::post('/', [SettingController::class, 'update'])->name('update.post'); // Support for file uploads with _method: 'PUT'
     });
 
     // Shipping Settings Routes

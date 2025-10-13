@@ -12,6 +12,7 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
         product_id: product?.id || '',
         quantity: quantity || 1,
         mitra_id: '',
+        notes: '',
     });
 
     const [currentQuantity, setCurrentQuantity] = useState(Number(quantity) || 1);
@@ -103,6 +104,7 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                 },
             ],
             mitra_id: data.mitra_id,
+            notes: data.notes,
         };
 
         // Validate payload before sending
@@ -175,7 +177,7 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
 
                     {/* Success Message */}
                     {flash?.success && (
-                        <div className="mb-6 rounded-lg bg-green-50 p-4 text-green-700 border border-green-200">
+                        <div className="mb-6 rounded-lg bg-primary/10 p-4 text-primary border border-primary/20">
                             {flash.success}
                         </div>
                     )}
@@ -224,35 +226,38 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                         </div>
                     </div>
 
+                    {/* Notes Section */}
                     <div className="">
-                        <h3 className="font-semibold text-xl text-gray-900 mb-3">
-                            <Wallet className="h-5 w-5 mr-2 inline-block" />
-                            Metode Pembayaran</h3>
-                        <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="radio"
-                                    id="transfer"
-                                    name="payment_method"
-                                    value="transfer"
-                                    defaultChecked
-                                    className="text-blue-600 focus:ring-blue-500"
-                                />
-                                <label htmlFor="transfer" className="text-sm text-gray-700">
-                                    Transfer Bank
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <Clipboard className="h-5 w-5 mr-2" />
+                            Catatan untuk Penjual (Opsional)
+                        </h2>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Tulis catatan atau permintaan khusus untuk penjual
                                 </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="radio"
-                                    id="cod"
-                                    name="payment_method"
-                                    value="cod"
-                                    className="text-blue-600 focus:ring-blue-500"
+                                <textarea
+                                    value={data.notes}
+                                    onChange={(e) => setData('notes', e.target.value)}
+                                    placeholder="Contoh: Mohon dikemas dengan hati-hati, atau pesan khusus lainnya..."
+                                    rows={4}
+                                    maxLength={500}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                 />
-                                <label htmlFor="cod" className="text-sm text-gray-700">
-                                    Bayar di Tempat (COD)
-                                </label>
+                                <div className="flex justify-between items-center mt-1">
+                                    <p className="text-xs text-gray-500">
+                                        Berikan informasi yang penting untuk penjual
+                                    </p>
+                                    <p className={`text-xs ${
+                                        500 - data.notes.length < 50 ? 'text-orange-500' : 'text-gray-500'
+                                    }`}>
+                                        {500 - data.notes.length} karakter tersisa
+                                    </p>
+                                </div>
+                                {errors.notes && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -315,9 +320,9 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                             <Button
                                 type="submit"
                                 disabled={processing || !product}
-                                className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                                className="w-full mt-6 bg-primary text-white py-3 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                             >
-                                {processing ? 'Memproses...' : 'Buat Pesanan'}
+                                {processing ? 'Memproses...' : 'Bayar dengan QRIS'}
                             </Button>
 
                             {/* Continue Shopping */}
@@ -329,12 +334,11 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                             </Link>
                         </div>
 
-                        {/* Security Notice */}
-                        <div className="bg-green-50 rounded-lg border border-green-200 p-4">
-                            <h3 className="font-medium text-green-800 mb-2">Pembayaran Aman</h3>
-                            <p className="text-sm text-green-700">
-                                Transaksi Anda dilindungi dengan sistem keamanan terbaik.
-                                Data pribadi dan pembayaran Anda aman bersama kami.
+                        {/* Payment Notice */}
+                        <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+                            <h3 className="font-medium text-blue-800 mb-2">Metode Pembayaran</h3>
+                            <p className="text-sm text-blue-700">
+                                Pembayaran menggunakan QRIS. Setelah membuat pesanan, Anda akan diarahkan ke halaman pembayaran untuk scan QR code.
                             </p>
                         </div>
                     </div>

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\MitraProfile;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\ShippingSetting;
 use Exception;
 use Illuminate\Http\Request;
@@ -62,6 +64,7 @@ class OrderController extends Controller
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'mitra_id' => 'required',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         try {
@@ -114,6 +117,8 @@ class OrderController extends Controller
                 'total_amount' => $totalAmount + $shippingCost,
                 'partner_commission' => $mitraCommission,
                 'status' => 'pending',
+                'payment_method' => 'qris',
+                'notes' => $request->notes,
             ]);
 
             // Create order items
@@ -133,7 +138,7 @@ class OrderController extends Controller
                 ]);
             }
 
-            return redirect()->route('buyer.orders.show', $order->id)
+            return redirect()->route('buyer.payment.show', $order->id)
                 ->with('success', 'Pesanan berhasil dibuat. Silakan lakukan pembayaran.');
 
         } catch (Exception $e) {
@@ -152,10 +157,46 @@ class OrderController extends Controller
             abort(403);
         }
 
+        // Load basic relationships
         $order->load(['items.product', 'mitra']);
+
+        // For delivered orders, check review eligibility and load existing reviews
+        if ($order->status === 'delivered') {
+            try {
+                $orderItemsWithReviewData = [];
+
+                foreach ($order->items as $item) {
+                    // Check if user has already reviewed this product from this order
+                    $existingReview = Review::where('user_id', Auth::id())
+                        ->where('product_id', $item->product_id)
+                        ->where('order_id', $order->id)
+                        ->with(['user:id,name'])
+                        ->first();
+
+                    $orderItemsWithReviewData[] = [
+                        'id' => $item->id,
+                        'product' => $item->product,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'total_price' => $item->total_price,
+                        'can_review' => !$existingReview, // Can review if no existing review
+                        'existing_review' => $existingReview,
+                    ];
+                }
+
+                $order->setRelation('items', collect($orderItemsWithReviewData));
+            } catch (\Exception $e) {
+                // Log error but don't break the page
+                \Log::error('Error loading review data for order ' . $order->id . ': ' . $e->getMessage());
+
+                // Fallback: load items without review data
+                $order->load(['items.product']);
+            }
+        }
 
         return Inertia::render('orders/show', [
             'order' => $order,
+            'canReviewProducts' => $order->status === 'delivered',
         ]);
     }
 
@@ -170,12 +211,12 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'sometimes|in:cancelled,paid',
+            'status' => 'sometimes|in:cancelled,paid,validation',
         ]);
 
         // Handle payment update
         if ($request->status === 'paid' && $order->status === 'pending') {
-            $updated = $order->update(['status' => 'paid']);
+            $order->update(['status' => 'paid']);
             return back()->with('success', 'Pembayaran berhasil diproses');
         }
 
@@ -205,13 +246,27 @@ class OrderController extends Controller
     }
 
     /**
-     * Get cart items for current user (if any)
+     * Get cart items for current user
      */
     public function getCart()
     {
-        // This would typically come from session or database cart
-        // For now, return empty array
-        return response()->json([]);
+        $cartItems = Cart::forUser(Auth::id())
+            ->withProduct()
+            ->get()
+            ->filter(function ($item) {
+                return $item->isValid();
+            });
+
+        // Calculate totals
+        $subtotal = $cartItems->sum(function ($item) {
+            return $item->subtotal;
+        });
+
+        return response()->json([
+            'items' => $cartItems,
+            'subtotal' => $subtotal,
+            'item_count' => $cartItems->sum('quantity'),
+        ]);
     }
 
     /**
@@ -226,19 +281,114 @@ class OrderController extends Controller
 
         $product = Product::findOrFail($request->product_id);
 
-        // Check stock availability
+        // Check product status and stock availability
+        if ($product->status !== 'active') {
+            return response()->json([
+                'error' => 'Produk tidak tersedia'
+            ], 422);
+        }
+
         if ($product->stock < $request->quantity) {
             return response()->json([
                 'error' => "Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}"
             ], 422);
         }
 
-        // In a real implementation, this would add to session cart or database cart
-        // For now, return success
+        // Check if product already exists in cart
+        $existingCartItem = Cart::forUser(Auth::id())
+            ->where('product_id', $request->product_id)
+            ->first();
+
+        if ($existingCartItem) {
+            // Update quantity if product already in cart
+            $newQuantity = $existingCartItem->quantity + $request->quantity;
+
+            if ($product->stock < $newQuantity) {
+                return response()->json([
+                    'error' => "Stok produk tidak mencukupi. Stok tersedia: {$product->stock}"
+                ], 422);
+            }
+
+            $existingCartItem->update(['quantity' => $newQuantity]);
+        } else {
+            // Add new item to cart
+            Cart::create([
+                'user_id' => Auth::id(),
+                'product_id' => $request->product_id,
+                'quantity' => $request->quantity,
+            ]);
+        }
+
+        // Get updated cart
+        $updatedCart = $this->getCart();
+
         return response()->json([
             'message' => 'Produk berhasil ditambahkan ke keranjang',
-            'product' => $product->only(['id', 'name', 'sell_price', 'image_url']),
-            'quantity' => $request->quantity
+            'cart' => json_decode($updatedCart->getContent()),
+        ]);
+    }
+
+    /**
+     * Update cart item quantity
+     */
+    public function updateCartItem(Request $request, Cart $cart)
+    {
+        // Ensure cart item belongs to authenticated user
+        if ($cart->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $success = $cart->updateQuantity($request->quantity);
+
+        if (!$success) {
+            return response()->json([
+                'error' => 'Stok tidak mencukupi atau produk tidak tersedia'
+            ], 422);
+        }
+
+        // Get updated cart
+        $updatedCart = $this->getCart();
+
+        return response()->json([
+            'message' => 'Jumlah berhasil diperbarui',
+            'cart' => json_decode($updatedCart->getContent()),
+        ]);
+    }
+
+    /**
+     * Remove item from cart
+     */
+    public function removeFromCart(Cart $cart)
+    {
+        // Ensure cart item belongs to authenticated user
+        if ($cart->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $cart->delete();
+
+        // Get updated cart
+        $updatedCart = $this->getCart();
+
+        return response()->json([
+            'message' => 'Produk berhasil dihapus dari keranjang',
+            'cart' => json_decode($updatedCart->getContent()),
+        ]);
+    }
+
+    /**
+     * Clear all cart items for current user
+     */
+    public function clearCart()
+    {
+        Cart::forUser(Auth::id())->delete();
+
+        return response()->json([
+            'message' => 'Keranjang berhasil dikosongkan'
         ]);
     }
 }

@@ -9,21 +9,16 @@ export default function Create({ vendors, categories }) {
         sell_price: 0,
         stock: 0,
         description: '',
-        image: null,
+        images: [],
         status: 'active',
         vendor_id: null,
+        category_id: null,
     });
-
-    const handleImageChange = (e) => {
-        const file = e.target.files?.[0];
-        setData('image', file ?? null);
-    };
 
     const submit = (e) => {
         e.preventDefault();
         post(route('admin.products.store'), {
             forceFormData: true,
-            onError: () => {},
         });
     };
 

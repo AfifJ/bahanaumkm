@@ -2,7 +2,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import MobileBottomNav from './mobile-bottom-nav';
 import SalesMobileBottomNav from './sales-mobile-bottom-nav';
 
-export default function PersistentNavigationWrapper({ 
+export default function PersistentNavigationWrapper({  
     withBottomNav = true, 
     navType = 'buyer', 
     children 
