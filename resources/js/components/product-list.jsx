@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react"
+import { Package } from "lucide-react"
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('id-ID', {
@@ -38,10 +39,26 @@ const ProductList = ({ productList }) => {
                                         alt={product.name}
                                         className="aspect-square w-full object-cover"
                                         loading="lazy"
+                                        onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.parentElement.innerHTML = `
+                                                <div class="flex aspect-square w-full items-center justify-center bg-gray-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-gray-400">
+                                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                                        <polyline points="3.27 6.96 12 13.44 20.73 6.96"></polyline>
+                                                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                                                    </svg>
+                                                </div>
+                                            `;
+                                        }}
                                     />
                                 ) : (
                                     <div className="flex aspect-square w-full items-center justify-center bg-gray-100">
-                                        <span className="text-gray-400">📦</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-gray-400">
+                                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                            <polyline points="3.27 6.96 12 13.44 20.73 6.96"></polyline>
+                                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                                        </svg>
                                     </div>
                                 )}
                             </div>

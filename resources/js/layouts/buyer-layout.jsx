@@ -103,6 +103,26 @@ export default ({ children, mainNavItems }) => {
                     icon: LayoutDashboard,
                 },
                 {
+                    label: 'Produk',
+                    href: route('sales.products.index'),
+                    icon: Package,
+                },
+                {
+                    label: 'Transaksi',
+                    href: route('sales.transactions'),
+                    icon: ArrowLeftRight,
+                },
+                {
+                    label: 'Laporan',
+                    href: route('sales.reports'),
+                    icon: Newspaper,
+                },
+                {
+                    label: 'Profil',
+                    href: route('sales.profile.index'),
+                    icon: User,
+                },
+                {
                     label: 'Pusat Bantuan',
                     href: '/bantuan',
                     icon: HelpCircle,

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ReviewCard, ReviewCardSkeleton } from '@/components/review-card';
 import { ChevronDown, ChevronUp, Star, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
+import { ReviewForm } from './review-form';
 
 export function ReviewList({
     reviews,

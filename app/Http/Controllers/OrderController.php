@@ -265,7 +265,7 @@ class OrderController extends Controller
         return response()->json([
             'items' => $cartItems,
             'subtotal' => $subtotal,
-            'item_count' => $cartItems->sum('quantity'),
+            'item_count' => $cartItems->count(), // Jumlah unique products, bukan total quantity
         ]);
     }
 
@@ -274,24 +274,55 @@ class OrderController extends Controller
      */
     public function addToCart(Request $request)
     {
+        // Debug logging
+        \Log::info('🛒 Add to cart request:', [
+            'product_id' => $request->product_id,
+            'quantity' => $request->quantity,
+            'user_id' => Auth::id(),
+            'user_authenticated' => Auth::check(),
+            'buyer_role' => Auth::user() ? Auth::user()->role_id === 5 : 'no'
+        ]);
+
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
+        \Log::info('✅ Request validation passed');
+
         $product = Product::findOrFail($request->product_id);
+        \Log::info('📦 Product found:', [
+            'id' => $product->id,
+            'name' => $product->name,
+            'status' => $product->status,
+            'stock' => $product->stock,
+            'sell_price' => $product->sell_price
+        ]);
 
         // Check product status and stock availability
         if ($product->status !== 'active') {
-            return response()->json([
-                'error' => 'Produk tidak tersedia'
-            ], 422);
+            \Log::warning('❌ Product not active:', $product->status);
+            $errorMessage = 'Produk tidak tersedia';
+
+            if (request()->expectsJson()) {
+                return response()->json(['error' => $errorMessage], 422);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         if ($product->stock < $request->quantity) {
-            return response()->json([
-                'error' => "Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}"
-            ], 422);
+            \Log::warning('❌ Insufficient stock:', [
+                'requested' => $request->quantity,
+                'available' => $product->stock
+            ]);
+            $errorMessage = "Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}";
+
+            if (request()->expectsJson()) {
+                return response()->json(['error' => $errorMessage], 422);
+            } else {
+                return redirect()->back()->with('error', $errorMessage);
+            }
         }
 
         // Check if product already exists in cart
@@ -304,9 +335,13 @@ class OrderController extends Controller
             $newQuantity = $existingCartItem->quantity + $request->quantity;
 
             if ($product->stock < $newQuantity) {
-                return response()->json([
-                    'error' => "Stok produk tidak mencukupi. Stok tersedia: {$product->stock}"
-                ], 422);
+                $errorMessage = "Stok produk tidak mencukupi. Stok tersedia: {$product->stock}";
+
+                if (request()->expectsJson()) {
+                    return response()->json(['error' => $errorMessage], 422);
+                } else {
+                    return redirect()->back()->with('error', $errorMessage);
+                }
             }
 
             $existingCartItem->update(['quantity' => $newQuantity]);
@@ -321,11 +356,21 @@ class OrderController extends Controller
 
         // Get updated cart
         $updatedCart = $this->getCart();
+        $cartData = json_decode($updatedCart->getContent());
 
-        return response()->json([
-            'message' => 'Produk berhasil ditambahkan ke keranjang',
-            'cart' => json_decode($updatedCart->getContent()),
-        ]);
+        // Handle different response types
+        if (request()->expectsJson()) {
+            // For API/JSON requests (fallback)
+            return response()->json([
+                'message' => 'Produk berhasil ditambahkan ke keranjang',
+                'cart' => $cartData,
+            ]);
+        } else {
+            // For Inertia.js requests
+            return redirect()->back()
+                ->with('success', 'Produk berhasil ditambahkan ke keranjang')
+                ->with('cartCount', $cartData->item_count);
+        }
     }
 
     /**

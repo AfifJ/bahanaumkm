@@ -1,6 +1,11 @@
 import { cn } from '@/lib/utils';
 import { Link, usePage } from '@inertiajs/react';
-import { BarChart3, Home, Package, ShoppingBag, User } from 'lucide-react';
+import {
+    LayoutDashboard,
+    Package,
+    ArrowLeftRight,
+    User
+} from 'lucide-react';
 import { memo } from 'react';
 
 const SalesMobileBottomNav = memo(function SalesMobileBottomNav() {
@@ -8,47 +13,55 @@ const SalesMobileBottomNav = memo(function SalesMobileBottomNav() {
 
     const navItems = [
         {
-            name: 'Home',
+            name: 'Dashboard',
             href: route('sales.dashboard'),
-            icon: Home,
-            active: url === '/sales/dashboard',
+            outlineIcon: LayoutDashboard,
+            solidIcon: LayoutDashboard,
+            active: url === '/sales/dashboard' || url.startsWith('/sales/dashboard'),
         },
         {
             name: 'Produk',
             href: route('sales.products.index'),
-            icon: Package,
-            active: url === '/sales/products',
+            outlineIcon: Package,
+            solidIcon: Package,
+            active: url === '/sales/products' || url.startsWith('/sales/products'),
         },
         {
             name: 'Transaksi',
             href: route('sales.transactions'),
-            icon: ShoppingBag,
-            active: url === '/sales/transactions',
+            outlineIcon: ArrowLeftRight,
+            solidIcon: ArrowLeftRight,
+            active: url === '/sales/transactions' || url.startsWith('/sales/transactions'),
         },
         {
             name: 'Akun',
             href: route('sales.profile.index'),
-            icon: User,
+            outlineIcon: User,
+            solidIcon: User,
             active: url.startsWith('/sales/profile'),
         },
     ];
 
     return (
-        <nav className="fixed right-0 bottom-0 left-0 z-50 border-t bg-white">
+        <nav className="fixed right-0 bottom-0 left-0 z-50 border-t border-gray-200 bg-white">
             <div className="flex h-16 items-center justify-around">
                 {navItems.map((item) => (
                     <Link
                         key={item.name}
                         href={item.href}
                         className={cn(
-                            'transition-colors',
-                            item.active ? 'text-primary' : 'text-gray-600 hover:text-gray-900',
+                            'flex flex-1 flex-col items-center justify-center py-2 px-3 text-xs font-medium transition-colors',
+                            item.active
+                                ? 'text-primary'
+                                : 'text-gray-600 hover:text-gray-900'
                         )}
                     >
-                        <div className={cn('flex flex-1 flex-col items-center justify-center rounded-lg')}>
-                            <item.icon size={20} className='mb-1 transition-transform' />
-                            <span className="text-xs font-medium">{item.name}</span>
-                        </div>
+                        {item.active ? (
+                            <item.solidIcon className="mb-1 h-6 w-6" aria-hidden="true" />
+                        ) : (
+                            <item.outlineIcon className="mb-1 h-6 w-6" aria-hidden="true" />
+                        )}
+                        <span>{item.name}</span>
                     </Link>
                 ))}
             </div>

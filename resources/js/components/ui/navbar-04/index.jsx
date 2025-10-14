@@ -133,168 +133,292 @@ export const Navbar04 = forwardRef((
       {...props}>
       <div
         className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
-        {/* Left side - Logo and Navigation */}
-        <div className="flex items-center gap-6">
-          <Link
-            href="/"
-            className="flex items-center space-x-2 text-primary cursor-pointer">
-            <div className='h-8'>
-              {logo}
-            </div>
-          </Link>
-          {/* Navigation menu */}
-          {!isMobile && (
-            <NavigationMenu className="flex">
-              <NavigationMenuList className="gap-1">
-                {navigationLinks.map((link, index) => (
-                  <NavigationMenuItem key={index}>
-                    <Link
-                      href={link.href}
-                      className="text-sm font-medium transition-colors hover:text-primary px-3 py-2 rounded-md hover:bg-accent"
-                    >
-                      {link.label}
-                    </Link>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
-          )}
-        </div>
+        {isMobile ? (
+          // Mobile Layout
+          <>
+            {!isSearchExpanded && onSearchSubmit ? (
+              // State OFF: Logo + Search + Cart (only if search is enabled)
+              <>
+                {/* Mobile Left Side - Logo */}
+                <div className="flex items-center">
+                  <Link
+                    href="/"
+                    className="flex items-center space-x-2 text-primary cursor-pointer">
+                    <div className='h-8'>
+                      {logo}
+                    </div>
+                  </Link>
+                </div>
 
-        {/* Center - Search Bar */}
-        <div className="flex-1 max-w-lg mx-6">
-          <div className={cn(
-            "search-input-container relative transition-all duration-300 ease-in-out w-full"
-          )}>
-            <div className="relative">
-              <SearchIcon
-                className={cn(
-                  "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 transition-colors",
-                  isSearchExpanded ? "h-5 w-5" : "h-4 w-4"
-                )}
-              />
-              <Input
-                id={searchId}
-                name="search"
-                ref={searchRef}
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onKeyDown={handleSearchKeyDown}
-                onFocus={handleSearchExpand}
-                onClick={handleSearchExpand}
-                className={cn(
-                  "w-full pl-10 pr-10 transition-all duration-300 ease-in-out",
-                  "border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20",
-                  isSearchExpanded
-                    ? "h-10 text-base bg-white shadow-sm"
-                    : "h-9 text-sm bg-gray-50 hover:bg-gray-100 cursor-pointer"
-                )}
-                placeholder={isSearchExpanded ? "Cari produk, kategori, atau merek..." : "Cari..."}
-                type="search"
-              />
-              {(searchQuery || isSearchExpanded) && (
+                {/* Mobile Right Side - Search + Cart */}
+                <div className="flex items-center gap-3 flex-1 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSearchExpand}
+                    className="p-2 h-10 w-10"
+                  >
+                    <SearchIcon className="h-5 w-5" />
+                  </Button>
+                  {auth?.user?.role_id === 5 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (onCartClick) onCartClick();
+                      }}
+                      className="relative p-2 h-10 w-10"
+                    >
+                      <ShoppingCart className="h-5 w-5" />
+                      {cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {cartCount}
+                        </span>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : !onSearchSubmit ? (
+              // Mobile Layout without search functionality (for sales)
+              <>
+                {/* Mobile Left Side - Logo */}
+                <div className="flex items-center">
+                  <Link
+                    href="/"
+                    className="flex items-center space-x-2 text-primary cursor-pointer">
+                    <div className='h-8'>
+                      {logo}
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Mobile Right Side - Cart only */}
+                <div className="flex items-center gap-3 flex-1 justify-end">
+                  {auth?.user?.role_id === 5 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (onCartClick) onCartClick();
+                      }}
+                      className="relative p-2 h-10 w-10"
+                    >
+                      <ShoppingCart className="h-5 w-5" />
+                      {cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {cartCount}
+                        </span>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              // State ON: Full Search Bar (no logo)
+              <div className="flex-1 relative">
+                <Input
+                  id={searchId}
+                  name="search"
+                  ref={searchRef}
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full pr-10 h-10"
+                  placeholder="Cari produk, kategori, atau merek..."
+                  type="search"
+                  autoFocus
+                />
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleSearchCollapse}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
-              )}
+
+                {/* Search Dropdown */}
+                <SearchDropdown
+                  isOpen={isSearchDropdownOpen}
+                  onClose={handleDropdownClose}
+                  onSelect={handleSearchSubmit}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onSearchSubmit={handleSearchSubmit}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          // Desktop Layout (tetap sama)
+          <>
+            {/* Left side - Logo and Navigation */}
+            <div className="flex items-center gap-6">
+              <Link
+                href="/"
+                className="flex items-center space-x-2 text-primary cursor-pointer">
+                <div className='h-8'>
+                  {logo}
+                </div>
+              </Link>
+              {/* Navigation menu */}
+              <NavigationMenu className="flex">
+                <NavigationMenuList className="gap-1">
+                  {navigationLinks.map((link, index) => (
+                    <NavigationMenuItem key={index}>
+                      <Link
+                        href={link.href}
+                        className="text-sm font-medium transition-colors hover:text-primary px-3 py-2 rounded-md hover:bg-accent"
+                      >
+                        {link.label}
+                      </Link>
+                    </NavigationMenuItem>
+                  ))}
+                </NavigationMenuList>
+              </NavigationMenu>
             </div>
 
-            {/* Search Dropdown */}
-            <SearchDropdown
-              isOpen={isSearchDropdownOpen}
-              onClose={handleDropdownClose}
-              onSelect={handleSearchSubmit}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSearchSubmit={handleSearchSubmit}
-            />
-          </div>
-        </div>
+            {/* Center - Search Bar (only if onSearchSubmit is provided) */}
+            {onSearchSubmit && (
+            <div className="flex-1 max-w-lg mx-6">
+              <div className={cn(
+                "search-input-container relative transition-all duration-300 ease-in-out w-full"
+              )}>
+                <div className="relative">
+                  <SearchIcon
+                    className={cn(
+                      "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 transition-colors",
+                      isSearchExpanded ? "h-5 w-5" : "h-4 w-4"
+                    )}
+                  />
+                  <Input
+                    id={searchId}
+                    name="search"
+                    ref={searchRef}
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    onKeyDown={handleSearchKeyDown}
+                    onFocus={handleSearchExpand}
+                    onClick={handleSearchExpand}
+                    className={cn(
+                      "w-full pl-10 pr-10 transition-all duration-300 ease-in-out",
+                      "border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20",
+                      isSearchExpanded
+                        ? "h-10 text-base bg-white shadow-sm"
+                        : "h-9 text-sm bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                    )}
+                    placeholder={isSearchExpanded ? "Cari produk, kategori, atau merek..." : "Cari..."}
+                    type="search"
+                  />
+                  {(searchQuery || isSearchExpanded) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSearchCollapse}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
 
-        {/* Right side - User Actions */}
-        {!isMobile && (
-          <div className="flex items-center gap-3">
-            {auth.user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                {/* Search Dropdown */}
+                <SearchDropdown
+                  isOpen={isSearchDropdownOpen}
+                  onClose={handleDropdownClose}
+                  onSelect={handleSearchSubmit}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onSearchSubmit={handleSearchSubmit}
+                />
+              </div>
+            </div>
+            )}
+
+            {/* Right side - User Actions */}
+            <div className="flex items-center gap-3">
+              {auth.user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <User size={16} />
+                      {auth.user.name}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <UserMenuContent profileLink={profileLink} menuItems={menuItems} user={auth.user} />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                // User is not logged in - show sign in button
+                onSignInClick ? (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center gap-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <User size={16} />
-                    {auth.user.name}
+                    className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onSignInClick();
+                    }}>
+                    {signInText}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <UserMenuContent profileLink={profileLink} menuItems={menuItems} user={auth.user} />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              // User is not logged in - show sign in button
-              onSignInClick ? (
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    asChild>
+                    <Link href="/login">
+                      {signInText}
+                    </Link>
+                  </Button>
+                )
+              )}
+              {auth?.user?.role_id === 5 &&
                 <Button
-                  variant="ghost"
                   size="sm"
-                  className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                  variant={'outline'}
+                  className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md relative"
                   onClick={(e) => {
                     e.preventDefault();
-                    onSignInClick();
+                    if (onCartClick) onCartClick();
                   }}>
-                  {signInText}
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                  asChild>
-                  <Link href="/login">
-                    {signInText}
-                  </Link>
-                </Button>
-              )
-            )}
-            {auth?.user?.role_id === 5 &&
-              <Button
-                size="sm"
-                className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (onCartClick) onCartClick();
-                }}>
-                <span className="flex items-baseline gap-2">
-                  <ShoppingCart />
-                  {cartCount > 0 &&
-                    <span className="text-primary-foreground/60 text-xs">
-                      {cartCount}
-                    </span>
-                  }
-                </span>
-              </Button>
-            }
-
-            {!auth?.user &&
-              <Button
-                size="sm"
-                asChild
-              >
-                <Link
-                  className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md"
-                  href={'/login'}
-                >
-                  <span className="flex items-baseline gap-2">
+                  <span className="flex items-center gap-2">
                     <ShoppingCart />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {cartCount}
+                      </span>
+                    )}
                   </span>
-                </Link>
-              </Button>}
+                </Button>
+              }
 
-          </div>
+
+              {!auth?.user &&
+                <Button
+                  size="sm"
+                  asChild
+                >
+                  <Link
+                    className="text-sm font-medium px-4 h-9 hover:cursor-pointer rounded-md"
+                    href={'/login'}
+                  >
+                    <span className="flex items-baseline gap-2">
+                      <ShoppingCart />
+                    </span>
+                  </Link>
+                </Button>}
+
+            </div>
+          </>
         )}
       </div>
     </header>

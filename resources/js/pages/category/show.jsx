@@ -58,7 +58,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
 
             <div className="container mx-auto px-4">
                 {/* Breadcrumb */}
-                <div className="mb-4">
+                <div className="my-4">
                     <Breadcrumbs
                         breadcrumbs={[
                             { title: 'Home', href: route('home') },

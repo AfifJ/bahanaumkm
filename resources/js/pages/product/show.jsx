@@ -12,8 +12,8 @@ import { toast } from 'sonner';
 import { VendorProfileCard } from '@/components/vendor-profile-card';
 import { RatingDisplay } from '@/components/rating-stars';
 import { ReviewList } from '@/components/review-list';
-import { ReviewForm } from '@/components/review-form';
 import { useCart } from '@/hooks/use-cart';
+import { ReviewForm } from '@/components/review-form';
 
 export default function ProductShow({ product, relatedProducts, layout, flash, isInWishlist: initialIsInWishlist, reviews, canReview, userOrder }) {
     const [quantity, setQuantity] = useState(1);
@@ -28,7 +28,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
     // Initialize cart hook
     const { cartCount, addToCart } = useCart();
 
-    
+
     // Handle flash messages
     useEffect(() => {
         if (flash?.success) {
@@ -39,7 +39,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
         }
     }, [flash]);
 
-    
+
     const formatPrice = (price) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -130,206 +130,215 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
         router.reload();
     };
 
-    
+
     return (
-            <BuyerLayoutWrapper withBottomNav={false} backLink={route('home')} title={'Detail Produk'} >
-                <ScrollToTop />
-                <Head title={product.name || 'Detail Produk'} />
+        <BuyerLayoutWrapper withBottomNav={false} backLink={route('home')} title={'Detail Produk'} >
+            <ScrollToTop />
+            <Head title={product.name || 'Detail Produk'} />
 
-                <div className="container mx-auto px-4 py-4">
-                {/* Product Image Gallery */}
-                <div className="mb-4">
-                    <ProductImageGallery product={product} />
-                </div>
+            <div className="container mx-auto px-4 py-4">
+                {/* Desktop Layout: 2 Column Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
-                {/* Product Info - Compact Layout */}
-                <div className="space-y-4 mb-6">
-                    {/* Product Name and Category */}
-                    <div>
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex-1">{product.name}</h1>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex-shrink-0 px-3 py-2 hover:cursor-pointer"
-                                disabled={isWishlistLoading}
-                                onClick={handleWishlistToggle}
-                            >
-                                {isWishlistLoading ? (
-                                    <>
-                                        <Heart className="h-4 w-4 animate-spin" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <Heart
-                                            className={`h-4 w-4 ${isInWishlist ? 'fill-red-600 text-red-600' : 'text-gray-600'}`}
+                    {/* Left Column: Product Images - Sticky on Desktop */}
+                    <div className="space-y-4 lg:sticky lg:top-20 lg:h-fit">
+                        <ProductImageGallery product={product} />
+                    </div>
+
+                    {/* Right Column: All Product Details */}
+                    <div className="space-y-6">
+                        {/* Product Info - Compact Layout */}
+                        <div className="space-y-4">
+                            {/* Product Name and Category */}
+                            <div>
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex-1">{product.name}</h1>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-shrink-0 px-3 py-2 hover:cursor-pointer"
+                                        disabled={isWishlistLoading}
+                                        onClick={handleWishlistToggle}
+                                    >
+                                        {isWishlistLoading ? (
+                                            <>
+                                                <Heart className="h-4 w-4 animate-spin" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Heart
+                                                    className={`h-4 w-4 ${isInWishlist ? 'fill-red-600 text-red-600' : 'text-gray-600'}`}
+                                                />
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <span className="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                                        {product.category?.name}
+                                    </span>
+                                    <span>•</span>
+                                    <span>Oleh: {product.vendor?.name || 'Vendor'}</span>
+                                </div>
+                            </div>
+
+                            {/* Price and Stock */}
+                            <div className="space-y-2">
+                                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">{formatPrice(product.sell_price)}</p>
+
+                                {/* Rating Display */}
+                                <div className="flex items-center">
+                                    <RatingDisplay
+                                        rating={product.average_rating || 0}
+                                        showText
+                                        size="sm"
+                                    />
+                                    {product.total_reviews > 0 && (
+                                        <span className="text-sm text-gray-500 ml-2">
+                                            ({product.total_reviews} review{product.total_reviews !== 1 ? 's' : ''})
+                                        </span>
+                                    )}
+                                </div>
+
+                                <p className={`text-sm ${product.stock > 0 ? 'text-primary' : 'text-red-600'}`}>
+                                    {product.stock > 0 ? `Stok tersedia: ${product.stock}` : 'Stok habis'}
+                                </p>
+                            </div>
+
+                            {/* Quantity Selector - Compact */}
+                            {product.stock > 0 && (
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">Jumlah:</label>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            onClick={() => handleQuantityChange(quantity - 1)}
+                                            disabled={quantity <= 1}
+                                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 text-sm"
+                                        >
+                                            -
+                                        </Button>
+                                        <Input
+                                            type="number"
+                                            value={quantity}
+                                            onChange={(e) => handleQuantityChange(Number(e.target.value))}
+                                            className="w-12 border-0 text-center shadow-none text-sm"
+                                            min="1"
+                                            max={product.stock}
                                         />
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span className="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                                {product.category?.name}
-                            </span>
-                            <span>•</span>
-                            <span>Oleh: {product.vendor?.name || 'Vendor'}</span>
-                        </div>
-                    </div>
-
-                    {/* Price and Stock */}
-                    <div className="space-y-2">
-                        <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">{formatPrice(product.sell_price)}</p>
-
-                        {/* Rating Display */}
-                        <div className="flex items-center">
-                            <RatingDisplay
-                                rating={product.average_rating || 0}
-                                showText
-                                size="sm"
-                            />
-                            {product.total_reviews > 0 && (
-                                <span className="text-sm text-gray-500 ml-2">
-                                    ({product.total_reviews} review{product.total_reviews !== 1 ? 's' : ''})
-                                </span>
+                                        <Button
+                                            onClick={() => handleQuantityChange(quantity + 1)}
+                                            disabled={quantity >= product.stock}
+                                            className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 text-sm"
+                                        >
+                                            +
+                                        </Button>
+                                        <span className="text-xs text-gray-500 ml-1">Max: {product.stock}</span>
+                                    </div>
+                                </div>
                             )}
-                        </div>
 
-                        <p className={`text-sm ${product.stock > 0 ? 'text-primary' : 'text-red-600'}`}>
-                            {product.stock > 0 ? `Stok tersedia: ${product.stock}` : 'Stok habis'}
-                        </p>
-                    </div>
+                            {/* Desktop Action Buttons */}
+                            {product.stock > 0 && (
+                                <div className="hidden sm:flex gap-3 pt-2">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 py-2 hover:cursor-pointer"
+                                        disabled={product.stock <= 0 || isAddingToCart}
+                                        onClick={handleAddToCart}
+                                    >
+                                        {isAddingToCart ? (
+                                            <>
+                                                <Package className="mr-2 h-4 w-4 animate-spin" />
+                                                Menambahkan...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Package className="mr-2 h-4 w-4" />
+                                                Tambah ke Keranjang
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button
+                                        className="flex-1 py-2 hover:cursor-pointer"
+                                        disabled={product.stock <= 0 || isBuyingNow}
+                                        onClick={handleBuyNow}
+                                    >
+                                        {isBuyingNow ? (
+                                            <>
+                                                <Package className="mr-2 h-4 w-4 animate-spin" />
+                                                Memproses...
+                                            </>
+                                        ) : (
+                                            `Beli Sekarang - ${formatPrice(product.sell_price * quantity)}`
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
 
-                    {/* Quantity Selector - Compact */}
-                    {product.stock > 0 && (
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Jumlah:</label>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    onClick={() => handleQuantityChange(quantity - 1)}
-                                    disabled={quantity <= 1}
-                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 text-sm"
-                                >
-                                    -
-                                </Button>
-                                <Input
-                                    type="number"
-                                    value={quantity}
-                                    onChange={(e) => handleQuantityChange(Number(e.target.value))}
-                                    className="w-12 border-0 text-center shadow-none text-sm"
-                                    min="1"
-                                    max={product.stock}
+                            {/* Product Description */}
+                            <div className="pt-2">
+                                <h3 className="text-lg font-semibold mb-2">Deskripsi Produk</h3>
+                                <p className="text-sm leading-relaxed text-gray-700">{product.description || 'Tidak ada deskripsi produk.'}</p>
+                            </div>
+                            {/* Vendor Profile */}
+                            {product.vendor && (
+                                <div className="pt-6 border-t">
+                                    <h3 className="text-lg font-semibold mb-3">Tentang Penjual</h3>
+                                    <VendorProfileCard vendor={product.vendor} compact={true} />
+                                </div>
+                            )}
+
+                            {/* Reviews Section */}
+                            <div className="pt-6 border-t">
+                                <ReviewList
+                                    reviews={reviews?.data || []}
+                                    loading={false}
+                                    showReviewForm={canReview && !showReviewForm}
+                                    reviewFormProps={
+                                        canReview && userOrder ? {
+                                            productId: product.id,
+                                            orderId: userOrder.id,
+                                            onSubmit: handleReviewSuccess,
+                                            onCancel: () => setShowReviewForm(false)
+                                        } : undefined
+                                    }
                                 />
-                                <Button
-                                    onClick={() => handleQuantityChange(quantity + 1)}
-                                    disabled={quantity >= product.stock}
-                                    className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 text-sm"
-                                >
-                                    +
-                                </Button>
-                                <span className="text-xs text-gray-500 ml-1">Max: {product.stock}</span>
+
+                                {/* Review Form (shown when button is clicked) */}
+                                {canReview && showReviewForm && userOrder && (
+                                    <div className="mt-6">
+                                        <ReviewForm
+                                            productId={product.id}
+                                            orderId={userOrder.id}
+                                            onSubmit={handleReviewSuccess}
+                                            onCancel={() => setShowReviewForm(false)}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Show Review Button for eligible users */}
+                                {canReview && !showReviewForm && userOrder && (
+                                    <div className="mt-6 text-center">
+                                        <Button
+                                            onClick={() => setShowReviewForm(true)}
+                                            variant="outline"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                                        >
+                                            <Star className="h-4 w-4 mr-2" />
+                                            Beri Review Produk
+                                        </Button>
+                                        <p className="text-sm text-gray-600 mt-2">
+                                            Anda bisa memberikan review untuk produk ini
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    )}
-
-                    {/* Desktop Action Buttons */}
-                    {product.stock > 0 && (
-                        <div className="hidden sm:flex gap-3 pt-2">
-                            <Button
-                                variant="outline"
-                                className="flex-1 py-2 hover:cursor-pointer"
-                                disabled={product.stock <= 0 || isAddingToCart}
-                                onClick={handleAddToCart}
-                            >
-                                {isAddingToCart ? (
-                                    <>
-                                        <Package className="mr-2 h-4 w-4 animate-spin" />
-                                        Menambahkan...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Package className="mr-2 h-4 w-4" />
-                                        Tambah ke Keranjang
-                                    </>
-                                )}
-                            </Button>
-                            <Button
-                                className="flex-1 py-2 hover:cursor-pointer"
-                                disabled={product.stock <= 0 || isBuyingNow}
-                                onClick={handleBuyNow}
-                            >
-                                {isBuyingNow ? (
-                                    <>
-                                        <Package className="mr-2 h-4 w-4 animate-spin" />
-                                        Memproses...
-                                    </>
-                                ) : (
-                                    `Beli Sekarang - ${formatPrice(product.sell_price * quantity)}`
-                                )}
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Product Description */}
-                    <div className="pt-2">
-                        <h3 className="text-lg font-semibold mb-2">Deskripsi Produk</h3>
-                        <p className="text-sm leading-relaxed text-gray-700">{product.description || 'Tidak ada deskripsi produk.'}</p>
                     </div>
 
-                    {/* Vendor Profile */}
-                    {product.vendor && (
-                        <div className="pt-4 border-t">
-                            <h3 className="text-lg font-semibold mb-3">Tentang Penjual</h3>
-                            <VendorProfileCard vendor={product.vendor} compact={true} />
-                        </div>
-                    )}
-                </div>
 
-                {/* Reviews Section */}
-                <div className="mt-8">
-                    <ReviewList
-                        reviews={reviews?.data || []}
-                        loading={false}
-                        showReviewForm={canReview && !showReviewForm}
-                        reviewFormProps={
-                            canReview && userOrder ? {
-                                productId: product.id,
-                                orderId: userOrder.id,
-                                onSubmit: handleReviewSuccess,
-                                onCancel: () => setShowReviewForm(false)
-                            } : undefined
-                        }
-                    />
 
-                    {/* Review Form (shown when button is clicked) */}
-                    {canReview && showReviewForm && userOrder && (
-                        <div className="mt-6">
-                            <ReviewForm
-                                productId={product.id}
-                                orderId={userOrder.id}
-                                onSubmit={handleReviewSuccess}
-                                onCancel={() => setShowReviewForm(false)}
-                            />
-                        </div>
-                    )}
-
-                    {/* Show Review Button for eligible users */}
-                    {canReview && !showReviewForm && userOrder && (
-                        <div className="mt-6 text-center">
-                            <Button
-                                onClick={() => setShowReviewForm(true)}
-                                variant="outline"
-                                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                            >
-                                <Star className="h-4 w-4 mr-2" />
-                                Beri Review Produk
-                            </Button>
-                            <p className="text-sm text-gray-600 mt-2">
-                                Anda bisa memberikan review untuk produk ini
-                            </p>
-                        </div>
-                    )}
-                </div>
+                </div> {/* Close Right Column */}
 
                 {/* Sticky Action Buttons for Mobile */}
                 {product.stock > 0 && (
@@ -371,16 +380,17 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                     </div>
                 )}
 
-                {/* Related Products */}
+                {/* Related Products - Full Width Section */}
                 {relatedProducts.length > 0 && (
-                    <div className="mt-8">
+                    <div className="mt-8 pt-8 border-t">
+                        <h3 className="text-xl font-bold mb-4">Produk Terkait</h3>
                         <ProductList productList={relatedProducts} />
                     </div>
                 )}
 
                 {/* Spacer for sticky button */}
                 {product.stock > 0 && <div className="h-20 sm:h-0"></div>}
-            </div>
+            </div> {/* Close grid container */}
         </BuyerLayoutWrapper>
     );
 }

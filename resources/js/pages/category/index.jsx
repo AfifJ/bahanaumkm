@@ -14,7 +14,7 @@ export default function CategoryIndex({ categories, layout }) {
             <Head title="Kategori Produk" />
 
             <div className="container mx-auto px-4">
-                <div className="mb-4">
+                <div className="my-4">
                     <Breadcrumbs
                         breadcrumbs={[
                             { title: 'Home', href: route('home') },

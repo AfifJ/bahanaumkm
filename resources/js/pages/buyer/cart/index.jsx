@@ -106,23 +106,6 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href="/">
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Lanjut Belanja
-                            </Link>
-                        </Button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Keranjang Belanja</h1>
-                            {itemCount > 0 && (
-                                <p className="text-sm text-gray-600">
-                                    {itemCount} produk dalam keranjang
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
                     {cartItems.length > 0 && (
                         <div className="flex items-center space-x-3">
                             <ConfirmationDialog
