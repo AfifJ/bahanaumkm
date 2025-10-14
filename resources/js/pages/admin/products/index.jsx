@@ -22,7 +22,7 @@ export default function Index({ products, can }) {
             return (
                 <div className="flex items-center text-xs text-gray-500">
                     <Star className="h-3 w-3 mr-1" />
-                    No reviews
+                    Belum ada review
                 </div>
             );
         }
@@ -44,15 +44,15 @@ export default function Index({ products, can }) {
 
     return (
         <AdminLayout
-            title="Products"
+            title="Produk"
             breadcrumbs={[
                 {
-                    title: 'Products',
+                    title: 'Produk',
                     href: route('admin.products.index'),
                 },
             ]}
         >
-            <Head title="Products" />
+            <Head title="Produk" />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="flex flex-row items-center justify-between pb-4">

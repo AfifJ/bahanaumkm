@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { route } from 'ziggy-js';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 
 export function useCart() {
     const [cartCount, setCartCount] = useState(0);
     const [isCartLoading, setIsCartLoading] = useState(false);
+    const page = usePage();
 
     // Fetch cart count from server
     const fetchCartCount = async () => {
@@ -64,6 +65,13 @@ export function useCart() {
                 throw new Error('Invalid product or quantity');
             }
 
+            // Check if user is authenticated
+            if (!page.props.auth?.user) {
+                // Redirect to login page without showing any toast
+                router.visit(route('login'));
+                return { success: false, redirect: true };
+            }
+
             console.log('🛒 Adding to cart:', { productId, quantity });
 
             // Use Inertia.js to add to cart (same as wishlist)
@@ -82,6 +90,7 @@ export function useCart() {
                         // Fallback: refetch cart count
                         fetchCartCount();
                     }
+                    // No success toast shown - silent update
                 },
                 onError: (errors) => {
                     console.error('❌ Backend error:', errors);

@@ -17,16 +17,16 @@ class CheckRole
     {
         // Tambahkan pengecekan jika user belum login
         if (!$request->user()) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
         
         // Tambahkan pengecekan jika user tidak memiliki role
         if (!$request->user()->role) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
         
         if (!in_array($request->user()->role->name, $roles)) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Aksi tidak diizinkan.');
         }
 
         return $next($request);

@@ -55,7 +55,7 @@ export default function MitraDashboard({ mitraProfile, stats, recentTransactions
             <Head title="Dashboard Mitra" />
 
             {/* Welcome Section */}
-            <div className="mb-8">
+            <div className="mb-8 m-4">
                 <div className="bg-white rounded-lg border p-6">
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">
                         Selamat datang, {mitraProfile.hotel_name}!
@@ -70,7 +70,7 @@ export default function MitraDashboard({ mitraProfile, stats, recentTransactions
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mx-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Penjualan Hari Ini</CardTitle>
@@ -124,7 +124,7 @@ export default function MitraDashboard({ mitraProfile, stats, recentTransactions
                 </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-4">
                 {/* Sales Chart */}
                 <Card>
                     <CardHeader>

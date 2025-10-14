@@ -55,7 +55,7 @@ class CategoryController extends Controller
         Category::create($data);
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully.');
+            ->with('success', 'Kategori berhasil dibuat.');
     }
 
     /**
@@ -98,7 +98,7 @@ class CategoryController extends Controller
         $category->update($data);
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category updated successfully.');
+            ->with('success', 'Kategori berhasil diperbarui.');
     }
 
     /**
@@ -116,6 +116,6 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Category deleted successfully.');
+            ->with('success', 'Kategori berhasil dihapus.');
     }
 }

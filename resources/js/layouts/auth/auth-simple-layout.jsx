@@ -12,8 +12,8 @@ export default function AuthSimpleLayout({ children, title, description }) {
                             Kembali
                         </Link>
                         <div className="flex flex-col items-center gap-2 font-medium">
-                            <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <Logo className="size-9"/>
+                            <div className="mb-1 flex my-4 items-center justify-center rounded-md">
+                                <Logo className=""/>
                             </div>
                             <span className="sr-only">{title}</span>
                         </div>

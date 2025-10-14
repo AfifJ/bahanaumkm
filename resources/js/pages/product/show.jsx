@@ -53,8 +53,13 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
         setIsAddingToCart(true);
         try {
-            await addToCart(product.id, quantity);
-            toast.success('Produk berhasil ditambahkan ke keranjang!');
+            const result = await addToCart(product.id, quantity);
+
+            // Only show success toast if user is logged in and product was added successfully
+            if (result.success && !result.redirect) {
+                // Silent update - no success toast shown
+                console.log('Produk berhasil ditambahkan ke keranjang');
+            }
         } catch (error) {
             toast.error(error.message || 'Gagal menambahkan produk ke keranjang');
         } finally {

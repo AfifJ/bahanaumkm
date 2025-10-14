@@ -224,7 +224,7 @@ class MitraController extends Controller
             'phone' => $request->phone,
         ]);
 
-        return back()->with('success', 'Profile updated successfully.');
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 
     private function calculateCommission($orders)

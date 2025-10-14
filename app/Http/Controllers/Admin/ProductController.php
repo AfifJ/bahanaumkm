@@ -86,7 +86,7 @@ class ProductController extends Controller
         });
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
+            ->with('success', 'Produk berhasil dibuat.');
     }
 
 
@@ -162,7 +162,7 @@ class ProductController extends Controller
         });
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product updated successfully.');
+            ->with('success', 'Produk berhasil diperbarui.');
     }
 
     /**
@@ -178,7 +178,7 @@ class ProductController extends Controller
 
         $image->setAsPrimary();
 
-        return back()->with('success', 'Primary image updated successfully.');
+        return back()->with('success', 'Gambar utama berhasil diperbarui.');
     }
 
     /**
@@ -194,7 +194,7 @@ class ProductController extends Controller
 
         // Prevent deletion if it's the only image
         if ($product->images()->count() <= 1) {
-            return back()->with('error', 'Cannot delete the only image. Add another image first.');
+            return back()->with('error', 'Tidak dapat menghapus gambar satu-satunya. Tambahkan gambar lain terlebih dahulu.');
         }
 
         // Delete file from storage
@@ -210,7 +210,7 @@ class ProductController extends Controller
 
         $image->delete();
 
-        return back()->with('success', 'Image deleted successfully.');
+        return back()->with('success', 'Gambar berhasil dihapus.');
     }
 
     /**
@@ -222,7 +222,7 @@ class ProductController extends Controller
 
         $product->delete();
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product deleted successfully.');
+            ->with('success', 'Produk berhasil dihapus.');
     }
 
     /**

@@ -29,15 +29,7 @@ export default function MitraProfile({ user, mitraProfile }) {
         >
             <Head title="Profil Mitra" />
 
-            <div className="max-w-2xl mx-auto">
-                {/* Back Button */}
-                <div className="mb-6">
-                    <Link href={route('mitra.dashboard')} className="inline-flex items-center text-gray-600 hover:text-gray-900">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Kembali ke Dashboard
-                    </Link>
-                </div>
-
+            <div className="m-4">
                 {/* Profile Info Card */}
                 <Card className="mb-6">
                     <CardHeader>

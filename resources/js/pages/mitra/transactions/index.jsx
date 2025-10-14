@@ -58,7 +58,7 @@ export default function MitraTransactions({ transactions }) {
             <Head title="Riwayat Transaksi Mitra" />
 
             {/* Search and Filter */}
-            <Card className="mb-6">
+            <Card className="mb-6 m-4">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />
@@ -84,7 +84,7 @@ export default function MitraTransactions({ transactions }) {
             </Card>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 m-4">
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center">
@@ -129,7 +129,7 @@ export default function MitraTransactions({ transactions }) {
             </div>
 
             {/* Transactions List */}
-            <Card>
+            <Card className={'m-4'}>
                 <CardHeader>
                     <CardTitle>Daftar Transaksi</CardTitle>
                     <CardDescription>

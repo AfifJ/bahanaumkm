@@ -33,7 +33,7 @@ export default function MitraReports({ orderItems, summary }) {
             <Head title="Laporan Keuangan Mitra" />
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 m-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
@@ -75,7 +75,7 @@ export default function MitraReports({ orderItems, summary }) {
             </div>
 
             {/* Commission Formula Explanation */}
-            <Card className="mb-6">
+            <Card className="mb-6 m-4">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <BarChart3 className="h-5 w-5" />
@@ -106,7 +106,7 @@ export default function MitraReports({ orderItems, summary }) {
             </Card>
 
             {/* Detailed Commission Breakdown */}
-            <Card>
+            <Card className={'m-4'}>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />

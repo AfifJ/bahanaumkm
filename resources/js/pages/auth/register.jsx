@@ -26,12 +26,12 @@ export default function Register() {
     };
 
     return (
-        <AuthLayout title="Create an account" description="Enter your details below to create your account">
-            <Head title="Register" />
+        <AuthLayout title="Buat akun baru" description="Masukkan detail Anda di bawah untuk membuat akun">
+            <Head title="Daftar" />
             <form method="POST" className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Nama Lengkap</Label>
                         <Input
                             id="name"
                             type="text"
@@ -42,13 +42,13 @@ export default function Register() {
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             disabled={processing}
-                            placeholder="Full name"
+                            placeholder="Nama lengkap"
                         />
                         <InputError message={errors.name} className="mt-2" />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="role_id">Role</Label>
+                        <Label htmlFor="role_id">Peran</Label>
                         <Select
                             id="role_id"
                             required
@@ -58,7 +58,7 @@ export default function Register() {
                             disabled={processing}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a role" />
+                                <SelectValue placeholder="Pilih peran" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="1">Admin</SelectItem>
@@ -72,7 +72,7 @@ export default function Register() {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
+                        <Label htmlFor="email">Alamat Email</Label>
                         <Input
                             id="email"
                             type="email"
@@ -88,7 +88,7 @@ export default function Register() {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">Kata Sandi</Label>
                         <Input
                             id="password"
                             type="password"
@@ -98,13 +98,13 @@ export default function Register() {
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             disabled={processing}
-                            placeholder="Password"
+                            placeholder="Kata sandi"
                         />
                         <InputError message={errors.password} />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Confirm password</Label>
+                        <Label htmlFor="password_confirmation">Konfirmasi Kata Sandi</Label>
                         <Input
                             id="password_confirmation"
                             type="password"
@@ -114,21 +114,21 @@ export default function Register() {
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             disabled={processing}
-                            placeholder="Confirm password"
+                            placeholder="Konfirmasi kata sandi"
                         />
                         <InputError message={errors.password_confirmation} />
                     </div>
 
                     <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Create account
+                        Buat Akun
                     </Button>
                 </div>
 
                 <div className="text-center text-sm text-muted-foreground">
-                    Already have an account?{' '}
+                    Sudah punya akun?{' '}
                     <TextLink href={route('login')} tabIndex={6}>
-                        Log in
+                        Masuk
                     </TextLink>
                 </div>
             </form>

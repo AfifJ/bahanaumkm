@@ -61,7 +61,7 @@ class CartController extends Controller
     {
         // Ensure cart item belongs to authenticated user
         if ($cart->user_id !== Auth::id()) {
-            return back()->with('error', 'Unauthorized action');
+            return back()->with('error', 'Aksi tidak diizinkan');
         }
 
         $request->validate([
@@ -84,7 +84,7 @@ class CartController extends Controller
     {
         // Ensure cart item belongs to authenticated user
         if ($cart->user_id !== Auth::id()) {
-            return back()->with('error', 'Unauthorized action');
+            return back()->with('error', 'Aksi tidak diizinkan');
         }
 
         $cart->delete();
