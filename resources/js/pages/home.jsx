@@ -11,80 +11,14 @@ import { useEffect, useState } from 'react';
 import { useLocationStorage } from '@/hooks/use-location-storage';
 
 export default function Home({ carousels, featuredProducts, latestProducts, popularCategories, mitra }) {
-    const { auth } = usePage().props;
-    const [mainNavItems, setMainNavItems] = useState([])
     const { selectedLocation, saveLocation } = useLocationStorage();
-
-    useEffect(() => {
-        switch (auth?.user?.role_id) {
-            case 1:
-                //admin
-                setMainNavItems(adminMainNavItems);
-                break;
-            case 2:
-                // vendor
-                setMainNavItems(vendorMainNavItems);
-                break;
-            case 3:
-                //mitra
-                break;
-            case 4:
-                //sales
-                break;
-            default: setMainNavItems(buyerMainNavItems);
-        }
-    }, [auth])
 
     const handleLocationSelect = (location) => {
         saveLocation(location);
     };
 
-    const buyerMainNavItems = [
-        {
-            label: 'Pesanan Saya',
-            href: route('buyer.orders.index'),
-            icon: Package,
-        },
-        {
-            label: 'Pusat Bantuan',
-            href: '/bantuan',
-            icon: HelpCircle,
-        },
-    ];
-
-    const adminMainNavItems = [
-        {
-            label: 'Dashboard',
-            href: route('admin.dashboard'),
-            icon: LayoutDashboard,
-        },
-    ]
-
-    const vendorMainNavItems = [
-        {
-            label: 'Dashboard',
-            href: route('vendor.dashboard'),
-            icon: LayoutDashboard,
-        },
-        {
-            label: 'Produk Saya',
-            href: route('vendor.products.index'),
-            icon: Package,
-        },
-        {
-            label: 'Transaksi',
-            href: route('vendor.transaction.index'),
-            icon: ArrowLeftRight,
-        },
-        {
-            label: 'Pusat Bantuan',
-            href: '/bantuan',
-            icon: HelpCircle,
-        },
-    ]
-
     return (
-        <BuyerLayout mainNavItems={mainNavItems}>
+        <BuyerLayout>
             <Head title="Beranda - Bahana UMKM" />
             {/* Hero Banner Section */}
             <section className="px-4 py-2">

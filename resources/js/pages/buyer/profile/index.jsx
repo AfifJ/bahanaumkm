@@ -11,9 +11,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router } from '@inertiajs/react';
-import { Heart, HelpingHand, Lock, LogOutIcon, LucideUsers2, Package2, Pencil } from 'lucide-react';
+import { route } from 'ziggy-js';
+import { HelpingHand, Lock, LogOutIcon, LucideUsers2, Package2, Pencil } from 'lucide-react';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { useState } from 'react';
 
@@ -28,7 +29,7 @@ const Profile = ({ user }) => {
     };
 
     return (
-        <BuyerLayoutNonSearch title={'Profile'}>
+        <BuyerLayoutWrapper backLink={route('home')} title={'Profile'}>
             <ScrollToTop />
             <Head title="Profile" />
             <div className="w-full p-3 pb-20">
@@ -139,7 +140,7 @@ const Profile = ({ user }) => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 };
 

@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { ChevronLeft, ChevronRight, Package, User, Calendar, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 
@@ -77,7 +78,7 @@ export default function OrdersIndex({ orders }) {
     });
 
     return (
-        <BuyerLayoutNonSearch title={'Riwayat Transaksi'}>
+        <BuyerLayoutWrapper backLink={route('home')} title={'Riwayat Transaksi'}>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
 
             <div className="min-h-screen bg-gray-50">
@@ -288,6 +289,6 @@ export default function OrdersIndex({ orders }) {
                     )}
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 }

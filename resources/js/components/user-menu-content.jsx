@@ -13,6 +13,7 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { Link, router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { LogOut, Settings, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 
@@ -39,7 +40,7 @@ export function UserMenuContent({ user, menuItems = [], profileLink = '/profile'
             {menuItems.map((item, index) => (
                 <DropdownMenuItem key={index} asChild>
                     <Link className="block w-full hover:cursor-pointer" href={item.href} as="button" prefetch onClick={cleanup}>
-                        <item.icon className="mr-2" />
+                        {item.icon && <item.icon className="mr-2" />}
                         {item.label}
                     </Link>
                 </DropdownMenuItem>

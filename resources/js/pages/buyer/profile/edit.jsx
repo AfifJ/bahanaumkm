@@ -1,8 +1,9 @@
 import ScrollToTop from '@/components/scroll-to-top';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { Pencil, User } from 'lucide-react';
 
 const Profile = ({ user }) => {
@@ -18,7 +19,7 @@ const Profile = ({ user }) => {
     };
 
     return (
-        <BuyerLayoutNonSearch backLink={route('buyer.profile.index')} title={'Edit Profile'}>
+        <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title={'Edit Profile'}>
             <ScrollToTop />
             <Head title="Edit Profile" />
             <form onSubmit={handleSubmit} className="w-full p-4 space-y-3">
@@ -64,7 +65,7 @@ const Profile = ({ user }) => {
                     {processing ? 'Menyimpan...' : 'Simpan'}
                 </Button>
             </form>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 };
 

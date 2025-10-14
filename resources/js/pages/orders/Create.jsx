@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
-import BuyerLayout from '@/layouts/buyer-layout';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { Package, MapPin, DollarSign, Plus, Minus, X, Clipboard, Wallet } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { MitraSelector } from '@/components/mitra-selector';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
 import { useLocationStorage } from '@/hooks/use-location-storage';
 
 export default function OrderCreate({ flash, product, quantity, mitra, shippingSetting }) {
@@ -138,7 +138,7 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
     // Jika produk tidak ditemukan
     if (!product) {
         return (
-            <BuyerLayout>
+            <BuyerLayoutWrapper>
                 <Head title="Produk Tidak Ditemukan - Bahana UMKM" />
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center py-12">
@@ -153,12 +153,12 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                         </Link>
                     </div>
                 </div>
-            </BuyerLayout>
+            </BuyerLayoutWrapper>
         );
     }
 
     return (
-        <BuyerLayoutNonSearch withBottomNav={false} backLink={route('product.show', product)} title={'Checkout Pesanan'}>
+        <BuyerLayoutWrapper withBottomNav={false} backLink={route('product.show', product)} title={'Checkout Pesanan'}>
             <Head title="Checkout - Bahana UMKM" />
             <form onSubmit={handleSubmit}>
                 <div className="container mx-auto py-2 *:px-4 *:py-4 divide-y-4">

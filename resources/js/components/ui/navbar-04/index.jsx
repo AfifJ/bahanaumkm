@@ -15,10 +15,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../dropd
 
 import { SearchIcon, ShoppingCart, User, X } from 'lucide-react';
 
-import { UserMenuContent } from '@/components/user-menu-content';
+import SearchDropdown from '@/components/search-dropdown';
 import { cn } from '@/lib/utils';
 import { Logo } from './logo';
 import { HamburgerIcon } from './hamburger-icon';
+import { UserMenuContent } from '@/components/user-menu-content';
 
 // Default navigation links
 const defaultNavigationLinks = [];
@@ -42,10 +43,11 @@ export const Navbar04 = forwardRef((
   const { auth } = usePage().props;
   const [isMobile, setIsMobile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const containerRef = useRef(null);
   const searchRef = useRef(null);
   const searchId = useId();
-  const [showSearch, setShowSearch] = useState(false)
 
   useEffect(() => {
     const checkWidth = () => {
@@ -83,21 +85,42 @@ export const Navbar04 = forwardRef((
     }
   }, [ref]);
 
-  const handleSearchSubmit = useCallback((e) => {
-    e.preventDefault();
-    if (searchQuery.trim() && onSearchSubmit) {
-      onSearchSubmit(searchQuery.trim());
+  const handleSearchSubmit = useCallback((query) => {
+    if (query.trim() && onSearchSubmit) {
+      onSearchSubmit(query.trim());
       setSearchQuery('');
+      setIsSearchExpanded(false);
+      setIsSearchDropdownOpen(false);
     }
-  }, [searchQuery, onSearchSubmit]);
+  }, [onSearchSubmit]);
 
-  const toggleSearch = useCallback(() => {
-    setShowSearch(prev => !prev);
+  const handleSearchExpand = useCallback(() => {
+    setIsSearchExpanded(true);
+    setIsSearchDropdownOpen(true);
+    setTimeout(() => searchRef.current?.focus(), 100);
   }, []);
 
-  const handleSearchClick = useCallback(() => {
-    setShowSearch(true);
-    setTimeout(() => searchRef.current?.focus(), 0);
+  const handleSearchCollapse = useCallback(() => {
+    setIsSearchExpanded(false);
+    setIsSearchDropdownOpen(false);
+    setSearchQuery('');
+  }, []);
+
+  const handleSearchInputChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setIsSearchDropdownOpen(value.length >= 0);
+  }, []);
+
+  const handleSearchKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      handleSearchCollapse();
+    }
+  }, [handleSearchCollapse]);
+
+  const handleDropdownClose = useCallback(() => {
+    setIsSearchDropdownOpen(false);
+    // Tidak collapse search bar, hanya tutup dropdown
   }, []);
 
   return (
@@ -110,64 +133,90 @@ export const Navbar04 = forwardRef((
       {...props}>
       <div
         className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
-        {showSearch &&
-          <>
-            <form onSubmit={handleSearchSubmit} className="relative w-full max-w-md">
+        {/* Left side - Logo and Navigation */}
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="flex items-center space-x-2 text-primary cursor-pointer">
+            <div className='h-8'>
+              {logo}
+            </div>
+          </Link>
+          {/* Navigation menu */}
+          {!isMobile && (
+            <NavigationMenu className="flex">
+              <NavigationMenuList className="gap-1">
+                {navigationLinks.map((link, index) => (
+                  <NavigationMenuItem key={index}>
+                    <Link
+                      href={link.href}
+                      className="text-sm font-medium transition-colors hover:text-primary px-3 py-2 rounded-md hover:bg-accent"
+                    >
+                      {link.label}
+                    </Link>
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
+        </div>
+
+        {/* Center - Search Bar */}
+        <div className="flex-1 max-w-lg mx-6">
+          <div className={cn(
+            "search-input-container relative transition-all duration-300 ease-in-out w-full"
+          )}>
+            <div className="relative">
+              <SearchIcon
+                className={cn(
+                  "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 transition-colors",
+                  isSearchExpanded ? "h-5 w-5" : "h-4 w-4"
+                )}
+              />
               <Input
                 id={searchId}
                 name="search"
                 ref={searchRef}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="peer h-8 ps-10 font-light text-sm pe-4 shadow-none border-0 bg-gray-50"
-                placeholder="Cari Produk"
-                type="search" />
-              <div
-                className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-4 peer-disabled:opacity-50">
-                <SearchIcon size={16} />
-              </div>
-            </form>
-            <Button variant={'outline'} onClick={toggleSearch}>
-              <X />
-            </Button>
-          </>
-        }
-        {!showSearch &&
-          <div className="flex flex-1 items-center gap-2">
-            <div className="flex flex-1 items-center gap-4 max-md:justify-between">
-              <Link
-                href="/"
-                className="flex items-center space-x-2 text-primary cursor-pointer">
-                <div className='h-8'>
-                  {logo}
-                </div>
-              </Link>
-              {/* Navigation menu */}
-              {!isMobile && (
-                <NavigationMenu className="flex">
-                  <NavigationMenuList className="gap-1">
-                    {navigationLinks.map((link, index) => (
-                      <NavigationMenuItem key={index}>
-                        <Link
-                          href={link.href}
-                          className="text-sm font-medium transition-colors hover:text-primary px-3 py-2 rounded-md hover:bg-accent"
-                        >
-                          {link.label}
-                        </Link>
-                      </NavigationMenuItem>
-                    ))}
-                  </NavigationMenuList>
-                </NavigationMenu>
-              )}
-              <div className='flex gap-2'>
-                <Button variant={'ghost'} onClick={handleSearchClick} className={'cursor-pointer'}>
-                  <SearchIcon className='h-8 w-8' />
+                onChange={handleSearchInputChange}
+                onKeyDown={handleSearchKeyDown}
+                onFocus={handleSearchExpand}
+                onClick={handleSearchExpand}
+                className={cn(
+                  "w-full pl-10 pr-10 transition-all duration-300 ease-in-out",
+                  "border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  isSearchExpanded
+                    ? "h-10 text-base bg-white shadow-sm"
+                    : "h-9 text-sm bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                )}
+                placeholder={isSearchExpanded ? "Cari produk, kategori, atau merek..." : "Cari..."}
+                type="search"
+              />
+              {(searchQuery || isSearchExpanded) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSearchCollapse}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                >
+                  <X className="h-4 w-4" />
                 </Button>
-              </div>
-
+              )}
             </div>
-          </div>}
-        {/* Right side */}
+
+            {/* Search Dropdown */}
+            <SearchDropdown
+              isOpen={isSearchDropdownOpen}
+              onClose={handleDropdownClose}
+              onSelect={handleSearchSubmit}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSearchSubmit={handleSearchSubmit}
+            />
+          </div>
+        </div>
+
+        {/* Right side - User Actions */}
         {!isMobile && (
           <div className="flex items-center gap-3">
             {auth.user ? (
@@ -248,7 +297,7 @@ export const Navbar04 = forwardRef((
           </div>
         )}
       </div>
-    </header >
+    </header>
   );
 });
 

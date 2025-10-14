@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
-import BuyerLayout from '@/layouts/buyer-layout';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { ArrowLeft, Calendar, CheckCircle, ChevronDown, ChevronUp, MapPin, Package, User, XCircle, Star } from 'lucide-react';
 import { useState } from 'react';
 import { ReviewForm } from '@/components/review-form';
@@ -135,7 +135,7 @@ export default function OrderShow({ order, canReviewProducts }) {
     const StatusIcon = getStatusIcon(order.status);
 
     return (
-        <BuyerLayoutNonSearch withBottomNav={false} title={'Order Detail'} backLink={route('buyer.orders.index')}>
+        <BuyerLayoutWrapper withBottomNav={false} title={'Order Detail'} backLink={route('buyer.orders.index')}>
             <Head title={`Detail Pesanan #${order.order_code} - Bahana UMKM`} />
 
             <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
@@ -454,6 +454,6 @@ export default function OrderShow({ order, canReviewProducts }) {
                     )}
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 }

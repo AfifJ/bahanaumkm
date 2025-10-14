@@ -4,6 +4,8 @@ import { router, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { useCart } from '@/hooks/use-cart';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Package, HelpCircle, LayoutDashboard, ShoppingCart } from 'lucide-react';
+import { NavbarNonSearch } from '@/components/ui/navbar-04/non-search';
 
 export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar = true, ...props }) => {
     const { auth } = usePage().props;
@@ -15,11 +17,83 @@ export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar 
         router.visit(route('buyer.cart.index'));
     }
 
-    const handleSearchSubmit = (query) => {
-        if (query.trim()) {
-            router.get(route('search'), { search: query.trim() });
+    // Role-based main navigation items
+    const getRoleBasedMainNavItems = (user) => {
+        const roleId = user?.role_id;
+
+        // Buyer role navigation items
+        if (roleId === 5) {
+            return [
+                {
+                    label: 'Pesanan Saya',
+                    href: route('buyer.orders.index'),
+                    icon: Package,
+                },
+                {
+                    label: 'Pusat Bantuan',
+                    href: '/bantuan',
+                    icon: HelpCircle,
+                },
+            ];
         }
-    }
+
+        // Admin role navigation items
+        if (roleId === 1) {
+            return [
+                {
+                    label: 'Dashboard',
+                    href: route('admin.dashboard'),
+                    icon: LayoutDashboard,
+                },
+            ];
+        }
+
+        // Vendor role navigation items
+        if (roleId === 2) {
+            return [
+                {
+                    label: 'Dashboard',
+                    href: route('vendor.dashboard'),
+                    icon: LayoutDashboard,
+                },
+                {
+                    label: 'Produk Saya',
+                    href: route('vendor.products.index'),
+                    icon: Package,
+                },
+                {
+                    label: 'Transaksi',
+                    href: route('vendor.transaction.index'),
+                    icon: ShoppingCart,
+                },
+                {
+                    label: 'Pusat Bantuan',
+                    href: '/bantuan',
+                    icon: HelpCircle,
+                },
+            ];
+        }
+
+        // Sales role navigation items
+        if (roleId === 4) {
+            return [
+                {
+                    label: 'Dashboard',
+                    href: route('sales.dashboard'),
+                    icon: LayoutDashboard,
+                },
+                {
+                    label: 'Pusat Bantuan',
+                    href: '/bantuan',
+                    icon: HelpCircle,
+                },
+            ];
+        }
+
+        return [];
+    };
+
+    const mainNavItems = getRoleBasedMainNavItems(user);
 
     // Desktop navigation items for buyer
     const navigationLinks = [
@@ -47,12 +121,14 @@ export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar 
     return (
         <PersistentNavigationWrapper withBottomNav={showBottomNav} navType="buyer">
             {navbar &&
-                <Navbar04
+                <NavbarNonSearch
                     profileLink={user?.role_id === 5 ? '/profile' : ""}
+                    menuItems={mainNavItems}
                     navigationLinks={!isMobile ? navigationLinks : []}
-                    onSearchSubmit={handleSearchSubmit}
                     onCartClick={handleCartClick}
                     cartCount={cartCount}
+                    backLink={backLink}
+                    title={title}
                 />
             }
 

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { ArrowLeft, CreditCard, Image, Upload, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 
@@ -56,7 +57,7 @@ export default function PaymentShow({ order, qrisImage }) {
 
     if (uploaded) {
         return (
-            <BuyerLayoutNonSearch withBottomNav={false} title="Pembayaran Berhasil">
+            <BuyerLayoutWrapper withBottomNav={false} backLink={route('orders.show', order.id)} title="Pembayaran Berhasil">
                 <Head title={`Pembayaran - ${order.order_code}`} />
                 <div className="container mx-auto px-4 py-8">
                     <div className="max-w-md mx-auto text-center">
@@ -90,12 +91,12 @@ export default function PaymentShow({ order, qrisImage }) {
                         </div>
                     </div>
                 </div>
-            </BuyerLayoutNonSearch>
+            </BuyerLayoutWrapper>
         );
     }
 
     return (
-        <BuyerLayoutNonSearch withBottomNav={false} title="Pembayaran QRIS">
+        <BuyerLayoutWrapper withBottomNav={false} backLink={route('orders.show', order.id)} title="Pembayaran QRIS">
             <Head title={`Pembayaran - ${order.order_code}`} />
 
             <div className="container mx-auto px-4 py-6">
@@ -230,6 +231,6 @@ export default function PaymentShow({ order, qrisImage }) {
                     </div>
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 }

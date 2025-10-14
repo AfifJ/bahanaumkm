@@ -1,6 +1,7 @@
-import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+import BuyerLayoutWrapper from "@/layouts/buyer-layout-wrapper"
 import { Button } from '@/components/ui/button'
 import { useState } from "react"
+import { route } from 'ziggy-js'
 
 const Bantuan = () => {
     const [openItems, setOpenItems] = useState({})
@@ -105,7 +106,7 @@ const Bantuan = () => {
     ]
 
     return (
-        <BuyerLayoutNonSearch backLink={route('buyer.profile.index')} title="Pusat Bantuan">
+        <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Pusat Bantuan">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8">
@@ -190,7 +191,7 @@ const Bantuan = () => {
                     </div>
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     )
 }
 export default Bantuan

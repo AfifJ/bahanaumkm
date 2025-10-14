@@ -1,9 +1,10 @@
-import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+import BuyerLayoutWrapper from "@/layouts/buyer-layout-wrapper"
 import { Button } from '@/components/ui/button'
+import { route } from 'ziggy-js'
 
 const TentangKami = () => {
     return (
-        <BuyerLayoutNonSearch backLink={route('buyer.profile.index')} title="Tentang Kami">
+        <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Tentang Kami">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
                 {/* Hero Section */}
                 <div className="text-center mb-8 sm:mb-12">
@@ -156,7 +157,7 @@ const TentangKami = () => {
                     </div>
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     )
 }
 export default TentangKami

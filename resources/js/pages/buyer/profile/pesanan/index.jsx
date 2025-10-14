@@ -4,16 +4,17 @@
 //     return (
 //         <BuyerLayoutNonSearch backLink={route('buyer.profile.index')}>
 //             <div>Pesanan</div>
-//         </BuyerLayoutNonSearch>
+//         </BuyerLayoutWrapper>
 //     )
 // }
 // export default Pesanan
 
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
-import BuyerLayout from '@/layouts/buyer-layout';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, MapPin, Package, User } from 'lucide-react';
+import { route } from 'ziggy-js';
+import { ChevronLeft, ChevronRight, Package, User } from 'lucide-react';
 import { useState } from 'react';
 
 export default function OrdersIndex({ orders }) {
@@ -43,16 +44,7 @@ export default function OrdersIndex({ orders }) {
         }).format(price);
     };
 
-    const formatDate = (date) => {
-        return new Date(date).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
+  
     const handleCancelOrder = (orderId) => {
         router.put(
             route('buyer.orders.update', orderId),
@@ -74,7 +66,7 @@ export default function OrdersIndex({ orders }) {
     };
 
     return (
-        <BuyerLayoutNonSearch backLink={route('buyer.profile.index')} title={'Pesanan Saya'}>
+        <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title={'Pesanan Saya'}>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
             <div className="container mx-auto p-4">
                 {flash?.success && <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">{flash.success}</div>}
@@ -309,6 +301,6 @@ export default function OrdersIndex({ orders }) {
                     )}
                 </div>
             </div>
-        </BuyerLayoutNonSearch >
+        </BuyerLayoutWrapper>
     );
 }

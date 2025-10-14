@@ -2,9 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
-import BuyerLayout from '@/layouts/buyer-layout';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import GuestLayout from '@/layouts/guest-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { ArrowLeft, Plus, Minus, ShoppingBag, Trash2, CreditCard, Package, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -96,10 +97,10 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
     };
 
     // Determine layout based on user role
-    const Layout = auth?.user?.role_id === 5 ? BuyerLayout : GuestLayout;
+    const Layout = auth?.user?.role_id === 5 ? BuyerLayoutWrapper : GuestLayout;
 
     return (
-        <Layout>
+        <Layout title={'Keranjang Belanja'} backLink={route('home')}>
             <Head title="Keranjang Belanja - Bahana UMKM" />
 
             <div className="container mx-auto px-4 py-8 max-w-4xl">

@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+import BuyerLayoutWrapper from "@/layouts/buyer-layout-wrapper"
 import { Head, useForm, router } from "@inertiajs/react"
+import { route } from 'ziggy-js'
 
 const GantiPassword = () => {
     const { data, setData, processing, errors, reset } = useForm({
@@ -18,7 +19,7 @@ const GantiPassword = () => {
     };
 
     return (
-        <BuyerLayoutNonSearch backLink={route('buyer.profile.index')} title="Ganti Password">
+        <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Ganti Password">
             <Head title="Ganti Password" />
             <form onSubmit={handleSubmit} className="w-full p-4 space-y-3">
 
@@ -59,7 +60,7 @@ const GantiPassword = () => {
                     {processing ? 'Mengganti Password...' : 'Ganti Password'}
                 </Button>
             </form>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     )
 }
 export default GantiPassword

@@ -1,4 +1,4 @@
-import BuyerLayoutNonSearch from "@/layouts/buyer-layout-non-search"
+import BuyerLayoutWrapper from "@/layouts/buyer-layout-wrapper"
 import { Heart } from "lucide-react"
 import { Head, Link, router } from "@inertiajs/react"
 import { Button } from "@/components/ui/button"
@@ -60,7 +60,7 @@ const Wishlist = ({ wishlists, flash }) => {
   
     if (wishlists.length === 0) {
         return (
-            <BuyerLayoutNonSearch title="Wishlist">
+            <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Wishlist">
                 <Head title="Wishlist" />
                 <div className="flex justify-center flex-col items-center my-20">
                     <Heart className="h-20 text-red-600 w-20 my-8" />
@@ -74,12 +74,12 @@ const Wishlist = ({ wishlists, flash }) => {
                         Jelajahi Produk
                     </Button>
                 </div>
-            </BuyerLayoutNonSearch>
+            </BuyerLayoutWrapper>
         )
     }
 
     return (
-        <BuyerLayoutNonSearch title="Wishlist">
+        <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Wishlist">
             <Head title="Wishlist" />
             <div className="container mx-auto px-3 py-4">
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -141,7 +141,7 @@ const Wishlist = ({ wishlists, flash }) => {
                     })}
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     )
 }
 

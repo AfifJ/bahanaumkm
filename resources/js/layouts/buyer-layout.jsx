@@ -4,6 +4,7 @@ import { router, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { useCart } from '@/hooks/use-cart';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Home, Heart, User, Package, HelpCircle, LayoutDashboard, ShoppingCart, ArrowLeftRight } from 'lucide-react';
 
 export default ({ children, mainNavItems }) => {
     const { auth } = usePage().props;
@@ -21,32 +22,107 @@ export default ({ children, mainNavItems }) => {
         }
     }
 
-    // Desktop navigation items for buyer
-    const navigationLinks = [
-        {
-            label: 'Beranda',
-            href: route('home'),
-        },
-        {
-            label: 'Transaksi',
-            href: route('buyer.orders.index'),
-        },
-        {
-            label: 'Wishlist',
-            href: route('buyer.wishlist'),
-        },
-        {
-            label: 'Profil',
-            href: route('buyer.profile.index'),
-        },
-    ];
+    // Role-based main navigation items
+    const getRoleBasedMainNavItems = (user) => {
+        const roleId = user?.role_id;
 
+        // Buyer role navigation items
+        if (roleId === 5) {
+            return [
+                {
+                    label: 'Beranda',
+                    href: route('home'),
+                    icon: Home,
+                },
+                {
+                    label: 'Transaksi',
+                    href: route('buyer.orders.index'),
+                    icon: Package,
+                },
+                {
+                    label: 'Wishlist',
+                    href: route('buyer.wishlist'),
+                    icon: Heart,
+                },
+                {
+                    label: 'Profil',
+                    href: route('buyer.profile.index'),
+                    icon: User,
+                },
+                {
+                    label: 'Pusat Bantuan',
+                    href: '/bantuan',
+                    icon: HelpCircle,
+                },
+            ];
+        }
+
+        // Admin role navigation items
+        if (roleId === 1) {
+            return [
+                {
+                    label: 'Dashboard',
+                    href: route('admin.dashboard'),
+                    icon: LayoutDashboard,
+                },
+            ];
+        }
+
+        // Vendor role navigation items
+        if (roleId === 2) {
+            return [
+                {
+                    label: 'Dashboard',
+                    href: route('vendor.dashboard'),
+                    icon: LayoutDashboard,
+                },
+                {
+                    label: 'Produk Saya',
+                    href: route('vendor.products.index'),
+                    icon: Package,
+                },
+                {
+                    label: 'Transaksi',
+                    href: route('vendor.transaction.index'),
+                    icon: ShoppingCart,
+                },
+                {
+                    label: 'Pusat Bantuan',
+                    href: '/bantuan',
+                    icon: HelpCircle,
+                },
+            ];
+        }
+
+        // Sales role navigation items
+        if (roleId === 4) {
+            return [
+                {
+                    label: 'Dashboard',
+                    href: route('sales.dashboard'),
+                    icon: LayoutDashboard,
+                },
+                {
+                    label: 'Pusat Bantuan',
+                    href: '/bantuan',
+                    icon: HelpCircle,
+                },
+            ];
+        }
+
+        return [];
+    };
+
+    // Get mainNavItems from props or generate from user role
+    const effectiveMainNavItems = mainNavItems || getRoleBasedMainNavItems(user);
+
+    
     return (
         <PersistentNavigationWrapper withBottomNav={isMobile} navType="buyer">
             <Navbar04
                 profileLink={user?.role_id === 5 ? '/profile' : ""}
-                menuItems={mainNavItems}
-                navigationLinks={!isMobile ? navigationLinks : []}
+                menuItems={effectiveMainNavItems}
+                navigationLinks={[]}
                 onSearchSubmit={handleSearchSubmit}
                 onCartClick={handleCartClick}
                 cartCount={cartCount}

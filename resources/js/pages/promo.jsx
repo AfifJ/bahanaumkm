@@ -1,12 +1,13 @@
 import { NavbarNonSearch } from '@/components/ui/navbar-04/non-search';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import GuestLayout from '@/layouts/guest-layout';
 import { Head } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { Megaphone } from 'lucide-react';
 
 export default function Promo() {
     return (
-        <BuyerLayoutNonSearch navbar={false}>
+        <BuyerLayoutWrapper navbar={false} backLink={route('home')} title={'Promo & Diskon'}>
             <Head title="Promo - Bahana UMKM" />
             <div className="container mx-auto px-4 py-16">
                 <div className="flex flex-col items-center justify-center text-center">
@@ -18,6 +19,6 @@ export default function Promo() {
                     </p>
                 </div>
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 }

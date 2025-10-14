@@ -3,8 +3,9 @@ import ProductImageGallery from '@/components/product-image-gallery';
 import ScrollToTop from '@/components/scroll-to-top';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import BuyerLayoutNonSearch from '@/layouts/buyer-layout-non-search';
+import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, router, usePage } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import { Package, Heart, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -131,7 +132,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
     
     return (
-            <BuyerLayoutNonSearch withBottomNav={false} backLink={route('home')} title={'Detail Produk'} >
+            <BuyerLayoutWrapper withBottomNav={false} backLink={route('home')} title={'Detail Produk'} >
                 <ScrollToTop />
                 <Head title={product.name || 'Detail Produk'} />
 
@@ -380,6 +381,6 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                 {/* Spacer for sticky button */}
                 {product.stock > 0 && <div className="h-20 sm:h-0"></div>}
             </div>
-        </BuyerLayoutNonSearch>
+        </BuyerLayoutWrapper>
     );
 }
