@@ -5,18 +5,22 @@ import { Label } from '@/components/ui/label';
 import { ProductSelector } from '@/components/product-selector';
 import { SalesSelector } from '@/components/sales-selector';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { ArrowLeft, Minus, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function SalesProductCreate({ salesUsers, products }) {
+    const { props } = usePage();
     const [selectedProducts, setSelectedProducts] = useState({});
+    const [selectedSkus, setSelectedSkus] = useState({});
 
     const { data, setData, post, processing, errors } = useForm({
         sale_id: '',
         assignments: [
             {
                 product_id: '',
+                sku_id: '',
                 quantity: '',
                 borrowed_date: new Date().toISOString().split('T')[0]
             }
@@ -28,6 +32,7 @@ export default function SalesProductCreate({ salesUsers, products }) {
             ...data.assignments,
             {
                 product_id: '',
+                sku_id: '',
                 quantity: '',
                 borrowed_date: new Date().toISOString().split('T')[0]
             }
@@ -53,6 +58,22 @@ export default function SalesProductCreate({ salesUsers, products }) {
             }
         });
         setSelectedProducts(reindexedSelectedProducts);
+
+        // Clean up selected SKUs state
+        const newSelectedSkus = { ...selectedSkus };
+        delete newSelectedSkus[index];
+
+        // Re-index selected SKUs to match new assignments array
+        const reindexedSelectedSkus = {};
+        Object.keys(newSelectedSkus).forEach(key => {
+            const numKey = parseInt(key);
+            if (numKey > index) {
+                reindexedSelectedSkus[numKey - 1] = newSelectedSkus[numKey];
+            } else {
+                reindexedSelectedSkus[numKey] = newSelectedSkus[numKey];
+            }
+        });
+        setSelectedSkus(reindexedSelectedSkus);
     };
 
     const updateAssignment = (index, field, value) => {
@@ -65,16 +86,94 @@ export default function SalesProductCreate({ salesUsers, products }) {
         // Update form data
         updateAssignment(index, 'product_id', product.id.toString());
 
+        // Reset SKU in form data when product changes
+        updateAssignment(index, 'sku_id', '');
+
         // Update selected products state
         setSelectedProducts(prev => ({
             ...prev,
             [index]: product
         }));
+
+        // Reset SKU selection when product changes
+        if (!product.has_variations) {
+            setSelectedSkus(prev => {
+                const newSkus = { ...prev };
+                delete newSkus[index];
+                return newSkus;
+            });
+        }
+    };
+
+    const handleSkuQuantityChange = (index, skuId, quantity) => {
+        // Update selected SKUs state with quantities
+        setSelectedSkus(prev => ({
+            ...prev,
+            [index]: {
+                ...prev[index],
+                [skuId]: quantity
+            }
+        }));
+
+        // Update form data with SKU ID and quantity
+        if (quantity > 0) {
+            updateAssignment(index, 'sku_id', skuId.toString());
+            // For variation products, update quantity from SKU selection
+            updateAssignment(index, 'quantity', quantity.toString());
+        }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('admin.sales-products.store'));
+
+        // Transform data struktur baru
+        const products = [];
+
+        data.assignments.forEach((assignment, index) => {
+            const product = selectedProducts[index];
+            const skus = selectedSkus[index];
+
+            // Jika produk memiliki variasi dan SKU dipilih
+            if (product?.has_variations && skus && Object.keys(skus).length > 0) {
+                // Buat entry terpisah untuk setiap SKU yang dipilih
+                Object.entries(skus).forEach(([skuId, quantity]) => {
+                    if (quantity > 0) {
+                        products.push({
+                            product_id: parseInt(assignment.product_id),
+                            product_sku_id: parseInt(skuId),
+                            quantity: parseInt(quantity),
+                            borrowed_date: assignment.borrowed_date
+                        });
+                    }
+                });
+            }
+            // Jika produk tanpa variasi
+            else if (assignment.product_id && assignment.quantity) {
+                products.push({
+                    product_id: parseInt(assignment.product_id),
+                    quantity: parseInt(assignment.quantity),
+                    borrowed_date: assignment.borrowed_date
+                });
+            }
+        });
+
+        const payload = {
+            sale_id: data.sale_id,
+            products: products
+        };
+
+        // Show loading toast
+        const toastId = toast.loading('Menugaskan produk...');
+
+        // Gunakan router.post untuk mengirim payload custom
+        router.post(route('admin.sales-products.store'), payload, {
+            onSuccess: () => {
+                toast.success('Produk berhasil ditugaskan kepada sales', { id: toastId });
+            },
+            onError: (errors) => {
+                toast.error('Gagal menugaskan produk. Periksa form kembali.', { id: toastId });
+            }
+        });
     };
 
     return (
@@ -95,6 +194,27 @@ export default function SalesProductCreate({ salesUsers, products }) {
                         <p className="text-muted-foreground">Pilih sales dan produk yang akan ditugaskan</p>
                     </div>
                 </div>
+
+                {/* Flash Messages */}
+                {props.flash?.success && (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                        <div className="flex">
+                            <div className="ml-3">
+                                <p className="text-sm text-green-800">{props.flash.success}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {props.flash?.error && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                        <div className="flex">
+                            <div className="ml-3">
+                                <p className="text-sm text-red-800">{props.flash.error}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Sales Selection */}
@@ -131,6 +251,8 @@ export default function SalesProductCreate({ salesUsers, products }) {
                                                 products={products}
                                                 onSelect={(product) => handleProductSelect(index, product)}
                                                 selectedProduct={selectedProducts[index] || null}
+                                                selectedSkus={selectedSkus[index] || {}}
+                                                onSkuQuantityChange={(skuId, quantity) => handleSkuQuantityChange(index, skuId, quantity)}
                                             />
                                             {errors[`assignments.${index}.product_id`] && (
                                                 <p className="text-sm text-red-600">
@@ -140,21 +262,45 @@ export default function SalesProductCreate({ salesUsers, products }) {
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label>Jumlah *</Label>
-                                                <Input
-                                                    type="number"
-                                                    min="1"
-                                                    placeholder="Masukkan jumlah"
-                                                    value={assignment.quantity}
-                                                    onChange={(e) => updateAssignment(index, 'quantity', e.target.value)}
-                                                />
-                                                {errors[`assignments.${index}.quantity`] && (
-                                                    <p className="text-sm text-red-600">
-                                                        {errors[`assignments.${index}.quantity`]}
+                                            {/* Quantity Input - Only show for products without variations */}
+                                            {(!selectedProducts[index] || !selectedProducts[index]?.has_variations) ? (
+                                                <div className="space-y-2">
+                                                    <Label>Jumlah *</Label>
+                                                    <Input
+                                                        type="text"
+                                                        min="1"
+                                                        max={selectedProducts[index]?.stock || undefined}
+                                                        placeholder="Masukkan jumlah"
+                                                        value={assignment.quantity}
+                                                        onChange={(e) => updateAssignment(index, 'quantity', e.target.value.replace(/\D/g, ''))}
+                                                    />
+                                                    {errors[`assignments.${index}.quantity`] && (
+                                                        <p className="text-sm text-red-600">
+                                                            {errors[`assignments.${index}.quantity`]}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        Stok tersedia: {selectedProducts[index]?.stock || 0} unit
                                                     </p>
-                                                )}
-                                            </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <Label>Jumlah</Label>
+                                                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                                                        <p className="text-sm text-gray-700">
+                                                            {selectedSkus[index] && Object.entries(selectedSkus[index]).some(([skuId, qty]) => qty > 0)
+                                                                ? `Total: ${Object.entries(selectedSkus[index]).reduce((sum, [skuId, qty]) => sum + qty, 0)} unit`
+                                                                : 'Pilih variasi produk untuk menentukan jumlah'
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                    {errors[`assignments.${index}.quantity`] && (
+                                                        <p className="text-sm text-red-600">
+                                                            {errors[`assignments.${index}.quantity`]}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             <div className="space-y-2">
                                                 <Label>Tanggal Pinjam *</Label>

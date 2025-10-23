@@ -17,6 +17,7 @@ class CartController extends Controller
     {
         $cartItems = Cart::forUser(Auth::id())
             ->withProduct()
+            ->withSku()
             ->get()
             ->filter(function ($item) {
                 return $item->isValid();
@@ -34,15 +35,25 @@ class CartController extends Controller
                 'product' => [
                     'id' => $item->product->id,
                     'name' => $item->product->name,
+                    'slug' => $item->product->slug,
                     'sell_price' => $item->product->sell_price,
                     'stock' => $item->product->stock,
                     'status' => $item->product->status,
+                    'has_variations' => $item->product->has_variations,
                     'primaryImage' => $item->product->primaryImage,
-                    'image_url' => $item->product->image_url,
                 ],
+                'sku' => $item->sku ? [
+                    'id' => $item->sku->id,
+                    'sku_code' => $item->sku->sku_code,
+                    'variant_name' => $item->sku->variant_name,
+                    'price' => $item->sku->price,
+                    'stock' => $item->sku->stock,
+                    'variation_summary' => $item->sku->variation_summary,
+                ] : null,
                 'quantity' => $item->quantity,
                 'subtotal' => $item->subtotal,
                 'formatted_subtotal' => $item->getFormattedSubtotal(),
+                'variation_summary' => $item->variation_summary,
             ];
         });
 
@@ -109,6 +120,7 @@ class CartController extends Controller
     {
         $cartItems = Cart::forUser(Auth::id())
             ->withProduct()
+            ->withSku()
             ->get()
             ->filter(function ($item) {
                 return $item->isValid();
@@ -118,19 +130,40 @@ class CartController extends Controller
             return back()->with('error', 'Keranjang Anda kosong');
         }
 
-        // Check if any items have insufficient stock
-        $hasStockIssues = $cartItems->some(function ($item) {
-            return $item->product->stock < $item->quantity;
-        });
-
-        if ($hasStockIssues) {
-            return back()->with('error', 'Beberapa produk dalam keranjang tidak memiliki stok yang cukup');
+        // Validate stock for all items
+        foreach ($cartItems as $item) {
+            $product = $item->product;
+            $availableStock = $item->sku ? $item->sku->stock : $product->stock;
+            
+            if ($availableStock < $item->quantity) {
+                $productName = $product->name;
+                $variant = $item->sku ? " ({$item->sku->variant_name})" : '';
+                
+                return back()->with('error', "Stok tidak mencukupi untuk {$productName}{$variant}. Stok tersedia: {$availableStock}");
+            }
         }
 
-        // TODO: Implement checkout logic
-        // This would redirect to order creation flow
-        return redirect()->route('buyer.orders.create')
-            ->with('cartItems', $cartItems)
-            ->with('subtotal', $cartItems->sum('subtotal'));
+        // Prepare checkout data
+        $checkoutData = $cartItems->map(function ($item) {
+            return [
+                'cart_id' => $item->id,
+                'product_id' => $item->product_id,
+                'sku_id' => $item->sku_id,
+                'quantity' => $item->quantity,
+                'price' => $item->sku ? $item->sku->price : $item->product->sell_price,
+            ];
+        });
+
+        // Calculate subtotal
+        $subtotal = $checkoutData->sum(function ($item) {
+            return $item['price'] * $item['quantity'];
+        });
+
+        // Store in session
+        session()->put('checkout_cart_items', $checkoutData->toArray());
+        session()->put('checkout_cart_ids', $checkoutData->pluck('cart_id')->toArray());
+        session()->put('checkout_subtotal', $subtotal);
+
+        return redirect()->route('buyer.orders.create', ['from_cart' => 1]);
     }
 }

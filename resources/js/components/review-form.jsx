@@ -57,7 +57,7 @@ export function ReviewForm({ productId, orderId, onSubmit, onCancel, isLoading =
     const remainingChars = 1000 - data.review.length;
 
     return (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="">
             <h3 className="text-lg font-semibold mb-4">Beri Review Produk</h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -109,18 +109,6 @@ export function ReviewForm({ productId, orderId, onSubmit, onCancel, isLoading =
                     )}
                 </div>
 
-                {/* Guidelines */}
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                    <h4 className="text-sm font-medium text-blue-800 mb-2">Panduan Review:</h4>
-                    <ul className="text-xs text-blue-700 space-y-1">
-                        <li>• Berikan review yang jujur dan objektif</li>
-                        <li>• Fokus pada kualitas produk dan pengalaman penggunaan</li>
-                        <li>• Hindari informasi pribadi atau kontak</li>
-                        <li>• Gunakan bahasa yang sopan dan konstruktif</li>
-                    </ul>
-                </div>
-
-                {/* Action Buttons */}
                 <div className="flex justify-end space-x-3 pt-4">
                     {onCancel && (
                         <Button

@@ -31,6 +31,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::put('/images/{image}/primary', [ProductController::class, 'setPrimaryImage'])->name('images.setPrimary');
         Route::delete('/images/{image}', [ProductController::class, 'deleteImage'])->name('images.delete');
         Route::get('/reviews', [ProductController::class, 'reviews'])->name('reviews');
+        
+        // SKU Management Routes
+        Route::delete('/skus/{sku}/disable', [ProductController::class, 'disableSku'])->name('skus.disable');
+        Route::post('/skus/{sku}/enable', [ProductController::class, 'enableSku'])->name('skus.enable');
     });
 
     Route::resource('categories', CategoryController::class)

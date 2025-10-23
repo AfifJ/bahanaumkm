@@ -31,7 +31,7 @@ export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar 
                 },
                 {
                     label: 'Pusat Bantuan',
-                    href: '/bantuan',
+                    href: route('buyer.profile.bantuan'),
                     icon: HelpCircle,
                 },
             ];
@@ -68,7 +68,7 @@ export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar 
                 },
                 {
                     label: 'Pusat Bantuan',
-                    href: '/bantuan',
+                    href: route('buyer.profile.bantuan'),
                     icon: HelpCircle,
                 },
             ];
@@ -84,7 +84,7 @@ export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar 
                 },
                 {
                     label: 'Pusat Bantuan',
-                    href: '/bantuan',
+                    href: route('buyer.profile.bantuan'),
                     icon: HelpCircle,
                 },
             ];

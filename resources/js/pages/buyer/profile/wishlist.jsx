@@ -19,23 +19,10 @@ const Wishlist = ({ wishlists, flash }) => {
 
     const getImageUrl = (product) => {
         // Try primary_image first (new system)
-        if (product.primary_image?.image_path) {
-            return '/storage/' + product.primary_image.image_path;
+        if (product.primary_image?.url) {
+            return product.primary_image.url;
         }
-
-        // Try images array (new system)
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-            const firstImage = product.images.find(img => img && img.image_path);
-            if (firstImage) {
-                return '/storage/' + firstImage.image_path;
-            }
-        }
-
-        // Fallback: legacy image_url field (old system)
-        if (product.image_url) {
-            return product.image_url;
-        }
-
+        
         return null;
     };
     const formatPrice = (price) => {
@@ -81,8 +68,8 @@ const Wishlist = ({ wishlists, flash }) => {
     return (
         <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Wishlist">
             <Head title="Wishlist" />
-            <div className="container mx-auto px-3 py-4">
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="max-w-screen-2xl mx-auto p-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
                     {wishlists.map((wishlist) => {
                         const imageUrl = getImageUrl(wishlist.product);
 
@@ -95,7 +82,7 @@ const Wishlist = ({ wishlists, flash }) => {
                                             <img
                                                 src={imageUrl}
                                                 alt={wishlist.product.name}
-                                                className="aspect-square w-full object-contain"
+                                                className="aspect-square w-full object-cover"
                                                 loading="lazy"
                                                 onError={(e) => {
                                                     e.target.style.display = 'none';
@@ -120,15 +107,12 @@ const Wishlist = ({ wishlists, flash }) => {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="py-3">
-                                        <h3 className="line-clamp-2 h-5 text-sm font-medium text-gray-900">
+                                    <div className="py-2 space-y-1">
+                                        <h3 className="line-clamp-2 h-5 text-sm font-medium text-gray-900 leading-tight">
                                             {wishlist.product.name}
                                         </h3>
-                                        <p className="mt-2 text-lg font-bold text-primary">{formatPrice(wishlist.product.sell_price)}</p>
-                                        <p className="text-xs text-gray-500 truncate">oleh {wishlist.product.vendor}</p>
-                                        <p className={`text-xs mt-1 ${wishlist.product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            Stok: {wishlist.product.stock ?? 'Stok habis'}
-                                        </p>
+                                        <p className="text-sm font-bold text-primary">{formatPrice(wishlist.product.sell_price)}</p>
+                                        <p className="text-xs text-gray-500 truncate">{wishlist.product.vendor}</p>
                                     </div>
                                 </div>
                             </Link>

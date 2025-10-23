@@ -153,7 +153,7 @@ export default function AdminSettingsIndex() {
         >
             <Head title="Pengaturan" />
 
-            <div className="space-y-6">
+            <div className="space-y-6 p-3">
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>

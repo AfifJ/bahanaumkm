@@ -17,7 +17,11 @@ class CatalogController extends Controller
     public function categoryIndex()
     {
         $categories = Category::withCount(['products' => function($query) {
-            $query->where('status', 'active')->where('stock', '>', 0);
+            $query->where('status', 'active')
+                ->where(function($q) {
+                    $q->where('stock', '>', 0)
+                      ->orWhere('has_variations', true);
+                });
         }])->get();
 
         // Determine layout based on user role
@@ -34,10 +38,13 @@ class CatalogController extends Controller
      */
     public function categoryShow(Category $category, Request $request)
     {
-        $query = Product::with(['category', 'vendor', 'primaryImage'])
+        $query = Product::with(['category', 'vendor', 'primaryImage', 'activeSkus'])
             ->where('category_id', $category->id)
             ->where('status', 'active')
-            ->where('stock', '>', 0);
+            ->where(function($q) {
+                $q->where('stock', '>', 0)
+                  ->orWhere('has_variations', true);
+            });
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -46,10 +53,20 @@ class CatalogController extends Controller
 
         // Price range filter
         if ($request->has('min_price') && $request->min_price) {
-            $query->where('sell_price', '>=', $request->min_price);
+            $query->where(function($q) use ($request) {
+                $q->where('sell_price', '>=', $request->min_price)
+                  ->orWhereHas('activeSkus', function($skuQuery) use ($request) {
+                      $skuQuery->where('price', '>=', $request->min_price);
+                  });
+            });
         }
         if ($request->has('max_price') && $request->max_price) {
-            $query->where('sell_price', '<=', $request->max_price);
+            $query->where(function($q) use ($request) {
+                $q->where('sell_price', '<=', $request->max_price)
+                  ->orWhereHas('activeSkus', function($skuQuery) use ($request) {
+                      $skuQuery->where('price', '<=', $request->max_price);
+                  });
+            });
         }
 
         // Sorting
@@ -82,9 +99,12 @@ class CatalogController extends Controller
      */
     public function search(Request $request)
     {
-        $query = Product::with(['category', 'vendor', 'primaryImage'])
+        $query = Product::with(['category', 'vendor', 'primaryImage', 'activeSkus'])
             ->where('status', 'active')
-            ->where('stock', '>', 0);
+            ->where(function($q) {
+                $q->where('stock', '>', 0)
+                  ->orWhere('has_variations', true);
+            });
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -133,19 +153,47 @@ class CatalogController extends Controller
      */
     public function productShow(Product $product)
     {
-        if ($product->status !== 'active' || $product->stock <= 0) {
+        // Check if product is active and has stock (either direct stock or SKUs)
+        if ($product->status !== 'active') {
             abort(404);
         }
 
+        // For products without variations, check direct stock
+        if (!$product->has_variations && $product->stock <= 0) {
+            abort(404);
+        }
+
+        // For products with variations, check if any SKU has stock
+        if ($product->has_variations) {
+            $activeSkus = $product->activeSkus()->get();
+            \Log::info('Product ' . $product->id . ' has ' . $activeSkus->count() . ' active SKUs');
+
+            if ($activeSkus->isEmpty()) {
+                \Log::warning('Product ' . $product->id . ' has no active SKUs with stock');
+                // Don't abort(404) - allow viewing of out-of-stock products with variations
+                // This gives users the option to see the product and potentially request notifications
+            }
+        }
+
         // Load product with all necessary relationships including rating stats
-        $product->load([
+        $loadRelations = [
             'category',
             'vendor',
             'primaryImage',
             'images' => function ($query) {
                 $query->orderBy('sort_order')->orderBy('id');
             }
-        ]);
+        ];
+
+        // Load variation data if product has variations
+        if ($product->has_variations) {
+            $loadRelations['skus'] = function ($query) {
+                $query->available()
+                      ->orderBy('variant_name');
+            };
+        }
+
+        $product->load($loadRelations);
 
         // Get related products from same category
         $relatedProducts = Product::with(['category', 'vendor', 'primaryImage'])
@@ -285,12 +333,15 @@ class CatalogController extends Controller
             abort(404);
         }
 
-        $query = Product::with(['category', 'vendor', 'primaryImage', 'images' => function ($query) {
+        $query = Product::with(['category', 'vendor', 'primaryImage', 'activeSkus', 'images' => function ($query) {
             $query->orderBy('sort_order')->orderBy('id');
         }])
             ->where('vendor_id', $vendor->id)
             ->where('status', 'active')
-            ->where('stock', '>', 0);
+            ->where(function($q) {
+                $q->where('stock', '>', 0)
+                  ->orWhere('has_variations', true);
+            });
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -328,7 +379,10 @@ class CatalogController extends Controller
             'total_products' => Product::where('vendor_id', $vendor->id)->count(),
             'active_products' => Product::where('vendor_id', $vendor->id)
                 ->where('status', 'active')
-                ->where('stock', '>', 0)
+                ->where(function($q) {
+                    $q->where('stock', '>', 0)
+                      ->orWhere('has_variations', true);
+                })
                 ->count(),
         ];
 

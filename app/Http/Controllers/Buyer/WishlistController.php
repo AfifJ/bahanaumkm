@@ -30,7 +30,6 @@ class WishlistController extends Controller
                         'slug' => $wishlist->product->slug,
                         'sell_price' => $wishlist->product->sell_price,
                         'stock' => $wishlist->product->stock,
-                        'image_url' => $wishlist->product->image_url,
                         'primary_image' => $wishlist->product->primaryImage,
                         'images' => $wishlist->product->images,
                         'category' => $wishlist->product->category->name ?? null,

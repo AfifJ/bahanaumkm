@@ -10,7 +10,9 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'product_id',
+        'sku_id',
         'quantity',
+        'variation_summary',
     ];
 
     protected $casts = [
@@ -34,6 +36,14 @@ class Cart extends Model
     }
 
     /**
+     * Get the SKU that belongs to the cart item.
+     */
+    public function sku(): BelongsTo
+    {
+        return $this->belongsTo(ProductSku::class);
+    }
+
+    /**
      * Scope to get cart items for a specific user.
      */
     public function scopeForUser($query, $userId)
@@ -50,11 +60,43 @@ class Cart extends Model
     }
 
     /**
+     * Scope to get cart items with SKU data.
+     */
+    public function scopeWithSku($query)
+    {
+        return $query->with('sku');
+    }
+
+    /**
      * Get subtotal price for this cart item.
      */
     public function getSubtotalAttribute()
     {
-        return $this->quantity * ($this->product->sell_price ?? 0);
+        // Use SKU price if available, otherwise use product price
+        $price = 0;
+
+        if ($this->sku_id && $this->sku) {
+            $price = $this->sku->price;
+        } elseif ($this->product) {
+            $price = $this->product->sell_price ?? 0;
+        }
+
+        return $this->quantity * $price;
+    }
+
+    /**
+     * Get unit price for this cart item.
+     */
+    public function getUnitPriceAttribute()
+    {
+        // Use SKU price if available, otherwise use product price
+        if ($this->sku_id && $this->sku) {
+            return $this->sku->price;
+        } elseif ($this->product) {
+            return $this->product->sell_price ?? 0;
+        }
+
+        return 0;
     }
 
     /**
@@ -70,8 +112,17 @@ class Cart extends Model
             return false;
         }
 
-        if ($this->product->stock < $this->quantity) {
-            return false;
+        // Check stock based on SKU or product
+        if ($this->sku_id && $this->sku) {
+            // Use SKU stock
+            if (!$this->sku->isInStock() || $this->sku->stock < $this->quantity) {
+                return false;
+            }
+        } else {
+            // Use product stock
+            if ($this->product->stock < $this->quantity) {
+                return false;
+            }
         }
 
         return true;
@@ -86,7 +137,18 @@ class Cart extends Model
             return $this->delete();
         }
 
-        if ($this->product && $this->product->stock >= $newQuantity) {
+        // Check stock based on SKU or product
+        $availableStock = 0;
+
+        if ($this->sku_id && $this->sku) {
+            // Use SKU stock
+            $availableStock = $this->sku->stock;
+        } elseif ($this->product) {
+            // Use product stock
+            $availableStock = $this->product->stock;
+        }
+
+        if ($availableStock >= $newQuantity) {
             $this->update(['quantity' => $newQuantity]);
             return true;
         }

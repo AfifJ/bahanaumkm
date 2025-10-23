@@ -107,16 +107,16 @@ const Bantuan = () => {
 
     return (
         <BuyerLayoutWrapper backLink={route('buyer.profile.index')} title="Pusat Bantuan">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+            <div className="w-full p-4 pb-20 overflow-x-hidden">
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8">
-                    <div className="w-16 h-16 mx-auto mb-3 sm:mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 mx-auto mb-3 sm:mb-4 bg-primary rounded-full flex items-center justify-center">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Pusat Bantuan Bahana</h1>
-                    <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-2">
+                    <h1 className="text-xl  font-bold text-gray-900 mb-2">Pusat Bantuan Bahana</h1>
+                    <p className="text-sm  text-gray-600 max-w-2xl mx-auto px-2">
                         Temukan jawaban untuk pertanyaan umum tentang platform kami yang membantu UMKM berkembang
                     </p>
                 </div>
@@ -125,7 +125,7 @@ const Bantuan = () => {
                 {faqCategories.map(category => (
                     <div key={category.id} className="mb-6 sm:mb-8">
                         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-6 mb-3 sm:mb-4">
-                            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+                            <h2 className="text-lg  font-semibold text-gray-800">
                                 {category.title}
                             </h2>
                         </div>
@@ -135,9 +135,9 @@ const Bantuan = () => {
                                     <Button
                                         variant="ghost"
                                         onClick={() => toggleItem(item.id)}
-                                        className="w-full px-4 sm:px-6 py-3 sm:py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors rounded-xl h-auto"
+                                        className="w-full px-4 sm:px-6 py-3 sm:py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors rounded-xl h-auto min-w-0"
                                     >
-                                        <span className="text-sm sm:text-base font-medium text-gray-900 pr-2 text-left">
+                                        <span className="text-sm  font-medium text-gray-900 pr-2 text-left flex-1 min-w-0 overflow-hidden">
                                             {item.question}
                                         </span>
                                         <svg
@@ -153,7 +153,7 @@ const Bantuan = () => {
                                     </Button>
                                     {openItems[item.id] && (
                                         <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl">
-                                            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{item.answer}</p>
+                                            <p className="text-sm  text-gray-700 leading-relaxed break-words">{item.answer}</p>
                                         </div>
                                     )}
                                 </div>
@@ -163,29 +163,29 @@ const Bantuan = () => {
                 ))}
 
                 {/* Contact Section */}
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 sm:p-8 text-white shadow-lg mt-6 sm:mt-8">
+                <div className="bg-primary rounded-2xl p-6 sm:p-8 text-white shadow-lg mt-6 sm:mt-8">
                     <div className="text-center mb-4 sm:mb-6">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-2">Butuh Bantuan Lebih Lanjut?</h3>
-                        <p className="text-blue-100 text-sm sm:text-base">
+                        <h3 className="text-lg  font-semibold mb-2">Butuh Bantuan Lebih Lanjut?</h3>
+                        <p className="text-blue-100 text-sm ">
                             Tim support kami siap membantu Anda. Hubungi kami melalui:
                         </p>
                     </div>
                     <div className="space-y-3 sm:space-y-4">
-                        <div className="flex items-center justify-center bg-white/10 rounded-lg p-3 sm:p-4">
+                        <div className="flex items-center justify-center bg-white/10 rounded-lg p-3 sm:p-4 min-w-0">
                             <svg className="w-5 h-5 text-white mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            <span className="text-white font-medium">support@bahana.id</span>
+                            <span className="text-white font-medium text-sm  break-words">support@bahana.id</span>
                         </div>
-                        <div className="flex items-center justify-center bg-white/10 rounded-lg p-3 sm:p-4">
+                        <div className="flex items-center justify-center bg-white/10 rounded-lg p-3 sm:p-4 min-w-0">
                             <svg className="w-5 h-5 text-white mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            <span className="text-white font-medium">(021) 1234-5678</span>
+                            <span className="text-white font-medium text-sm  break-words">(021) 1234-5678</span>
                         </div>
                     </div>
                     <div className="text-center mt-4 sm:mt-6">
-                        <p className="text-blue-100 text-xs sm:text-sm">
+                        <p className="text-blue-100 text-xs ">
                             Jam operasional: Senin-Jumat, 09:00-17:00 WIB
                         </p>
                     </div>

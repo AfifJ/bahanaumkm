@@ -27,7 +27,7 @@ const getCurrentMonth = () => {
     return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
 };
 
-const Index = ({ orders, availableMonths = [], momonth: initialMonth = '' }) => {
+const Index = ({ orders, availableMonths = [], month: initialMonth = '' }) => {
     const [selectedMonth, setSelectedMonth] = useState(initialMonth || getCurrentMonth());
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -47,6 +47,7 @@ const Index = ({ orders, availableMonths = [], momonth: initialMonth = '' }) => 
         });
     };
 
+    console.log(orders);
 
     const flattenedData = useMemo(() => {
         const data = []

@@ -114,12 +114,12 @@ export default function SalesProductShow({ assignment, transactionHistory }) {
                                 <label className="text-sm font-medium text-gray-500">Kategori</label>
                                 <p>{assignment.product.category}</p>
                             </div>
-                            {assignment.product.image_url && (
+                            {assignment.product.primaryImage?.url && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">Gambar</label>
                                     <div className="mt-2">
                                         <img
-                                            src={assignment.product.image_url}
+                                            src={assignment.product.primaryImage.url}
                                             alt={assignment.product.name}
                                             className="h-20 w-20 rounded object-cover"
                                         />

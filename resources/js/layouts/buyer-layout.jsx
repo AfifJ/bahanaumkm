@@ -51,7 +51,7 @@ export default ({ children, mainNavItems }) => {
                 },
                 {
                     label: 'Pusat Bantuan',
-                    href: '/bantuan',
+                    href: route('buyer.profile.bantuan'),
                     icon: HelpCircle,
                 },
             ];
@@ -88,7 +88,7 @@ export default ({ children, mainNavItems }) => {
                 },
                 {
                     label: 'Pusat Bantuan',
-                    href: '/bantuan',
+                    href: route('buyer.profile.bantuan'),
                     icon: HelpCircle,
                 },
             ];
@@ -124,7 +124,7 @@ export default ({ children, mainNavItems }) => {
                 },
                 {
                     label: 'Pusat Bantuan',
-                    href: '/bantuan',
+                    href: route('buyer.profile.bantuan'),
                     icon: HelpCircle,
                 },
             ];
@@ -136,7 +136,7 @@ export default ({ children, mainNavItems }) => {
     // Get mainNavItems from props or generate from user role
     const effectiveMainNavItems = mainNavItems || getRoleBasedMainNavItems(user);
 
-    
+
     return (
         <PersistentNavigationWrapper withBottomNav={isMobile} navType="buyer">
             <Navbar04
@@ -148,10 +148,8 @@ export default ({ children, mainNavItems }) => {
                 cartCount={cartCount}
             />
 
-            <main className="w-full">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-                    {children}
-                </div>
+            <main className="w-full max-w-screen-2xl mx-auto">
+                {children}
             </main>
         </PersistentNavigationWrapper>
     )

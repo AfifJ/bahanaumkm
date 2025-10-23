@@ -6,14 +6,12 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
-        role_id: '',
         password: '',
         password_confirmation: '',
     });
@@ -45,30 +43,6 @@ export default function Register() {
                             placeholder="Nama lengkap"
                         />
                         <InputError message={errors.name} className="mt-2" />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="role_id">Peran</Label>
-                        <Select
-                            id="role_id"
-                            required
-                            tabIndex={2}
-                            value={data.role_id}
-                            onValueChange={(value) => setData('role_id', value)}
-                            disabled={processing}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih peran" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1">Admin</SelectItem>
-                                <SelectItem value="2">Vendor</SelectItem>
-                                <SelectItem value="3">Mitra</SelectItem>
-                                <SelectItem value="4">Sales Lapangan</SelectItem>
-                                <SelectItem value="5">Buyer</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <InputError message={errors.role_id} className="mt-2" />
                     </div>
 
                     <div className="grid gap-2">

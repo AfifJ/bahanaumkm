@@ -29,6 +29,8 @@ Route::prefix('vendor')->name('vendor.')->middleware(['auth', 'role:Vendor'])->g
     // Product Routes
     Route::get('products', [ProductController::class, 'index'])->name('products.index');
     Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('products/{product}/skus', [ProductController::class, 'skus'])->name('products.skus');
+    Route::put('products/{product}/skus/{sku}', [ProductController::class, 'updateSku'])->name('products.skus.update');
 
     Route::prefix('transaction')->name('transaction.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');

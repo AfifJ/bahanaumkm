@@ -50,7 +50,7 @@ const Profile = ({ user }) => {
                         />
                         {errors.email && <div className="text-red-500 text-sm">{errors.email}</div>}
 
-                        <div className='font-semibold'>Nomor Telepon (Opsional)</div>
+                        <div className='font-semibold'>Nomor Telepon</div>
                         <Input
                             className=""
                             value={data.phone}

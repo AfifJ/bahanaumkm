@@ -17,7 +17,7 @@ export function VendorProfileCard({ vendor, compact = false }) {
                         <div className="flex items-center space-x-3">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src={vendor.avatar_url} alt={vendor.name} />
-                                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium">
+                                <AvatarFallback className="bg-gray-100 text-gray-600 text-sm font-medium">
                                     {getVendorInitials(vendor.name)}
                                 </AvatarFallback>
                             </Avatar>

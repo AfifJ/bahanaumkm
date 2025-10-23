@@ -31,73 +31,10 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
                     </Button>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{salesUsers.length}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {salesUsers.filter(u => u.status === 'active').length} sales aktif
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Produk Ditugaskan</CardTitle>
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {salesUsers.reduce((sum, user) => sum + user.assigned_products, 0)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Total penugasan aktif
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Stok di Sales</CardTitle>
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {salesUsers.reduce((sum, user) => sum + user.total_available, 0)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Unit tersedia di lapangan
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Terjual</CardTitle>
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {salesUsers.reduce((sum, user) => sum + user.total_sold, 0)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Unit terjual oleh sales
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
 
                 {/* Sales Users Table */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Daftar Sales dan Produk Ditugaskan</CardTitle>
-                        <CardDescription>
-                            Ringkasan penugasan produk untuk setiap sales
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <div>
+                    <div>
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -106,8 +43,6 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
                                     <TableHead>Status</TableHead>
                                     <TableHead className="text-center">Produk</TableHead>
                                     <TableHead className="text-center">Total Pinjam</TableHead>
-                                    <TableHead className="text-center">Tersedia</TableHead>
-                                    <TableHead className="text-center">Terjual</TableHead>
                                     <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -130,8 +65,6 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
                                         </TableCell>
                                         <TableCell className="text-center">{user.assigned_products}</TableCell>
                                         <TableCell className="text-center">{user.total_borrowed}</TableCell>
-                                        <TableCell className="text-center">{user.total_available}</TableCell>
-                                        <TableCell className="text-center">{user.total_sold}</TableCell>
                                         <TableCell className="text-right">
                                             {user.assigned_products > 0 && (
                                                 <Link href={route('admin.sales-products.sales', user)}>
@@ -153,18 +86,15 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
                                 )}
                             </TableBody>
                         </Table>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
 
                 {/* Recent Assignments */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Penugasan Terbaru</CardTitle>
-                        <CardDescription>
-                            10 penugasan produk terbaru
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <div>
+                    <div className='mb-3'>
+                        <h2 className="text-xl font-bold tracking-tight">Penugasan Terbaru</h2>
+                    </div>
+                    <div>
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -202,8 +132,8 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
                                 )}
                             </TableBody>
                         </Table>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
         </AdminLayout>
     );

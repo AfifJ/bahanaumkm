@@ -28,9 +28,7 @@ class TransactionController extends Controller
             ->whereHas('items.product', function ($query) use ($vendorId) {
                 $query->where('vendor_id', $vendorId);
             })
-            ->whereIn('status', ['paid', 'validation']);
-
-
+            ->whereIn('status', ['delivered']);
 
         // jika ada filter bulan:
         if ($month) {

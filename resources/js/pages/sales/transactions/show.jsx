@@ -115,9 +115,9 @@ export default function TransactionShow() {
                 <div className="flex items-start space-x-3">
                   {/* Product Image - Smaller */}
                   <div className="flex-shrink-0">
-                    {item.product.image_url ? (
+                    {item.product.primaryImage?.url ? (
                       <img
-                        src={item.product.image_url}
+                        src={item.product.primaryImage.url}
                         alt={item.product.name}
                         className="h-12 w-12 rounded-lg object-cover"
                       />
@@ -134,6 +134,11 @@ export default function TransactionShow() {
                     <p className="text-sm text-gray-500">
                       {item.product.category.name}
                     </p>
+                    {item.variation_summary && (
+                      <p className="text-xs text-blue-600 font-medium mt-1">
+                        {item.variation_summary}
+                      </p>
+                    )}
 
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center space-x-3 text-sm text-gray-600">

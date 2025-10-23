@@ -1,8 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ProductImageGallery from '@/components/product-image-gallery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import VendorLayout from '@/layouts/vendor-layout';
 import { Head, Link } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 import {
     ArrowLeft,
     Package,
@@ -13,7 +15,8 @@ import {
     User,
     Calendar,
     BarChart3,
-    MessageSquare
+    MessageSquare,
+    Plus
 } from 'lucide-react';
 
 export default function Show({ product, transactionStats, reviews, ratingStats }) {
@@ -97,23 +100,10 @@ export default function Show({ product, transactionStats, reviews, ratingStats }
                     {/* Product Information */}
                     <div className="bg-white shadow rounded-lg mb-6">
                         <div className="p-6">
-                            <div className="flex items-start space-x-6">
-                                {/* Product Image */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Product Image Gallery */}
                                 <div className="flex-shrink-0">
-                                    {(() => {
-                                        const imageUrl = product.primaryImage?.url || product.image_url;
-                                        return imageUrl ? (
-                                            <img
-                                                src={imageUrl}
-                                                alt={product.name}
-                                                className="h-32 w-32 rounded-lg object-cover border"
-                                            />
-                                        ) : (
-                                            <div className="h-32 w-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                <Package className="h-12 w-12 text-gray-400" />
-                                            </div>
-                                        );
-                                    })()}
+                                    <ProductImageGallery product={product} />
                                 </div>
 
                                 {/* Product Details */}
@@ -151,7 +141,7 @@ export default function Show({ product, transactionStats, reviews, ratingStats }
 
                             {/* Description */}
                             {product.description && (
-                                <div className="mt-6 pt-6 border-t">
+                                <div className="mt-6 pt-6 border-t lg:col-span-2">
                                     <h3 className="text-sm font-medium text-gray-900 mb-2">Deskripsi</h3>
                                     <p className="text-sm text-gray-600 whitespace-pre-wrap">
                                         {product.description}
@@ -160,6 +150,125 @@ export default function Show({ product, transactionStats, reviews, ratingStats }
                             )}
                         </div>
                     </div>
+
+                    {/* Product Variations Section */}
+                    {product.has_variations && (
+                        <div className="bg-white shadow rounded-lg mb-6">
+                            <div className="p-6 border-b border-gray-200">
+                                <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                                    <Package className="h-5 w-5 mr-2" />
+                                    Variasi Produk
+                                </h3>
+                            </div>
+                            <div className="p-6">
+                                {product.skus && product.skus.length > 0 ? (
+                                    <>
+                                        {/* Mobile Card View */}
+                                        <div className="md:hidden space-y-4">
+                                            {product.skus.map((sku) => (
+                                                <div key={sku.id} className="border border-gray-200 rounded-lg p-4">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div>
+                                                            <h4 className="font-medium text-gray-900">
+                                                                {sku.sku_code}
+                                                            </h4>
+                                                            {sku.variant_name && (
+                                                                <p className="text-sm text-gray-600 mt-1">
+                                                                    {sku.variant_name}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <Badge variant={sku.status === 'active' ? 'default' : 'secondary'}>
+                                                            {sku.status}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <p className="text-sm text-gray-600">Stok</p>
+                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                                                                sku.stock > 0
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-red-100 text-red-800'
+                                                            }`}>
+                                                                {sku.stock} unit
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm text-gray-600">Harga</p>
+                                                            <p className="font-medium text-gray-900 mt-1">
+                                                                {formatPrice(sku.price)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Desktop Table View */}
+                                        <div className="hidden md:block overflow-x-auto">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Kode SKU</TableHead>
+                                                        <TableHead>Nama Variasi</TableHead>
+                                                        <TableHead>Stok</TableHead>
+                                                        <TableHead>Harga</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {product.skus.map((sku) => (
+                                                        <TableRow key={sku.id}>
+                                                            <TableCell className="font-medium">
+                                                                {sku.sku_code}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {sku.variant_name || '-'}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                                    sku.stock > 0
+                                                                        ? 'bg-green-100 text-green-800'
+                                                                        : 'bg-red-100 text-red-800'
+                                                                }`}>
+                                                                    {sku.stock} unit
+                                                                </span>
+                                                            </TableCell>
+                                                            <TableCell className="font-medium">
+                                                                {formatPrice(sku.price)}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={sku.status === 'active' ? 'default' : 'secondary'}>
+                                                                    {sku.status}
+                                                                </Badge>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            Belum Ada Variasi
+                                        </h3>
+                                        <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                                            Produk ini ditandai memiliki variasi, tapi belum ada SKU yang terdaftar.
+                                            Tambahkan variasi produk untuk mengelola stok dan harga per tipe.
+                                        </p>
+                                        <Button variant="outline" asChild>
+                                            <Link href={route('vendor.products.skus', product)}>
+                                                <Plus className="h-4 w-4 mr-2" />
+                                                Tambah Variasi
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Transaction Statistics */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

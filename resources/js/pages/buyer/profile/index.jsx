@@ -32,7 +32,7 @@ const Profile = ({ user }) => {
         <BuyerLayoutWrapper backLink={route('home')} title={'Profile'}>
             <ScrollToTop />
             <Head title="Profile" />
-            <div className="w-full p-3 pb-20">
+            <div className="w-full p-4 pb-20">
                 {/* Header Profile yang Clean */}
                 <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10">
                     <div className="flex w-full items-center gap-3">

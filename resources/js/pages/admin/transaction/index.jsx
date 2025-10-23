@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -12,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import { Eye, Download, Filter, CreditCard, Clock, CheckCircle, XCircle, AlertCircle, CheckSquare, XSquare } from 'lucide-react';
+import { Eye, Download, Filter, CreditCard, Clock, CheckCircle, XCircle, AlertCircle, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { PaymentStatusBadge } from '@/components/admin/payment-status-badge';
 import { PaymentCard } from '@/components/admin/payment-card';
@@ -35,11 +36,12 @@ const getCurrentMonth = () => {
     return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
 };
 
-export default function Transaction({ orders, availableMonths = [], month: initialMonth = '' }) {
+export default function Transaction({ orders, availableMonths = [], month: initialMonth = '', search: initialSearch = '' }) {
     const [selectedMonth, setSelectedMonth] = useState(initialMonth || getCurrentMonth());
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedOrders, setSelectedOrders] = useState(new Set());
     const [showFilters, setShowFilters] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(initialSearch);
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -53,7 +55,11 @@ export default function Transaction({ orders, availableMonths = [], month: initi
 
     const handleMonthChange = (value) => {
         setSelectedMonth(value);
-        router.get(route('admin.transaction.index'), { month: value, status: selectedStatus }, {
+        setSearchQuery(''); // Clear search when changing month
+        router.get(route('admin.transaction.index'), {
+            month: value,
+            status: selectedStatus,
+        }, {
             preserveState: true,
             preserveScroll: true
         });
@@ -61,7 +67,34 @@ export default function Transaction({ orders, availableMonths = [], month: initi
 
     const handleStatusFilter = (value) => {
         setSelectedStatus(value);
-        router.get(route('admin.transaction.index'), { month: selectedMonth, status: value }, {
+        router.get(route('admin.transaction.index'), {
+            month: searchQuery ? undefined : selectedMonth, // Don't use month filter when searching
+            status: value,
+            search: searchQuery
+        }, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        // When searching, don't filter by month
+        router.get(route('admin.transaction.index'), {
+            status: selectedStatus,
+            search: searchQuery
+        }, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        router.get(route('admin.transaction.index'), {
+            month: selectedMonth,
+            status: selectedStatus,
+        }, {
             preserveState: true,
             preserveScroll: true
         });
@@ -196,17 +229,51 @@ export default function Transaction({ orders, availableMonths = [], month: initi
         >
             <Head title="Transaksi" />
 
-            <div className="space-y-6">
+            <div className="space-y-4 p-4">
+                {/* Search Bar */}
+                <form onSubmit={handleSearch} className="flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                            type="text"
+                            placeholder="Cari berdasarkan kode order..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                    <Button type="submit">
+                        Cari
+                    </Button>
+                    {searchQuery && (
+                        <Button type="button" variant="outline" onClick={handleClearSearch}>
+                            Reset
+                        </Button>
+                    )}
+                </form>
+
                 {/* Header with Filters */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Manajemen Transaksi</h1>
-                        <p className="text-gray-600 mt-1">Kelola pembayaran dan status transaksi</p>
+                        <p className="text-gray-600 mt-1">
+                            {searchQuery ? (
+                                <span className="text-primary font-medium">
+                                    Hasil pencarian "{searchQuery}" di semua periode
+                                </span>
+                            ) : (
+                                `Kelola pembayaran dan status transaksi`
+                            )}
+                        </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                         {availableMonths.length > 0 && (
-                            <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                            <Select 
+                                value={selectedMonth} 
+                                onValueChange={handleMonthChange}
+                                disabled={!!searchQuery}
+                            >
                                 <SelectTrigger className="w-48">
                                     <SelectValue placeholder="Pilih Bulan" />
                                 </SelectTrigger>
@@ -230,8 +297,7 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                     </div>
                 </div>
 
-                {/* Payment Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/*  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <Card>
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
@@ -291,20 +357,17 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                             </div>
                         </CardContent>
                     </Card>
-                </div>
+                </div> */}
 
                 {/* Filters */}
                 {showFilters && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Filter Transaksi</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <label className="text-sm font-medium text-gray-700 mb-2 block">Status Pembayaran</label>
+                    <div>
+                        <div >
+                            <div className="space-y-3">
+                                <h4 className="text-sm font-medium text-gray-700">Filter Status</h4>
                                 <Select value={selectedStatus} onValueChange={handleStatusFilter}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Filter berdasarkan status" />
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue placeholder="Filter status" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Semua Status</SelectItem>
@@ -315,15 +378,15 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 )}
 
                 {/* Bulk Actions */}
                 {selectedOrders.size > 0 && (
-                    <Card className="border-blue-200 bg-blue-50">
-                        <CardContent className="p-4">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <Card className={'shadow-none'}>
+                        <CardContent className="p-3">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                 <div>
                                     <span className="text-sm font-medium text-blue-700">
                                         {selectedOrders.size} transaksi dipilih
@@ -378,7 +441,7 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                 <div className="space-y-4">
                     {filteredOrders.length === 0 ? (
                         <Card>
-                            <CardContent className="p-8 text-center">
+                            <CardContent className="text-center">
                                 <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada transaksi</h3>
                                 <p className="text-gray-500">
@@ -404,8 +467,8 @@ export default function Transaction({ orders, availableMonths = [], month: initi
 
                             {/* Transaction Cards */}
                             {filteredOrders.map((order) => (
-                                <Card key={order.id} className="hover:shadow-md transition-shadow">
-                                    <CardContent className="p-4">
+                                <Card key={order.id} className="hover:shadow-sm transition-shadow">
+                                    <CardContent className="">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-start space-x-3 flex-1">
                                                 <Checkbox
@@ -460,6 +523,44 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                                     </CardContent>
                                 </Card>
                             ))}
+
+                            {/* Pagination */}
+                            {orders.links && orders.links.length > 3 && (
+                                <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+                                    <div className="text-sm text-gray-700">
+                                        Menampilkan {orders.from} sampai {orders.to} dari {orders.total} transaksi
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                        {orders.links.map((link, index) => {
+                                            const isFirst = index === 0;
+                                            const isLast = index === orders.links.length - 1;
+
+                                            return (
+                                                <Link
+                                                    key={index}
+                                                    href={link.url || '#'}
+                                                    className={`inline-flex items-center justify-center h-9 ${isFirst || isLast
+                                                        ? 'w-9'
+                                                        : 'min-w-[2.25rem] px-2'
+                                                        } text-sm border rounded-md font-medium transition-colors ${link.active
+                                                            ? 'bg-primary text-white border-primary'
+                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                                        } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    preserveScroll
+                                                >
+                                                    {isFirst ? (
+                                                        <ChevronLeft className="h-4 w-4" />
+                                                    ) : isLast ? (
+                                                        <ChevronRight className="h-4 w-4" />
+                                                    ) : (
+                                                        link.label
+                                                    )}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

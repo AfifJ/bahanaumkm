@@ -50,14 +50,33 @@ export default function Index({ products }) {
                                 <TableRow key={product.id}>
                                     <TableCell>
                                         {(() => {
-                                            const imageUrl = product.primaryImage?.url || product.image_url;
+                                            // Try multiple image sources
+                                            const imageUrl = product.primaryImage?.url || 
+                                                           product.image_url || 
+                                                           (product.images && product.images.length > 0 ? product.images[0].url : null);
+                                            
                                             return imageUrl ? (
-                                                <div className="h-10 w-10 overflow-hidden rounded-md border">
-                                                    <img src={imageUrl} alt={product.name} className="h-full w-full object-contain" loading="lazy" />
+                                                <div className="h-10 w-10 overflow-hidden rounded-md border bg-gray-50">
+                                                    <img 
+                                                        src={imageUrl} 
+                                                        alt={product.name} 
+                                                        className="h-full w-full object-cover" 
+                                                        loading="lazy"
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentElement.innerHTML = `
+                                                                <div class="flex h-full w-full items-center justify-center bg-gray-200">
+                                                                    <span class="text-xs font-medium text-gray-600">
+                                                                        ${product.name.substring(0, 2).toUpperCase()}
+                                                                    </span>
+                                                                </div>
+                                                            `;
+                                                        }}
+                                                    />
                                                 </div>
                                             ) : (
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200">
-                                                    <span className="text-sm font-medium text-gray-600">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-200 border">
+                                                    <span className="text-xs font-medium text-gray-600">
                                                         {product.name.substring(0, 2).toUpperCase()}
                                                     </span>
                                                 </div>

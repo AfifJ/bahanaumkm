@@ -18,23 +18,29 @@ class HomeController extends Controller
         // Get active carousels
         $carousels = Carousel::forHome()->get();
 
-        // Get featured products
-        $featuredProducts = Product::with(['category', 'vendor', 'primaryImage'])
+                // Get featured products
+        $featuredProducts = Product::with(['category', 'vendor', 'primaryImage', 'activeSkus'])
             ->withCount('images')
             ->where('is_featured', true)
             ->where('status', 'active')
-            ->where('stock', '>', 0)
+            ->where(function($q) {
+                $q->where('stock', '>', 0)
+                  ->orWhere('has_variations', true);
+            })
             ->orderBy('created_at', 'desc')
             ->limit(8)
             ->get();
 
         // Get latest products
-        $latestProducts = Product::with(['category', 'vendor', 'primaryImage'])
+        $latestProducts = Product::with(['category', 'vendor', 'primaryImage', 'activeSkus'])
             ->withCount('images')
             ->where('status', 'active')
-            ->where('stock', '>', 0)
+            ->where(function($q) {
+                $q->where('stock', '>', 0)
+                  ->orWhere('has_variations', true);
+            })
             ->orderBy('created_at', 'desc')
-            ->limit(8)
+            ->limit(12)
             ->get();
 
         // Get popular categories (categories with most products)

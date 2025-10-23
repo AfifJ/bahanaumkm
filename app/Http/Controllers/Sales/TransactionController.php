@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\BorrowedProduct;
+use App\Models\ProductSku;
 use Exception;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,10 +18,6 @@ class TransactionController extends Controller
     public function index()
     {
         $user = auth()->user();
-        if (!$user->hasPhone()) {
-            return redirect()->route('sales.profile.edit')
-                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
-        }
 
         $transactions = Order::where('sale_id', $user->id)
             ->with(['items.product'])
@@ -50,33 +47,54 @@ class TransactionController extends Controller
     public function create()
     {
         $user = auth()->user();
-        if (!$user->hasPhone()) {
-            return redirect()->route('sales.profile.edit')
-                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
-        }
 
         // Get available products for sales
         $products = BorrowedProduct::where('sale_id', $user->id)
             ->where('status', 'borrowed')
             ->where('borrowed_quantity', '>', DB::raw('sold_quantity'))
-            ->with(['product.category'])
+            ->with(['product.category', 'product.primaryImage', 'product.images' => function ($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            }, 'product.skus' => function ($query) {
+                $query->where('status', 'active')->where('stock', '>', 0);
+            }])
             ->get()
             ->filter(function ($borrowedProduct) {
                 return $borrowedProduct->current_stock > 0;
             })
             ->map(function ($borrowedProduct) {
                 $product = $borrowedProduct->product;
-                return [
+                $productData = [
                     'id' => $product->id,
                     'name' => $product->name,
                     'sell_price' => (float) $product->sell_price,
                     'stock' => $borrowedProduct->current_stock,
-                    'image_url' => $product->image_url ? asset($product->image_url) : null,
                     'category' => [
                         'name' => $product->category->name ?? 'Uncategorized'
                     ],
-                    'borrowed_product_id' => $borrowedProduct->id
+                    'borrowed_product_id' => $borrowedProduct->id,
+                    'has_variations' => $product->has_variations,
+                    'primary_image' => $product->primaryImage,
+                    'images' => $product->images,
                 ];
+
+                // Add variation information if product has variations
+                if ($product->has_variations) {
+                    $productData['skus'] = $product->skus->map(function ($sku) {
+                        return [
+                            'id' => $sku->id,
+                            'sku_code' => $sku->sku_code,
+                            'price' => (float) $sku->price,
+                            'stock' => $sku->stock,
+                            'variation_summary' => $sku->variation_summary,
+                            'variant_name' => $sku->variant_name,
+                        ];
+                    })->filter(function ($sku) use ($borrowedProduct) {
+                        // Check if SKU stock is available within borrowed product stock
+                        return $sku['stock'] > 0 && $borrowedProduct->current_stock > 0;
+                    });
+                }
+
+                return $productData;
             });
 
         return Inertia::render('sales/transactions/new', [
@@ -87,14 +105,11 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        if (!$user->hasPhone()) {
-            return redirect()->route('sales.profile.edit')
-                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
-        }
 
         $validator = Validator::make($request->all(), [
             'items' => 'required|array|min:1',
             'items.*.productId' => 'required|integer|exists:products,id',
+            'items.*.skuId' => 'nullable|integer|exists:product_skus,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
             'items.*.subtotal' => 'required|numeric|min:0',
@@ -103,6 +118,7 @@ class TransactionController extends Controller
             'items.min' => 'Harap tambahkan minimal 1 produk',
             'items.*.productId.required' => 'Produk harus dipilih',
             'items.*.productId.exists' => 'Produk tidak valid',
+            'items.*.skuId.exists' => 'Variasi produk tidak valid',
             'items.*.quantity.required' => 'Jumlah harus diisi',
             'items.*.quantity.min' => 'Jumlah minimal 1',
             'items.*.price.required' => 'Harga harus diisi',
@@ -130,12 +146,29 @@ class TransactionController extends Controller
                     throw new Exception("Produk tidak tersedia untuk sales ini");
                 }
 
-                if ($borrowedProduct->current_stock < $item['quantity']) {
-                    throw new Exception("Stok tidak mencukupi untuk produk: {$borrowedProduct->product->name}. Stok tersedia: {$borrowedProduct->current_stock}");
-                }
+                // Handle product with variations
+                if (!empty($item['skuId'])) {
+                    $sku = ProductSku::find($item['skuId']);
+                    if (!$sku || $sku->product_id != $item['productId']) {
+                        throw new Exception("Variasi produk tidak valid");
+                    }
 
-                if (abs($borrowedProduct->product->sell_price - $item['price']) > 0.01) {
-                    throw new Exception("Harga produk {$borrowedProduct->product->name} tidak sesuai dengan harga saat ini");
+                    if ($sku->stock < $item['quantity']) {
+                        throw new Exception("Stok tidak mencukupi untuk variasi: {$sku->variation_summary}. Stok tersedia: {$sku->stock}");
+                    }
+
+                    if (abs($sku->price - $item['price']) > 0.01) {
+                        throw new Exception("Harga variasi {$sku->variation_summary} tidak sesuai dengan harga saat ini");
+                    }
+                } else {
+                    // Regular product without variations
+                    if ($borrowedProduct->current_stock < $item['quantity']) {
+                        throw new Exception("Stok tidak mencukupi untuk produk: {$borrowedProduct->product->name}. Stok tersedia: {$borrowedProduct->current_stock}");
+                    }
+
+                    if (abs($borrowedProduct->product->sell_price - $item['price']) > 0.01) {
+                        throw new Exception("Harga produk {$borrowedProduct->product->name} tidak sesuai dengan harga saat ini");
+                    }
                 }
 
                 $totalAmount += $item['subtotal'];
@@ -153,16 +186,31 @@ class TransactionController extends Controller
                     ->where('product_id', $item['productId'])
                     ->first();
 
-                OrderItem::create([
+                $orderItemData = [
                     'order_id' => $order->id,
                     'product_id' => $item['productId'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['price'],
                     'total_price' => $item['subtotal']
-                ]);
+                ];
+
+                // Add SKU information if provided
+                if (!empty($item['skuId'])) {
+                    $sku = ProductSku::find($item['skuId']);
+                    $orderItemData['sku_id'] = $item['skuId'];
+                    $orderItemData['variation_summary'] = $sku->variation_summary;
+                }
+
+                OrderItem::create($orderItemData);
 
                 // Update sold_quantity in borrowed_product
                 $borrowedProduct->increment('sold_quantity', $item['quantity']);
+
+                // Update SKU stock if applicable
+                if (!empty($item['skuId'])) {
+                    $sku = ProductSku::find($item['skuId']);
+                    $sku->decreaseStock($item['quantity']);
+                }
             }
 
             DB::commit();
@@ -182,14 +230,10 @@ class TransactionController extends Controller
     public function show($transactionId)
     {
         $user = auth()->user();
-        if (!$user->hasPhone()) {
-            return redirect()->route('sales.profile.edit')
-                ->with('error', 'Silakan lengkapi nomor telepon terlebih dahulu.');
-        }
 
         $order = Order::where('sale_id', $user->id)
             ->where('id', $transactionId)
-            ->with(['items.product', 'items.product.category'])
+            ->with(['items.product', 'items.product.category', 'items.sku'])
             ->first();
 
         if (!$order) {
@@ -204,20 +248,31 @@ class TransactionController extends Controller
             'total_amount' => (float) $order->total_amount,
             'status' => $order->status,
             'items' => $order->items->map(function ($item) {
-                return [
+                $itemData = [
                     'id' => $item->id,
                     'product' => [
                         'id' => $item->product->id,
                         'name' => $item->product->name,
-                        'image_url' => $item->product->image_url ? asset($item->product->image_url) : null,
                         'category' => [
                             'name' => $item->product->category->name ?? 'Uncategorized'
                         ]
                     ],
                     'quantity' => $item->quantity,
                     'unit_price' => (float) $item->unit_price,
-                    'total_price' => (float) $item->total_price
+                    'total_price' => (float) $item->total_price,
+                    'variation_summary' => $item->variation_summary,
                 ];
+
+                // Add SKU information if available
+                if ($item->sku) {
+                    $itemData['sku'] = [
+                        'id' => $item->sku->id,
+                        'sku_code' => $item->sku->sku_code,
+                        'variation_summary' => $item->sku->variation_summary,
+                    ];
+                }
+
+                return $itemData;
             })->toArray()
         ];
 

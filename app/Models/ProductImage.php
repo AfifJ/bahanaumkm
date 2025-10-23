@@ -20,6 +20,8 @@ class ProductImage extends Model
         'sort_order' => 'integer',
     ];
 
+    protected $appends = ['url'];
+
     /**
      * Get the product that owns the image.
      */
@@ -43,9 +45,15 @@ class ProductImage extends Model
         }
 
         try {
-            // Generate URL using Storage facade with disk
+            // Check if image_path is an external URL (http/https)
+            if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+                \Log::info("ProductImage::getUrlAttribute() - External URL detected, using directly: '{$this->image_path}'");
+                return $this->image_path;
+            }
+
+            // For local files, use Storage::url()
             $url = Storage::url($this->image_path);
-            \Log::info("ProductImage::getUrlAttribute() - Generated URL: '{$url}'");
+            \Log::info("ProductImage::getUrlAttribute() - Generated URL for local file: '{$url}'");
 
             // Ensure URL starts with /storage/ for public disk
             if (!str_starts_with($url, 'http')) {

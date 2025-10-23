@@ -24,10 +24,68 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [reviewSuccess, setReviewSuccess] = useState(false);
     const [hasError, setHasError] = useState(false);
+    const [selectedSku, setSelectedSku] = useState(null);
+    const [selectedVariations, setSelectedVariations] = useState({});
+    const [variationError, setVariationError] = useState(false);
 
     // Initialize cart hook
     const { cartCount, addToCart } = useCart();
 
+    // Initialize selected SKU when component mounts or product changes
+    useEffect(() => {
+        // For ALL products, default to no SKU selected
+        // User must manually select a variation for products with variations
+        setSelectedSku(null);
+    }, [product]);
+
+    // Get current price based on selected SKU or product price
+    const getCurrentPrice = () => {
+        if (selectedSku) {
+            return selectedSku.price;
+        }
+
+        // For products with variations and no selected SKU, return minimum price
+        if (product.has_variations && product.skus && product.skus.length > 0) {
+            const availableSkus = product.skus.filter(sku => sku.stock > 0);
+            if (availableSkus.length > 0) {
+                const minPrice = Math.min(...availableSkus.map(sku => sku.price));
+                const maxPrice = Math.max(...availableSkus.map(sku => sku.price));
+                return minPrice === maxPrice ? minPrice : { min: minPrice, max: maxPrice };
+            }
+        }
+
+        // For simple products or products without variations
+        return product.sell_price || 0;
+    };
+
+    // Get current stock based on selected SKU or total stock
+    const getCurrentStock = () => {
+        if (selectedSku) {
+            return selectedSku.stock;
+        }
+
+        // For products with variations and no selected SKU, return total stock across all SKUs
+        if (product.has_variations && product.skus && product.skus.length > 0) {
+            return product.skus.reduce((total, sku) => total + (sku.stock || 0), 0);
+        }
+
+        // For simple products or products without variations
+        return product.stock || 0;
+    };
+
+    // Handle SKU selection
+    const handleSkuSelect = (sku) => {
+        setSelectedSku(sku);
+        setQuantity(1); // Reset quantity when changing SKU
+        setVariationError(false); // Clear error when user selects variation
+    };
+
+    // Handle SKU change from ProductImageGallery
+    const handleSkuChange = (sku) => {
+        setSelectedSku(sku);
+        setQuantity(1); // Reset quantity when changing SKU
+        setVariationError(false); // Clear error when SKU changes
+    };
 
     // Handle flash messages
     useEffect(() => {
@@ -49,11 +107,21 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
     };
 
     const handleAddToCart = async () => {
-        if (product.stock <= 0) return;
+        // Reset variation error
+        setVariationError(false);
+
+        // Validation: Check if product has variations and no SKU selected
+        if (product.has_variations && !selectedSku) {
+            setVariationError(true);
+            toast.error('Silakan pilih variasi terlebih dahulu');
+            return;
+        }
+
+        if (getCurrentStock() <= 0) return;
 
         setIsAddingToCart(true);
         try {
-            const result = await addToCart(product.id, quantity);
+            const result = await addToCart(product.id, quantity, selectedSku?.id);
 
             // Only show success toast if user is logged in and product was added successfully
             if (result.success && !result.redirect) {
@@ -68,19 +136,37 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
     };
 
     const handleBuyNow = () => {
-        if (product.stock <= 0) return;
+        // Reset variation error
+        setVariationError(false);
+
+        // Validation: Check if product has variations and no SKU selected
+        if (product.has_variations && !selectedSku) {
+            setVariationError(true);
+            toast.error('Silakan pilih variasi terlebih dahulu');
+            return;
+        }
+
+        if (getCurrentStock() <= 0) return;
 
         setIsBuyingNow(true);
 
         // Clear any existing cart data from session storage
         sessionStorage.removeItem('checkout_data');
 
+        // Prepare checkout parameters
+        const checkoutParams = {
+            product_id: product.id,
+            quantity: quantity,
+        };
+
+        // Add SKU ID if product has variations and a SKU is selected
+        if (product.has_variations && selectedSku) {
+            checkoutParams.sku_id = selectedSku.id;
+        }
+
         // Redirect ke halaman checkout dengan query parameters untuk pembelian langsung
         router.visit(
-            route('buyer.orders.create', {
-                product_id: product.id,
-                quantity: quantity,
-            }),
+            route('buyer.orders.create', checkoutParams),
             {
                 onFinish: () => {
                     setIsBuyingNow(false);
@@ -91,7 +177,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
     const handleQuantityChange = (newQuantity) => {
         if (newQuantity < 1) return;
-        if (newQuantity > product.stock) return;
+        if (newQuantity > getCurrentStock()) return;
         setQuantity(newQuantity);
     };
 
@@ -141,13 +227,17 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
             <ScrollToTop />
             <Head title={product.name || 'Detail Produk'} />
 
-            <div className="container mx-auto px-4 py-4">
+            <div className="container mx-auto py-4">
                 {/* Desktop Layout: 2 Column Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
                     {/* Left Column: Product Images - Sticky on Desktop */}
                     <div className="space-y-4 lg:sticky lg:top-20 lg:h-fit">
-                        <ProductImageGallery product={product} />
+                        <ProductImageGallery
+                            product={product}
+                            selectedSku={selectedSku}
+                            onSkuChange={handleSkuChange}
+                        />
                     </div>
 
                     {/* Right Column: All Product Details */}
@@ -189,7 +279,15 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
                             {/* Price and Stock */}
                             <div className="space-y-2">
-                                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">{formatPrice(product.sell_price)}</p>
+                                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
+                                    {(() => {
+                                        const price = getCurrentPrice();
+                                        if (typeof price === 'object' && price.min && price.max) {
+                                            return `${formatPrice(price.min)} - ${formatPrice(price.max)}`;
+                                        }
+                                        return formatPrice(price);
+                                    })()}
+                                </p>
 
                                 {/* Rating Display */}
                                 <div className="flex items-center">
@@ -205,13 +303,56 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                                     )}
                                 </div>
 
-                                <p className={`text-sm ${product.stock > 0 ? 'text-primary' : 'text-red-600'}`}>
-                                    {product.stock > 0 ? `Stok tersedia: ${product.stock}` : 'Stok habis'}
+                                <p className={`text-sm ${getCurrentStock() > 0 ? 'text-primary' : 'text-red-600'}`}>
+                                    {getCurrentStock() > 0 ? (
+                                        product.has_variations && !selectedSku ?
+                                            `Total stok: ${getCurrentStock()} unit` :
+                                            `Stok tersedia: ${getCurrentStock()}`
+                                    ) : 'Stok habis'}
                                 </p>
+
+                                {/* Variations Section */}
+                                {product.has_variations && product.skus && product.skus.length > 0 && (
+                                    <div className={`space-y-3 pt-2 ${variationError ? 'border-2 border-red-500 rounded-lg p-2' : ''}`}>
+                                        <div>
+                                            <h4 className="text-sm font-medium text-gray-700 mb-2">Variasi:</h4>
+                                            {variationError && (
+                                                <p className="text-red-500 text-xs mb-2">Silakan pilih salah satu variasi</p>
+                                            )}
+                                            <div className="flex flex-wrap gap-2">
+                                                {product.skus.map((sku) => (
+                                                    <Button
+                                                        key={sku.id}
+                                                        variant={selectedSku?.id === sku.id ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => handleSkuSelect(sku)}
+                                                        className={`text-xs px-3 py-1 h-7 ${
+                                                            sku.stock <= 0 
+                                                                ? 'opacity-50 cursor-not-allowed' 
+                                                                : 'hover:cursor-pointer'
+                                                        }`}
+                                                        disabled={sku.stock <= 0}
+                                                    >
+                                                        {sku.variant_name || sku.sku_code}
+                                                        {sku.stock <= 0 && ' (Habis)'}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                            {selectedSku && (
+                                                <div className="mt-2 text-xs text-gray-500">
+                                                    <p>SKU: {selectedSku.sku_code}</p>
+                                                    {selectedSku.weight && (
+                                                        <p>Berat: {selectedSku.weight} kg</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Quantity Selector - Compact */}
-                            {product.stock > 0 && (
+                            {getCurrentStock() > 0 && (
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">Jumlah:</label>
                                     <div className="flex items-center gap-2">
@@ -228,27 +369,27 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                                             onChange={(e) => handleQuantityChange(Number(e.target.value))}
                                             className="w-12 border-0 text-center shadow-none text-sm"
                                             min="1"
-                                            max={product.stock}
+                                            max={getCurrentStock()}
                                         />
                                         <Button
                                             onClick={() => handleQuantityChange(quantity + 1)}
-                                            disabled={quantity >= product.stock}
+                                            disabled={quantity >= getCurrentStock()}
                                             className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 text-sm"
                                         >
                                             +
                                         </Button>
-                                        <span className="text-xs text-gray-500 ml-1">Max: {product.stock}</span>
+                                        <span className="text-xs text-gray-500 ml-1">Max: {getCurrentStock()}</span>
                                     </div>
                                 </div>
                             )}
 
                             {/* Desktop Action Buttons */}
-                            {product.stock > 0 && (
+                            {getCurrentStock() > 0 && (
                                 <div className="hidden sm:flex gap-3 pt-2">
                                     <Button
                                         variant="outline"
                                         className="flex-1 py-2 hover:cursor-pointer"
-                                        disabled={product.stock <= 0 || isAddingToCart}
+                                        disabled={getCurrentStock() <= 0 || isAddingToCart}
                                         onClick={handleAddToCart}
                                     >
                                         {isAddingToCart ? (
@@ -265,7 +406,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                                     </Button>
                                     <Button
                                         className="flex-1 py-2 hover:cursor-pointer"
-                                        disabled={product.stock <= 0 || isBuyingNow}
+                                        disabled={getCurrentStock() <= 0 || isBuyingNow}
                                         onClick={handleBuyNow}
                                     >
                                         {isBuyingNow ? (
@@ -274,7 +415,13 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                                                 Memproses...
                                             </>
                                         ) : (
-                                            `Beli Sekarang - ${formatPrice(product.sell_price * quantity)}`
+                                            (() => {
+                                                const price = getCurrentPrice();
+                                                if (typeof price === 'object' && price.min && price.max) {
+                                                    return 'Beli Sekarang';
+                                                }
+                                                return `Beli Sekarang - ${formatPrice(price * quantity)}`;
+                                            })()
                                         )}
                                     </Button>
                                 </div>
@@ -287,14 +434,14 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                             </div>
                             {/* Vendor Profile */}
                             {product.vendor && (
-                                <div className="pt-6 border-t">
+                                <div className="pt-6">
                                     <h3 className="text-lg font-semibold mb-3">Tentang Penjual</h3>
                                     <VendorProfileCard vendor={product.vendor} compact={true} />
                                 </div>
                             )}
 
                             {/* Reviews Section */}
-                            <div className="pt-6 border-t">
+                            <div className="pt-6">
                                 <ReviewList
                                     reviews={reviews?.data || []}
                                     loading={false}
@@ -346,13 +493,13 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                 </div> {/* Close Right Column */}
 
                 {/* Sticky Action Buttons for Mobile */}
-                {product.stock > 0 && (
-                    <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 shadow-lg sm:hidden">
+                {getCurrentStock() > 0 && (
+                    <div className="fixed bottom-0 left-0 right-0 z-10 bg-white  p-4 shadow-lg sm:hidden">
                         <div className="flex gap-3">
                             <Button
                                 variant="outline"
                                 className="flex-1 py-3 hover:cursor-pointer"
-                                disabled={product.stock <= 0 || isAddingToCart}
+                                disabled={getCurrentStock() <= 0 || isAddingToCart}
                                 onClick={handleAddToCart}
                             >
                                 {isAddingToCart ? (
@@ -369,7 +516,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                             </Button>
                             <Button
                                 className="flex-1 py-3 hover:cursor-pointer"
-                                disabled={product.stock <= 0 || isBuyingNow}
+                                disabled={getCurrentStock() <= 0 || isBuyingNow}
                                 onClick={handleBuyNow}
                             >
                                 {isBuyingNow ? (
@@ -387,14 +534,14 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
                 {/* Related Products - Full Width Section */}
                 {relatedProducts.length > 0 && (
-                    <div className="mt-8 pt-8 border-t">
+                    <div className="mt-8 pt-6">
                         <h3 className="text-xl font-bold mb-4">Produk Terkait</h3>
                         <ProductList productList={relatedProducts} />
                     </div>
                 )}
 
                 {/* Spacer for sticky button */}
-                {product.stock > 0 && <div className="h-20 sm:h-0"></div>}
+                {getCurrentStock() > 0 && <div className="h-20 sm:h-0"></div>}
             </div> {/* Close grid container */}
         </BuyerLayoutWrapper>
     );

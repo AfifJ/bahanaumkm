@@ -10,6 +10,7 @@ class BorrowedProduct extends Model
     protected $fillable = [
         'sale_id',
         'product_id',
+        'sku_id',
         'borrowed_quantity',
         'sold_quantity',
         'status',
@@ -47,10 +48,63 @@ class BorrowedProduct extends Model
     }
 
     /**
+     * Get the SKU that is borrowed.
+     */
+    public function sku(): BelongsTo
+    {
+        return $this->belongsTo(ProductSku::class);
+    }
+
+    /**
      * Calculate current stock (borrowed - sold)
      */
     public function getCurrentStockAttribute(): int
     {
         return $this->borrowed_quantity - $this->sold_quantity;
+    }
+
+    /**
+     * Check if borrowed product has SKU variations.
+     */
+    public function hasSku(): bool
+    {
+        return !is_null($this->sku_id);
+    }
+
+    /**
+     * Get the effective product name (includes SKU variant if available).
+     */
+    public function getEffectiveNameAttribute(): string
+    {
+        if ($this->hasSku()) {
+            $variantName = $this->sku?->variant_name ?? $this->sku?->sku_code;
+            return $variantName ? "{$this->product->name} - {$variantName}" : $this->product->name;
+        }
+
+        return $this->product->name;
+    }
+
+    /**
+     * Get the effective price (SKU price if available, otherwise product price).
+     */
+    public function getEffectivePriceAttribute(): float
+    {
+        if ($this->hasSku()) {
+            return $this->sku->price ?? 0;
+        }
+
+        return $this->product->sell_price ?? 0;
+    }
+
+    /**
+     * Get available stock for checking before borrowing.
+     */
+    public function getAvailableStockAttribute(): int
+    {
+        if ($this->hasSku()) {
+            return $this->sku->stock ?? 0;
+        }
+
+        return $this->product->stock ?? 0;
     }
 }

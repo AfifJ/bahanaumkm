@@ -4,6 +4,7 @@ import { Check, ChevronDown, Search, Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 
 // Cache untuk Intl.NumberFormat agar tidak dibuat ulang setiap render
@@ -13,13 +14,14 @@ const priceFormatter = new Intl.NumberFormat('id-ID', {
     minimumFractionDigits: 0,
 });
 
-export function ProductSelector({ products = [], onSelect, selectedProduct }) {
+export function ProductSelector({ products = [], onSelect, selectedProduct, selectedSkus = {}, onSkuQuantityChange }) {
     const [open, setOpen] = useState(false)
     const [searchValue, setSearchValue] = useState("")
     const [debouncedSearchValue, setDebouncedSearchValue] = useState("")
     const dropdownRef = useRef(null)
     const searchInputRef = useRef(null)
     const debounceTimeoutRef = useRef(null)
+    const [userInputValues, setUserInputValues] = useState({}) // Store user's last input values
 
     // Debounced search untuk performa lebih baik
     useEffect(() => {
@@ -122,8 +124,8 @@ export function ProductSelector({ products = [], onSelect, selectedProduct }) {
         }
     }, [open]);
 
-    // Optimized image component dengan error handling
-    const ProductImage = useCallback(({ src, alt, className }) => {
+    // Separate component for product image with error handling
+    function ProductImage({ src, alt, className }) {
         const [imgError, setImgError] = useState(false);
 
         if (imgError || !src) {
@@ -143,7 +145,53 @@ export function ProductSelector({ products = [], onSelect, selectedProduct }) {
                 onError={() => setImgError(true)}
             />
         );
-    }, []);
+    }
+
+    // Handle SKU checkbox toggle
+    const handleSkuToggle = useCallback((sku) => {
+        if (onSkuQuantityChange) {
+            const currentQty = selectedSkus[sku.id] || 0;
+            if (currentQty > 0) {
+                // Deselect - set to 0
+                onSkuQuantityChange(sku.id, 0);
+            } else {
+                // Select - use user's last input value or default to 1
+                const userInputValue = userInputValues[sku.id] || 1;
+                onSkuQuantityChange(sku.id, userInputValue);
+            }
+        }
+    }, [onSkuQuantityChange, selectedSkus, userInputValues]);
+
+    // Handle SKU quantity change
+    const handleSkuQuantityChange = useCallback((sku, value) => {
+        if (onSkuQuantityChange) {
+            // Convert text to integer, handling non-numeric input
+            const numericValue = parseInt(value.replace(/\D/g, '')) || 0;
+            const qty = numericValue > sku.stock ? sku.stock : Math.max(0, numericValue);
+
+            // Save user's input value
+            setUserInputValues(prev => ({
+                ...prev,
+                [sku.id]: qty
+            }));
+
+            // Only update if SKU is currently selected (has quantity > 0)
+            if (selectedSkus[sku.id] > 0) {
+                onSkuQuantityChange(sku.id, qty);
+            }
+        }
+    }, [onSkuQuantityChange, selectedSkus]);
+
+    // Get selected SKU details (for backward compatibility)
+    const selectedSku = useMemo(() => {
+        if (!selectedProduct?.has_variations) return null;
+
+        const selectedSkuIds = Object.keys(selectedSkus).filter(id => selectedSkus[id] > 0);
+        if (selectedSkuIds.length > 0) {
+            return selectedProduct.skus?.find(sku => sku.id === parseInt(selectedSkuIds[0]));
+        }
+        return null;
+    }, [selectedProduct, selectedSkus]);
 
     return (
         <div className="relative" ref={dropdownRef} onKeyDown={handleKeyDown}>
@@ -160,16 +208,20 @@ export function ProductSelector({ products = [], onSelect, selectedProduct }) {
                     {selectedProduct ? (
                         <div className="flex items-center gap-3">
                             <ProductImage
-                                src={selectedProduct.image_url}
+                                src={selectedProduct.primary_image?.url}
                                 alt={selectedProduct.name}
                                 className="w-8 h-8 rounded"
                             />
                             <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm text-gray-900 truncate">
-                                    {selectedProduct.name}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                    Stok: {selectedProduct.stock} • {formatPrice(selectedProduct.sell_price)}
+                                <div className="flex items-center gap-2">
+                                    <div className="font-medium text-sm text-gray-900 truncate">
+                                        {selectedProduct.name}
+                                    </div>
+                                    {selectedProduct.has_variations && (
+                                        <div className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                                            Variasi
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -227,22 +279,32 @@ export function ProductSelector({ products = [], onSelect, selectedProduct }) {
                                         <div className="flex items-center gap-3 flex-1 min-w-0">
                                             {/* Product Image */}
                                             <ProductImage
-                                                src={product.image_url}
+                                                src={product.primary_image?.url}
                                                 alt={product.name}
                                                 className="w-10 h-10 rounded flex-shrink-0"
                                             />
 
                                             {/* Product Info */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-medium text-gray-900 truncate">
-                                                    {product.name}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-medium text-gray-900 truncate">
+                                                        {product.name}
+                                                    </div>
+                                                    {product.has_variations && (
+                                                        <div className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                                                            {product.skus?.length || 0} Variasi
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="text-xs text-gray-500 mt-1">
                                                     <div className="flex items-center gap-2">
                                                         <span>Stok: {product.stock}</span>
                                                         <span>•</span>
                                                         <span className="font-semibold text-green-600">
-                                                            {formatPrice(product.sell_price)}
+                                                            {product.has_variations ?
+                                                                `${formatPrice(product.min_price || product.sell_price)} - ${formatPrice(product.max_price || product.sell_price)}` :
+                                                                formatPrice(product.sell_price)
+                                                            }
                                                         </span>
                                                     </div>
                                                     {product.category?.name && (
@@ -269,6 +331,86 @@ export function ProductSelector({ products = [], onSelect, selectedProduct }) {
                     </div>
                 </div>
             )}
+
+            {/* SKU Selection for Products with Variations */}
+            {selectedProduct?.has_variations && (
+                <div className="mt-2">
+                    <Label className="text-sm font-medium text-gray-900 mb-3 block">
+                        Pilih Variasi ({selectedProduct.skus?.length || 0} tersedia):
+                    </Label>
+                    <div className="space-y-3">
+                        {selectedProduct.skus?.map((sku) => {
+                            const isSelected = (selectedSkus[sku.id] || 0) > 0;
+                            const selectedQty = selectedSkus[sku.id] || 0;
+                            return (
+                                <div
+                                    key={sku.id}
+                                    className={`border rounded-lg p-3 cursor-pointer transition-all ${isSelected
+                                        ? 'border-blue-500 bg-blue-50'
+                                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        } ${sku.stock <= 0 ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                    onClick={() => sku.stock > 0 && handleSkuToggle(sku)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {/* Checkbox */}
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={() => handleSkuToggle(sku)}
+                                            disabled={sku.stock <= 0}
+                                            className="w-5 h-5 rounded border-2 text-blue-500 focus:ring-blue-500 disabled:opacity-60"
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+
+                                        {/* SKU Info */}
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="font-medium text-gray-900">
+                                                    {sku.variant_name || sku.sku_code}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    {sku.stock > 0 && (
+                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                                                            Stok: {sku.stock}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-lg font-bold text-gray-900">
+                                                        {formatPrice(sku.price)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                Kode SKU: {sku.sku_code}
+                                            </div>
+                                        </div>
+
+                                        {/* Quantity Input - selalu muncul, nilai sesuai dengan status checkbox */}
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <Label className="text-sm font-medium text-gray-700">
+                                                Jumlah:
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                value={selectedQty > 0 ? selectedQty.toString() : userInputValues[sku.id] ? userInputValues[sku.id].toString() : ''}
+                                                onChange={(e) => handleSkuQuantityChange(sku, e.target.value)}
+                                                className="w-24 text-sm"
+                                                placeholder="0"
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                            <span className="text-xs text-gray-500">
+                                                / {sku.stock} stok
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
+
     )
 }

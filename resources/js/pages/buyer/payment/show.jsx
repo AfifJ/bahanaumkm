@@ -3,7 +3,7 @@ import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { ArrowLeft, CreditCard, Image, Upload, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function PaymentShow({ order, qrisImage }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -12,6 +12,7 @@ export default function PaymentShow({ order, qrisImage }) {
 
     const [preview, setPreview] = useState(null);
     const [uploaded, setUploaded] = useState(false);
+    const fileInputRef = useRef(null);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -19,6 +20,10 @@ export default function PaymentShow({ order, qrisImage }) {
             setData('payment_proof', file);
             setPreview(URL.createObjectURL(file));
         }
+    };
+
+    const handleDivClick = () => {
+        fileInputRef.current?.click();
     };
 
     const handleSubmit = (e) => {
@@ -57,7 +62,7 @@ export default function PaymentShow({ order, qrisImage }) {
 
     if (uploaded) {
         return (
-            <BuyerLayoutWrapper withBottomNav={false} backLink={route('orders.show', order.id)} title="Pembayaran Berhasil">
+            <BuyerLayoutWrapper withBottomNav={false} backLink={route('buyer.orders.show', order.id)} title="Pembayaran Berhasil">
                 <Head title={`Pembayaran - ${order.order_code}`} />
                 <div className="container mx-auto px-4 py-8">
                     <div className="max-w-md mx-auto text-center">
@@ -96,7 +101,7 @@ export default function PaymentShow({ order, qrisImage }) {
     }
 
     return (
-        <BuyerLayoutWrapper withBottomNav={false} backLink={route('orders.show', order.id)} title="Pembayaran QRIS">
+        <BuyerLayoutWrapper withBottomNav={false} backLink={route('buyer.orders.show', order.id)} title="Pembayaran QRIS">
             <Head title={`Pembayaran - ${order.order_code}`} />
 
             <div className="container mx-auto px-4 py-6">
@@ -153,26 +158,29 @@ export default function PaymentShow({ order, qrisImage }) {
                     </h2>
 
                     {!preview ? (
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                            onClick={handleDivClick}
+                        >
                             <Image className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                             <div className="mb-4">
-                                <label htmlFor="payment_proof" className="cursor-pointer">
-                                    <span className="mt-2 block text-sm font-medium text-gray-900">
-                                        Klik untuk upload bukti pembayaran
-                                    </span>
-                                    <span className="mt-1 block text-xs text-gray-500">
-                                        PNG, JPG, JPEG up to 5MB
-                                    </span>
-                                </label>
-                                <input
-                                    id="payment_proof"
-                                    name="payment_proof"
-                                    type="file"
-                                    accept="image/jpeg,image/jpg,image/png"
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                />
+                                <Button variant="outline" type="button" className="mb-2">
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Pilih File Bukti Pembayaran
+                                </Button>
+                                <p className="text-sm text-gray-500">
+                                    PNG, JPG, JPEG up to 5MB
+                                </p>
                             </div>
+                            <input
+                                ref={fileInputRef}
+                                id="payment_proof"
+                                name="payment_proof"
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png"
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
                         </div>
                     ) : (
                         <div className="mb-4">

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { PaymentStatusBadge } from '@/components/admin/payment-status-badge';
 import { PaymentCard } from '@/components/admin/payment-card';
 import { PaymentValidationActions } from '@/components/admin/payment-validation-actions';
+import PaymentProofDialog from '@/components/admin/payment-proof-dialog';
 import { Calendar, User, MapPin, Package, CreditCard, AlertCircle } from 'lucide-react';
 
 const getStatusBadgeVariant = (status) => {
@@ -55,6 +56,8 @@ export default function Transaction({ order }) {
     });
 
     const [selectedStatus, setSelectedStatus] = useState(order.status);
+    const [isProofDialogOpen, setIsProofDialogOpen] = useState(false);
+    const [selectedProofPath, setSelectedProofPath] = useState(null);
 
     const handleStatusUpdate = () => {
         const payload = {
@@ -96,7 +99,8 @@ export default function Transaction({ order }) {
 
     const handleViewProof = (proofPath) => {
         if (!proofPath) return;
-        window.open(`/storage/${proofPath}`, '_blank');
+        setSelectedProofPath(proofPath);
+        setIsProofDialogOpen(true);
     };
 
     const handleImageError = (event) => {
@@ -125,13 +129,13 @@ export default function Transaction({ order }) {
         >
             <Head title={`Transaksi - ${order.order_code}`} />
 
-            <div className="space-y-6">
+            <div className="space-y-4 p-4">
                 {/* Header */}
-                <Card>
-                    <CardHeader>
+                <div>
+                    <div>
                         <div className="flex items-start justify-between">
                             <div>
-                                <CardTitle className="text-2xl">#{order.order_code}</CardTitle>
+                                <h2 className="text-2xl">#{order.order_code}</h2>
                                 <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
                                     <Calendar className="h-4 w-4" />
                                     <span>Dibuat pada {formatDate(order.created_at)}</span>
@@ -139,21 +143,19 @@ export default function Transaction({ order }) {
                             </div>
                             <PaymentStatusBadge status={order.status} size="lg" />
                         </div>
-                    </CardHeader>
-                </Card>
+                    </div>
+                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-4">
                     {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-4">
                         {/* Payment Validation Actions */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5" />
-                                    Validasi Pembayaran
-                                </CardTitle>
-                            </CardHeader>
                             <CardContent>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <CreditCard className="h-4 w-4" />
+                                    <h3 className="text-base font-semibold">Validasi Pembayaran</h3>
+                                </div>
                                 <PaymentValidationActions
                                     order={order}
                                     onSuccess={handlePaymentAction}
@@ -162,29 +164,67 @@ export default function Transaction({ order }) {
                             </CardContent>
                         </Card>
 
+                        {/* Status Management */}
+                        {availableStatuses.length > 0 && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Kelola Status</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Update Status</label>
+                                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                                            <SelectTrigger>
+                                                <SelectValue>
+                                                    {selectedStatus ? getStatusLabel(selectedStatus) : "Pilih status baru"}
+                                                </SelectValue>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableStatuses.map((status) => (
+                                                    <SelectItem key={status} value={status}>
+                                                        {getStatusLabel(status)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button
+                                        onClick={handleStatusUpdate}
+                                        disabled={processing || selectedStatus === order.status}
+                                        className="w-full"
+                                    >
+                                        {processing ? 'Memproses...' : 'Update Status'}
+                                    </Button>
+                                    {selectedStatus === 'cancelled' && (
+                                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                                            <strong>Peringatan:</strong> Membatalkan pesanan akan mengembalikan stok produk.
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Order Items */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Package className="h-5 w-5" />
-                                    Detail Produk
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Package className="h-4 w-4" />
+                                    <h3 className="text-base font-semibold">Detail Produk</h3>
+                                </div>
+                                <div className="space-y-3">
                                     {order.items.map((item, index) => (
-                                        <div key={item.id} className="flex justify-between items-start border-b border-gray-100 pb-4 last:border-b-0">
+                                        <div key={item.id} className="flex justify-between items-start pb-3 border-b border-gray-100 last:border-b-0">
                                             <div className="flex-1">
-                                                <div className="font-medium text-base">{item.product.name}</div>
-                                                <div className="text-sm text-gray-600 mt-1">
+                                                <div className="font-medium text-sm">{item.product.name}</div>
+                                                <div className="text-xs text-gray-600 mt-1">
                                                     Vendor: {item.product.vendor?.name || '-'}
                                                 </div>
-                                                <div className="text-sm text-gray-600">
+                                                <div className="text-xs text-gray-600">
                                                     {item.quantity} × {formatCurrency(item.unit_price)}
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="font-semibold text-base">
+                                                <div className="font-semibold text-sm">
                                                     {formatCurrency(item.total_price)}
                                                 </div>
                                             </div>
@@ -337,48 +377,17 @@ export default function Transaction({ order }) {
                             </CardContent>
                         </Card>
 
-                        {/* Status Management */}
-                        {availableStatuses.length > 0 && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Kelola Status</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Update Status</label>
-                                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                            <SelectTrigger>
-                                                <SelectValue>
-                                                    {selectedStatus ? getStatusLabel(selectedStatus) : "Pilih status baru"}
-                                                </SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {availableStatuses.map((status) => (
-                                                    <SelectItem key={status} value={status}>
-                                                        {getStatusLabel(status)}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <Button
-                                        onClick={handleStatusUpdate}
-                                        disabled={processing || selectedStatus === order.status}
-                                        className="w-full"
-                                    >
-                                        {processing ? 'Memproses...' : 'Update Status'}
-                                    </Button>
-                                    {selectedStatus === 'cancelled' && (
-                                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                                            <strong>Peringatan:</strong> Membatalkan pesanan akan mengembalikan stok produk.
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
+
                     </div>
                 </div>
             </div>
+
+            {/* Payment Proof Dialog */}
+            <PaymentProofDialog
+                isOpen={isProofDialogOpen}
+                onClose={() => setIsProofDialogOpen(false)}
+                proofPath={selectedProofPath}
+            />
         </AdminLayout>
     );
 }

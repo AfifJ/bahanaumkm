@@ -161,7 +161,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
 
                                             <div className="space-y-2">
                                                 <Label htmlFor="distance_from_warehouse">
-                                                    Jarak dari Gudang (meter)
+                                                    Jarak dari Gudang
                                                 </Label>
                                                 <Input
                                                     id="distance_from_warehouse"
@@ -170,7 +170,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                     step="100"
                                                     value={data.distance_from_warehouse}
                                                     onChange={(e) => setData('distance_from_warehouse', parseInt(e.target.value) || 0)}
-                                                    placeholder="Masukkan jarak dalam meter"
+                                                    placeholder="Masukkan jarak dalam km"
                                                     required
                                                 />
                                                 {errors.distance_from_warehouse && (

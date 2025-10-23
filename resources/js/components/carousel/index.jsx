@@ -65,7 +65,7 @@ export default function Carousel({ carousels = [], autoPlay = true, interval = 5
         return (
             <section className="pb-2">
                 <div className="container mx-auto px-4">
-                    <div className="aspect-[2/1] overflow-hidden rounded-md bg-gray-200 flex items-center justify-center">
+                    <div className="aspect-[2280/295] overflow-hidden rounded-md bg-gray-200 flex items-center justify-center">
                         <span className="text-gray-500">Tidak ada carousel tersedia</span>
                     </div>
                 </div>
@@ -94,7 +94,7 @@ export default function Carousel({ carousels = [], autoPlay = true, interval = 5
         return (
             <section className="pb-2">
                 <div className="container mx-auto px-4">
-                    <div className="aspect-[2/1] overflow-hidden rounded-md">
+                    <div className="aspect-[2280/295] overflow-hidden rounded-md">
                         {content}
                     </div>
                 </div>
@@ -106,7 +106,7 @@ export default function Carousel({ carousels = [], autoPlay = true, interval = 5
         <section className="pb-2">
             <div className="container mx-auto px-4">
                 <div
-                    className="relative aspect-[2/1] overflow-hidden rounded-md group"
+                    className="relative aspect-[2280/295] overflow-hidden rounded-md group"
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >

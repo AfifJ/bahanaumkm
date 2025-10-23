@@ -58,7 +58,7 @@ export function useCart() {
     }, []);
 
     // Function to add to cart and update count
-    const addToCart = async (productId, quantity = 1) => {
+    const addToCart = async (productId, quantity = 1, skuId = null) => {
         try {
             // Validate inputs
             if (!productId || quantity < 1) {
@@ -72,35 +72,48 @@ export function useCart() {
                 return { success: false, redirect: true };
             }
 
-            console.log('🛒 Adding to cart:', { productId, quantity });
+            console.log('🛒 Adding to cart:', { productId, quantity, skuId });
 
-            // Use Inertia.js to add to cart (same as wishlist)
-            await router.post(route('buyer.cart.api.add'), {
+            // Prepare payload
+            const payload = {
                 product_id: productId,
                 quantity: quantity,
-            }, {
-                preserveScroll: true,
-                onSuccess: (page) => {
-                    console.log('✅ Success response from Inertia');
+            };
 
-                    // Update cart count from flash data or response
-                    if (page.props.flash?.cartCount) {
-                        setCartCount(page.props.flash.cartCount);
-                    } else {
-                        // Fallback: refetch cart count
-                        fetchCartCount();
+            // Add sku_id if provided
+            if (skuId) {
+                payload.sku_id = skuId;
+            }
+
+            // Return a promise that resolves when the operation completes
+            return new Promise((resolve, reject) => {
+                router.post(route('buyer.cart.api.add'), payload, {
+                    preserveScroll: true,
+                    onSuccess: (page) => {
+                        console.log('✅ Success response from Inertia:', page);
+
+                        // Update cart count from flash data or response
+                        if (page.props.flash?.cartCount !== undefined) {
+                            console.log('📊 Updating cart count from flash:', page.props.flash.cartCount);
+                            setCartCount(page.props.flash.cartCount);
+                        } else {
+                            console.log('📊 Refetching cart count (no flash data)');
+                            // Fallback: refetch cart count
+                            fetchCartCount();
+                        }
+                        
+                        resolve({ success: true });
+                    },
+                    onError: (errors) => {
+                        console.error('❌ Backend error:', errors);
+                        const errorMessage = errors.error || errors.message || Object.values(errors)[0] || 'Gagal menambahkan ke keranjang';
+                        reject(new Error(errorMessage));
+                    },
+                    onFinish: () => {
+                        console.log('✅ Cart add request finished');
                     }
-                    // No success toast shown - silent update
-                },
-                onError: (errors) => {
-                    console.error('❌ Backend error:', errors);
-                    const errorMessage = errors.error || errors.message || 'Gagal menambahkan ke keranjang';
-                    throw new Error(errorMessage);
-                }
+                });
             });
-
-            console.log('✅ Cart add completed');
-            return { success: true };
 
         } catch (error) {
             console.error('❌ Failed to add to cart:', error);

@@ -19,16 +19,18 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
 
     return (
         <BuyerLayout>
-            <Head title="Beranda - Bahana UMKM" />
+            <Head title="Beranda" />
             {/* Hero Banner Section */}
             <section className="px-4 py-2">
-                <h2 className="text-md font-medium text-gray-900 ">Lokasi Anda</h2>
-                <div className='py-1'>
-                    <LocationSelector
-                        mitra={mitra || []}
-                        onSelect={handleLocationSelect}
-                        selectedLocation={selectedLocation}
-                    />
+                <div className='container md:px-4 mx-auto '>
+                    <h2 className="text-md font-medium text-gray-900 ">Lokasi Anda</h2>
+                    <div className='py-1'>
+                        <LocationSelector
+                            mitra={mitra || []}
+                            onSelect={handleLocationSelect}
+                            selectedLocation={selectedLocation}
+                        />
+                    </div>
                 </div>
             </section>
 
@@ -47,9 +49,9 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                                             <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
                                                 <Card className="transition-shadow hover:shadow-lg">
                                                     <CardHeader className="p-0">
-                                                        {product.image_url ? (
+                                                        {product.primaryImage?.url ? (
                                                             <img
-                                                                src={product.image_url}
+                                                                src={product.primaryImage.url}
                                                                 alt={product.name}
                                                                 className="mx-auto h-48 w-48 rounded-lg object-cover"
                                                             />
@@ -89,7 +91,7 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                     </div>
                     {/* <p className="mb-8 text-gray-600">Jelajahi kategori produk terpopuler</p> */}
                     {popularCategories.length > 0 ? (
-                        <div className="flex overflow-auto gap-6">
+                        <div className="flex overflow-auto gap-6 justify-center">
                             {popularCategories.map((category) => (
                                 <Link preserveScroll key={category.id} href={route('category.show', category.slug)} className='hover:cursor-pointer'>
                                     <div className="group flex flex-col items-center rounded-lg">

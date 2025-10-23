@@ -51,8 +51,12 @@ export function MitraSelector({ mitra = [], onSelect, selectedMitra }) {
         <div className="relative" ref={dropdownRef}>
             {/* Mitra Display Button */}
             <Button
+                type="button"
                 variant="ghost"
-                onClick={() => setOpen(!open)}
+                onClick={(e) => {
+                    e.preventDefault();
+                    setOpen(!open);
+                }}
                 className="flex gap-2 py-2 px-3 items-center w-full text-left border border-gray-300 rounded-md hover:border-gray-400 transition-colors bg-white justify-start h-auto"
             >
                 <span className="flex-1 text-gray-700">

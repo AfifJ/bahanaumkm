@@ -16,43 +16,50 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $month = $request->get('month');
+        $search = $request->get('search');
 
-        $query = Order::with(['items.product', 'mitra'])
+        // $query = Order::with(['items.product', 'mitra'])
+        $query = Order::with(['items.product', 'mitra', 'buyer'])
             ->orderBy('created_at', 'desc');
 
-        // Filter by month if provided
-        if ($month) {
-            // Convert Indonesian month to English for parsing
-            $indonesianToEnglish = [
-                'Januari' => 'January',
-                'Februari' => 'February',
-                'Maret' => 'March',
-                'April' => 'April',
-                'Mei' => 'May',
-                'Juni' => 'June',
-                'Juli' => 'July',
-                'Agustus' => 'August',
-                'September' => 'September',
-                'Oktober' => 'October',
-                'November' => 'November',
-                'Desember' => 'December'
-            ];
-
-            $monthParts = explode(' ', $month);
-            $indonesianMonth = $monthParts[0];
-            $year = $monthParts[1];
-            $englishMonth = $indonesianToEnglish[$indonesianMonth];
-
-            $monthDate = \DateTime::createFromFormat('F Y', $englishMonth . ' ' . $year);
-            $startDate = $monthDate->format('Y-m-01');
-            $endDate = $monthDate->modify('+1 month')->format('Y-m-01');
-            $query->where('created_at', '>=', $startDate)->where('created_at', '<', $endDate);
+        // Search by order code (search across all months)
+        if ($search) {
+            $query->where('order_code', 'like', '%' . $search . '%');
         } else {
-            // Default to current month
-            $currentMonth = date('Y-m');
-            $startDate = $currentMonth . '-01';
-            $endDate = date('Y-m-01', strtotime('+1 month'));
-            $query->where('created_at', '>=', $startDate)->where('created_at', '<', $endDate);
+            // Only apply month filter if not searching
+            if ($month) {
+                // Convert Indonesian month to English for parsing
+                $indonesianToEnglish = [
+                    'Januari' => 'January',
+                    'Februari' => 'February',
+                    'Maret' => 'March',
+                    'April' => 'April',
+                    'Mei' => 'May',
+                    'Juni' => 'June',
+                    'Juli' => 'July',
+                    'Agustus' => 'August',
+                    'September' => 'September',
+                    'Oktober' => 'October',
+                    'November' => 'November',
+                    'Desember' => 'December'
+                ];
+
+                $monthParts = explode(' ', $month);
+                $indonesianMonth = $monthParts[0];
+                $year = $monthParts[1];
+                $englishMonth = $indonesianToEnglish[$indonesianMonth];
+
+                $monthDate = \DateTime::createFromFormat('F Y', $englishMonth . ' ' . $year);
+                $startDate = $monthDate->format('Y-m-01');
+                $endDate = $monthDate->modify('+1 month')->format('Y-m-01');
+                $query->where('created_at', '>=', $startDate)->where('created_at', '<', $endDate);
+            } else {
+                // Default to current month
+                $currentMonth = date('Y-m');
+                $startDate = $currentMonth . '-01';
+                $endDate = date('Y-m-01', strtotime('+1 month'));
+                $query->where('created_at', '>=', $startDate)->where('created_at', '<', $endDate);
+            }
         }
 
         $orders = $query->paginate(10);
@@ -97,6 +104,7 @@ class TransactionController extends Controller
             'orders' => $orders,
             'availableMonths' => $availableMonths,
             'month' => $month,
+            'search' => $search,
         ]);
     }
 

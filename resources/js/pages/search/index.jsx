@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Filter, FilterX } from 'lucide-react';
+import { Filter, FilterX, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductList from '@/components/product-list';
 
 export default function SearchIndex({ products, categories, filters, layout }) {
@@ -164,18 +164,36 @@ export default function SearchIndex({ products, categories, filters, layout }) {
 
                             {products.links && products.links.length > 3 && (
                                 <div className="mt-8 flex justify-center">
-                                    <nav className="flex items-center gap-2">
-                                        {products.links.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.url || '#'}
-                                                className={`px-3 py-2 rounded-md border ${link.active
-                                                    ? 'bg-blue-600 text-white border-blue-600'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                    <nav className="flex items-center gap-1">
+                                        {products.links.map((link, index) => {
+                                            const isFirst = index === 0;
+                                            const isLast = index === products.links.length - 1;
+                                            
+                                            return (
+                                                <Link
+                                                    key={index}
+                                                    href={link.url || '#'}
+                                                    className={`inline-flex items-center justify-center ${
+                                                        isFirst || isLast 
+                                                            ? 'h-9 w-9' 
+                                                            : 'h-9 min-w-[2.25rem] px-2'
+                                                    } text-sm border rounded-md transition-colors ${
+                                                        link.active
+                                                            ? 'bg-primary text-white border-primary'
+                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                                                     } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
+                                                    preserveScroll
+                                                >
+                                                    {isFirst ? (
+                                                        <ChevronLeft className="h-4 w-4" />
+                                                    ) : isLast ? (
+                                                        <ChevronRight className="h-4 w-4" />
+                                                    ) : (
+                                                        link.label
+                                                    )}
+                                                </Link>
+                                            );
+                                        })}
                                     </nav>
                                 </div>
                             )}

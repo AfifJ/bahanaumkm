@@ -85,9 +85,9 @@ export default function ProductReviews({ product, reviews, canDeleteReviews }) {
                         {/* Product Summary */}
                         <div className="mt-4 bg-gray-50 rounded-lg p-4">
                             <div className="flex items-center space-x-4">
-                                {product.image_url && (
+                                {product.primaryImage?.url && (
                                     <img
-                                        src={product.image_url}
+                                        src={product.primaryImage.url}
                                         alt={product.name}
                                         className="h-12 w-12 rounded-md object-cover"
                                     />

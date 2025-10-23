@@ -5,8 +5,12 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\ProductImage;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class BulkProductSeeder extends Seeder
 {
@@ -321,13 +325,17 @@ class BulkProductSeeder extends Seeder
                 'stock' => $productData['stock'],
                 'status' => $productData['status'],
                 'is_featured' => $productData['is_featured'],
-                'image_url' => $productData['image_url'] ?? null,
             ];
 
             // Create product
-            Product::create($productToCreate);
+            $product = Product::create($productToCreate);
+
+            // Add product image using the new system
+            if (isset($productData['image_url'])) {
+                $this->addProductImage($product, $productData['image_url']);
+            }
+
             $createdCount++;
-            
             $this->command->info("Produk '{$productData['name']}' berhasil ditambahkan.");
         }
 
@@ -335,5 +343,42 @@ class BulkProductSeeder extends Seeder
         $this->command->info("Produk berhasil ditambahkan: {$createdCount}");
         $this->command->info("Produk dilewati (sudah ada): {$skippedCount}");
         $this->command->info("Total produk dalam database: " . Product::count());
+    }
+
+    /**
+     * Add product image using the new system
+     */
+    private function addProductImage(Product $product, string $imageUrl): void
+    {
+        try {
+            // Generate unique filename
+            $filename = 'product_' . $product->id . '_' . Str::random(10) . '.jpg';
+            $path = 'products/' . $filename;
+
+            // Create products directory if it doesn't exist
+            if (!Storage::disk('public')->exists('products')) {
+                Storage::disk('public')->makeDirectory('products');
+            }
+
+            // Download and store the image
+            $imageContents = Http::get($imageUrl);
+            if ($imageContents->successful()) {
+                Storage::disk('public')->put($path, $imageContents->body());
+
+                // Create product image record
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                    'is_primary' => true,
+                    'sort_order' => 0,
+                ]);
+
+                $this->command->info("  ✓ Gambar berhasil ditambahkan untuk produk '{$product->name}'");
+            } else {
+                $this->command->warn("  ⚠ Gagal mengunduh gambar untuk produk '{$product->name}'");
+            }
+        } catch (\Exception $e) {
+            $this->command->error("  ✗ Error menambahkan gambar untuk produk '{$product->name}': " . $e->getMessage());
+        }
     }
 }

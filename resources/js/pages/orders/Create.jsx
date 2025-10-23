@@ -7,10 +7,11 @@ import { useState, useEffect } from 'react';
 import { MitraSelector } from '@/components/mitra-selector';
 import { useLocationStorage } from '@/hooks/use-location-storage';
 
-export default function OrderCreate({ flash, product, quantity, mitra, shippingSetting }) {
+export default function OrderCreate({ flash, product, quantity, sku, cartItems, fromCart, subtotal, mitra, shippingSetting }) {
     const { data, setData, processing, errors } = useForm({
         product_id: product?.id || '',
         quantity: quantity || 1,
+        sku_id: sku?.id || null,
         mitra_id: '',
         notes: '',
     });
@@ -20,12 +21,16 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
     const [shippingCost, setShippingCost] = useState(0);
     const [selectedMitra, setSelectedMitra] = useState(null);
     const [submitError, setSubmitError] = useState('');
+    const [selectedSku, setSelectedSku] = useState(sku || null);
     const { selectedLocation } = useLocationStorage();
+
+    // Handle cart checkout vs single product
+    const isCartCheckout = fromCart && cartItems && cartItems.length > 0;
 
     const handleMitraSelect = (selectedMitra) => {
         setData('mitra_id', selectedMitra.id);
         setSelectedMitra(selectedMitra);
-        
+
         // Calculate shipping cost when mitra is selected
         if (selectedMitra && selectedMitra.distance_from_warehouse > 0) {
             const pricePerKm = shippingSetting?.price_per_km || 5000;
@@ -46,20 +51,30 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
     };
 
     useEffect(() => {
-        if (product) {
+        if (isCartCheckout) {
+            // Cart checkout: use subtotal from backend
+            setTotalAmount(subtotal || 0);
+        } else if (product) {
+            // Single product checkout
             setData('product_id', product.id);
             setData('quantity', quantity || 1);
-            setTotalAmount(product.sell_price * (quantity || 1));
+            setData('sku_id', sku?.id || null);
+
+            // Use SKU price if available, otherwise use product price
+            const unitPrice = selectedSku ? selectedSku.price : product.sell_price;
+            setTotalAmount(unitPrice * (quantity || 1));
         }
-    }, [product, quantity]);
+    }, [isCartCheckout, product, quantity, sku, selectedSku, subtotal]);
 
     useEffect(() => {
-        // Update total when quantity changes
-        if (product) {
-            setTotalAmount(product.sell_price * currentQuantity);
+        // Update total when quantity changes (only for single product)
+        if (!isCartCheckout && product) {
+            // Use SKU price if available, otherwise use product price
+            const unitPrice = selectedSku ? selectedSku.price : product.sell_price;
+            setTotalAmount(unitPrice * currentQuantity);
             setData('quantity', currentQuantity);
         }
-    }, [currentQuantity, product]);
+    }, [currentQuantity, product, selectedSku, isCartCheckout]);
 
     // Auto-select mitra based on saved location
     useEffect(() => {
@@ -73,7 +88,10 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
 
     const updateQuantity = (newQuantity) => {
         if (newQuantity < 1) return;
-        if (newQuantity > product.stock) return;
+
+        // Use SKU stock if available, otherwise use product stock
+        const availableStock = selectedSku ? selectedSku.stock : product.stock;
+        if (newQuantity > availableStock) return;
 
         setCurrentQuantity(newQuantity);
     };
@@ -82,61 +100,95 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
         e.preventDefault();
         setSubmitError('');
 
-        if (!product) {
-            setSubmitError('Produk tidak ditemukan. Silakan pilih produk terlebih dahulu.');
-            return;
-        }
-
-        if (currentQuantity < 1) {
-            setSubmitError('Jumlah produk harus minimal 1.');
-            return;
-        }
-        if (currentQuantity > product.stock) {
-            setSubmitError(`Stok produk hanya tersedia ${product.stock} item.`);
-            return;
-        }
-
-        const payload = {
-            items: [
-                {
-                    product_id: data.product_id,
-                    quantity: currentQuantity,
-                },
-            ],
-            mitra_id: data.mitra_id,
-            notes: data.notes,
-        };
-
-        // Validate payload before sending
-        if (!payload.items || payload.items.length < 1) {
-            setSubmitError('Harap tambahkan setidaknya satu item ke pesanan.');
-            return;
-        }
-
-        console.log('mengirim produk', payload);
-
-        router.post(route('buyer.orders.store'),
-            payload, {
-            onSuccess: () => {
-                console.log('Order created successfully');
-            },
-            onError: (errorResponse) => {
-                console.error('Error creating order:', errorResponse);
-
-                const errorMessages = errorResponse?.errors || {};
-                if (errorMessages['items.0.product_id']) {
-                    setSubmitError('Terjadi kesalahan dengan produk: ' + errorMessages['items.0.product_id'][0]);
-                } else if (errorMessages['items.0.quantity']) {
-                    setSubmitError('Terjadi kesalahan dengan jumlah produk: ' + errorMessages['items.0.quantity'][0]);
-                } else {
-                    setSubmitError('Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.');
-                }
+        // Validate based on checkout type
+        if (isCartCheckout) {
+            // Cart checkout validation
+            if (!cartItems || cartItems.length === 0) {
+                setSubmitError('Keranjang Anda kosong.');
+                return;
             }
-        });
+
+            const payload = {
+                items: cartItems.map(item => ({
+                    product_id: item.product.id,
+                    sku_id: item.sku?.id || null,
+                    quantity: item.quantity,
+                })),
+                mitra_id: data.mitra_id,
+                notes: data.notes,
+            };
+
+            console.log('🛒 Mengirim pesanan dari keranjang:', payload);
+
+            router.post(route('buyer.orders.store'), payload, {
+                onSuccess: () => {
+                    console.log('✅ Order created successfully from cart');
+                },
+                onError: (errorResponse) => {
+                    console.error('❌ Error creating order:', errorResponse);
+                    const errorMessages = errorResponse?.errors || {};
+                    if (Object.keys(errorMessages).length > 0) {
+                        const firstError = Object.values(errorMessages)[0];
+                        setSubmitError(Array.isArray(firstError) ? firstError[0] : firstError);
+                    } else {
+                        setSubmitError('Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.');
+                    }
+                }
+            });
+        } else {
+            // Single product checkout validation
+            if (!product) {
+                setSubmitError('Produk tidak ditemukan. Silakan pilih produk terlebih dahulu.');
+                return;
+            }
+
+            if (currentQuantity < 1) {
+                setSubmitError('Jumlah produk harus minimal 1.');
+                return;
+            }
+
+            // Use SKU stock if available, otherwise use product stock
+            const availableStock = selectedSku ? selectedSku.stock : product.stock;
+            if (currentQuantity > availableStock) {
+                setSubmitError(`Stok produk hanya tersedia ${availableStock} item.`);
+                return;
+            }
+
+            const payload = {
+                items: [
+                    {
+                        product_id: data.product_id,
+                        sku_id: data.sku_id,
+                        quantity: currentQuantity,
+                    },
+                ],
+                mitra_id: data.mitra_id,
+                notes: data.notes,
+            };
+
+            console.log('📦 Mengirim pesanan produk tunggal:', payload);
+
+            router.post(route('buyer.orders.store'), payload, {
+                onSuccess: () => {
+                    console.log('✅ Order created successfully');
+                },
+                onError: (errorResponse) => {
+                    console.error('❌ Error creating order:', errorResponse);
+                    const errorMessages = errorResponse?.errors || {};
+                    if (errorMessages['items.0.product_id']) {
+                        setSubmitError('Terjadi kesalahan dengan produk: ' + errorMessages['items.0.product_id'][0]);
+                    } else if (errorMessages['items.0.quantity']) {
+                        setSubmitError('Terjadi kesalahan dengan jumlah produk: ' + errorMessages['items.0.quantity'][0]);
+                    } else {
+                        setSubmitError('Terjadi kesalahan saat membuat pesanan. Silakan coba lagi.');
+                    }
+                }
+            });
+        }
     };
 
-    // Jika produk tidak ditemukan
-    if (!product) {
+    // Jika produk tidak ditemukan (hanya untuk single product checkout)
+    if (!isCartCheckout && !product) {
         return (
             <BuyerLayoutWrapper>
                 <Head title="Produk Tidak Ditemukan - Bahana UMKM" />
@@ -158,7 +210,11 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
     }
 
     return (
-        <BuyerLayoutWrapper withBottomNav={false} backLink={route('product.show', product)} title={'Checkout Pesanan'}>
+        <BuyerLayoutWrapper 
+            withBottomNav={false} 
+            backLink={isCartCheckout ? route('buyer.cart.index') : route('product.show', product)} 
+            title={isCartCheckout ? 'Checkout Keranjang' : 'Checkout Pesanan'}
+        >
             <Head title="Checkout - Bahana UMKM" />
             <form onSubmit={handleSubmit}>
                 <div className="container mx-auto py-2 *:px-4 *:py-4 divide-y-4">
@@ -209,21 +265,87 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                             <Package className="h-5 w-5 mr-2" />
                             Detail Produk
                         </h2>
-                        <div className="flex items-center space-x-2">
-                            {product.image_url && (
-                                <img
-                                    src={product.image_url}
-                                    alt={product.name}
-                                    className="h-16 w-16 rounded-md object-cover"
-                                />
-                            )}
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-lg text-gray-900">{product.name}</h3>
-                                <p className="text-lg font-semibold text-gray-900">
-                                    {formatPrice(product.sell_price)} <X className='inline-block h-4 w-4' /> {currentQuantity}
-                                </p>
+
+                        {isCartCheckout ? (
+                            // Multiple products from cart
+                            <div className="space-y-3">
+                                {cartItems.map((item, index) => (
+                                    <div key={index} className="flex items-start space-x-3 pb-3 border-b last:border-b-0">
+                                        <img
+                                            src={item.product.primary_image?.url || item.product.image_url || '/placeholder.png'}
+                                            alt={item.product.name}
+                                            className="h-16 w-16 rounded-md object-cover flex-shrink-0"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-base font-medium text-gray-900">{item.product.name}</h3>
+
+                                            {/* SKU Information */}
+                                            {item.sku && (
+                                                <div className="mt-1">
+                                                    <p className="text-sm text-gray-600">
+                                                        Variasi: <span className="font-medium">{item.sku.variant_name}</span>
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        SKU: {item.sku.sku_code}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-2 flex items-center justify-between">
+                                                <p className="text-base font-semibold text-gray-900">
+                                                    {formatPrice(item.price)}
+                                                    <X className='inline-block h-4 w-4 mx-1' />
+                                                    {item.quantity}
+                                                </p>
+                                                <p className="text-sm font-medium text-gray-700">
+                                                    = {formatPrice(item.price * item.quantity)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
+                        ) : (
+                            // Single product
+                            <div className="flex items-start space-x-3">
+                                <img
+                                    src={product.primary_image?.url}
+                                    alt={product.name}
+                                    className="h-16 w-16 rounded-md object-cover flex-shrink-0"
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg text-gray-900">{product.name}</h3>
+
+                                    {/* SKU Information */}
+                                    {selectedSku && (
+                                        <div className="mt-1">
+                                            <p className="text-sm text-gray-600">
+                                                Variasi: <span className="font-medium">{selectedSku.variant_name}</span>
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                SKU: {selectedSku.sku_code}
+                                            </p>
+                                            {selectedSku.weight && (
+                                                <p className="text-xs text-gray-500">
+                                                    Berat: {selectedSku.weight} kg
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="mt-2 flex items-center justify-between">
+                                        <p className="text-lg font-semibold text-gray-900">
+                                            {formatPrice(selectedSku ? selectedSku.price : product.sell_price)}
+                                            <X className='inline-block h-4 w-4 mx-1' />
+                                            {currentQuantity}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            Stok: {selectedSku ? selectedSku.stock : product.stock}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Notes Section */}
@@ -249,9 +371,8 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                                     <p className="text-xs text-gray-500">
                                         Berikan informasi yang penting untuk penjual
                                     </p>
-                                    <p className={`text-xs ${
-                                        500 - data.notes.length < 50 ? 'text-orange-500' : 'text-gray-500'
-                                    }`}>
+                                    <p className={`text-xs ${500 - data.notes.length < 50 ? 'text-orange-500' : 'text-gray-500'
+                                        }`}>
                                         {500 - data.notes.length} karakter tersisa
                                     </p>
                                 </div>
@@ -283,7 +404,7 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                                     </span>
                                 </div>
 
-                                {selectedMitra  && (
+                                {selectedMitra && (
                                     <div className="text-sm text-gray-500">
                                         Jarak: {selectedMitra.distance_from_warehouse} meter ({selectedMitra.distance_from_warehouse / 1000} KM)
                                     </div>
@@ -319,7 +440,7 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                             {/* Submit Button */}
                             <Button
                                 type="submit"
-                                disabled={processing || !product}
+                                disabled={processing || (!isCartCheckout && !product)}
                                 className="w-full mt-6 bg-primary text-white py-3 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                             >
                                 {processing ? 'Memproses...' : 'Bayar dengan QRIS'}
@@ -344,6 +465,6 @@ export default function OrderCreate({ flash, product, quantity, mitra, shippingS
                     </div>
                 </div>
             </form>
-        </BuyerLayoutNonSearch >
+        </BuyerLayoutWrapper >
     );
 }

@@ -45,11 +45,6 @@ class ProductController extends Controller
 
         $data = $request->validated();
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image_url'] = Storage::url($path);
-        }
-
         Product::create($data);
 
         return redirect()->route('admin.products.index')
@@ -84,22 +79,6 @@ class ProductController extends Controller
         $this->authorize('update', $product);
 
         $data = $request->validated();
-
-        $oldImagePath = null;
-
-        // Simpan path gambar lama untuk dihapus nanti
-        if ($product->image_url) {
-            $oldImagePath = str_replace('/storage/', '', $product->image_url);
-        }
-
-        if ($request->hasFile('image')) {
-            if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
-                Storage::disk('public')->delete($oldImagePath);
-            }
-
-            $path = $request->file('image')->store('products', 'public');
-            $data['image_url'] = Storage::url($path);
-        }
 
         $product->update($data);
         

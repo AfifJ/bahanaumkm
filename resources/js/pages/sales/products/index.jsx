@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import SalesLayout from '@/layouts/sales-layout';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Package, History } from 'lucide-react';
 
 export default function ProductsIndex({ auth, borrowedProducts = [] }) {
 
@@ -21,61 +23,132 @@ export default function ProductsIndex({ auth, borrowedProducts = [] }) {
         return Math.max(0, product.borrowed_quantity - product.sold_quantity);
     };
 
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(price);
+    };
+
     return (
         <SalesLayout title={'Produk'}>
             <Head title="Produk yang Dipinjam" />
 
-            <div className="p-4 space-y-6 pb-20">
-                <Button asChild>
-                    <Link href="/sales/products/old">
-                        Riwayat Produk
-                    </Link>
-                </Button>
-                <div className="bg-white rounded-lg border border-gray-200">
+            <div className="p-3 space-y-3 pb-20">
+                {/* Header dengan tombol riwayat */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Produk Saya</h1>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                            {borrowedProducts.length} produk dipinjam
+                        </p>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href="/sales/products/old">
+                            <History className="h-3.5 w-3.5 mr-1.5" />
+                            <span className="text-xs">Riwayat</span>
+                        </Link>
+                    </Button>
+                </div>
+
+                {/* Product List */}
+                <div className="space-y-2">
                     {borrowedProducts.length === 0 ? (
-                        <div className="text-center py-12">
-                            Belum ada produk
+                        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+                            <Package className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                            <h3 className="text-base font-medium text-gray-900 mb-1">
+                                Belum ada produk
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                                Anda belum memiliki produk yang dipinjam
+                            </p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-200">
-                            {borrowedProducts.map((product) => (
-                                <div key={product.id} className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-shrink-0 h-14 w-14 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
-                                            <img
-                                                className="object-cover h-full w-full"
-                                                src={product.product?.image_url}
-                                                alt=""
-                                            />
+                        borrowedProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-shadow"
+                            >
+                                <div className="flex gap-3">
+                                    {/* Product Image */}
+                                    <div className="flex-shrink-0">
+                                        <div className="h-16 w-16 bg-gray-100 rounded-lg overflow-hidden">
+                                            {product.product?.image_url ? (
+                                                <img
+                                                    className="object-cover h-full w-full"
+                                                    src={product.product.image_url}
+                                                    alt={product.product.name}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.parentElement.innerHTML = `
+                                                            <div class="h-full w-full flex items-center justify-center bg-gray-100">
+                                                                <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                                                </svg>
+                                                            </div>
+                                                        `;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="h-full w-full flex items-center justify-center bg-gray-100">
+                                                    <Package className="h-6 w-6 text-gray-400" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex-1 min-w-0 ml-4">
-                                            {/* Product Name */}
-                                            <div className="flex items-center gap-2 mb-2 justify-between">
-                                                <h3 className="font-semibold text-gray-900 text-base truncate">
-                                                    {product.product?.name}
-                                                </h3>
-                                            </div>
+                                    </div>
 
-                                            {/* Compact Stats */}
-                                            <div className="flex items-center gap-4 text-sm text-gray-600">
-                                                <span>Stok: {product.borrowed_quantity - product.sold_quantity}</span>
-                                                <span>Terjual: {product.sold_quantity}</span>
-                                            </div>
+                                    {/* Product Details */}
+                                    <div className="flex-1 min-w-0">
+                                        {/* Product Name */}
+                                        <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">
+                                            {product.product?.name}
+                                        </h3>
+                                        
+                                        {/* Category and Variant */}
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                                                {product.product?.category}
+                                            </Badge>
+                                            {product.sku && (
+                                                <Badge variant="outline" className="text-xs px-1.5 py-0">
+                                                    {product.sku.variant_name}
+                                                </Badge>
+                                            )}
+                                        </div>
 
-                                            {/* Dates */}
-                                            <div className="mt-2 text-xs text-gray-500">
-                                                <span>Ditambahkan: {new Date(product.borrowed_date).toLocaleDateString('id-ID')}</span>
-                                                {product.return_date && (
-                                                    <span className="ml-4">
-                                                        Dikembalikan: {new Date(product.return_date).toLocaleDateString('id-ID')}
-                                                    </span>
-                                                )}
+                                        {/* Stats - Horizontal Layout */}
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <div className="flex items-center gap-1 bg-blue-50 rounded px-2 py-1">
+                                                <span className="text-xs text-blue-600 font-medium">Stok:</span>
+                                                <span className="text-sm font-bold text-blue-700">
+                                                    {product.current_stock}
+                                                </span>
                                             </div>
+                                            <div className="flex items-center gap-1 bg-green-50 rounded px-2 py-1">
+                                                <span className="text-xs text-green-600 font-medium">Terjual:</span>
+                                                <span className="text-sm font-bold text-green-700">
+                                                    {product.sold_quantity}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Price and Date */}
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="font-semibold text-gray-900">
+                                                {formatPrice(product.sku?.price || product.product?.sell_price || 0)}
+                                            </span>
+                                            <span className="text-gray-500">
+                                                {new Date(product.borrowed_date).toLocaleDateString('id-ID', {
+                                                    day: 'numeric',
+                                                    month: 'short'
+                                                })}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))
                     )}
                 </div>
             </div>

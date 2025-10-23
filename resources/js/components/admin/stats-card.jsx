@@ -24,7 +24,7 @@ export function StatsCard({ title, value, icon: Icon, change, changeType, descri
 
     return (
         <Card>
-            <CardContent className="p-6">
+            <CardContent className="">
                 <div className="flex items-center justify-between">
                     <div className="flex-1">
                         <p className="text-sm font-medium text-gray-600">{title}</p>

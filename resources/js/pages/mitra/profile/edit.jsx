@@ -175,7 +175,7 @@ export default function MitraProfile({ user, mitraProfile }) {
                     </CardContent>
                 </Card>
 
-                {/* Info Card */}
+                {/* Info Cardf */}
                 <Card className="mt-6">
                     <CardContent className="pt-6">
                         <div className="flex items-start gap-3">

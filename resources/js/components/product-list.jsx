@@ -1,5 +1,4 @@
 import { Link } from "@inertiajs/react"
-import { Package } from "lucide-react"
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('id-ID', {
@@ -11,21 +10,26 @@ const formatPrice = (price) => {
 
 const ProductList = ({ productList }) => {
     const getImageUrl = (product) => {
-        // Try primaryImage first (new system)
-        if (product.primaryImage?.url) {
-            return product.primaryImage.url;
+        // Try primary_image first (new system)
+        if (product.primary_image?.url) {
+            return product.primary_image.url;
         }
-
-        // Fallback to legacy image_url
-        if (product.image_url) {
-            return product.image_url;
-        }
-
+        
         return null;
     };
 
+    const getDisplayPrice = (product) => {
+        if (product.has_variations && product.active_skus && product.active_skus.length > 0) {
+            const prices = product.active_skus.map(sku => parseFloat(sku.price));
+            const minPrice = Math.min(...prices);
+            return formatPrice(minPrice);
+        }
+        
+        return formatPrice(product.sell_price);
+    };
+
     return (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 space-y-4 md:grid-cols-4 lg:grid-cols-6">
             {productList.map((product) => {
                 const imageUrl = getImageUrl(product);
 
@@ -62,12 +66,12 @@ const ProductList = ({ productList }) => {
                                     </div>
                                 )}
                             </div>
-                            <div className="py-3">
-                                <h3 className="line-clamp-2 h-5 text-sm font-medium text-gray-900">
+                            <div className="py-2 space-y-1">
+                                <h3 className="line-clamp-2 h-5 text-sm font-medium text-gray-900 leading-tight">
                                     {product.name}
                                 </h3>
-                                <p className="mt-2 text-lg font-bold text-primary">{formatPrice(product.sell_price)}</p>
-                                <p className="text-xs text-gray-500 truncate">oleh {product.vendor?.name || 'Vendor'}</p>
+                                <p className="text-sm font-bold text-primary">{getDisplayPrice(product)}</p>
+                                <p className="text-xs text-gray-500 truncate">{product.vendor?.name || 'Vendor'}</p>
                             </div>
                         </div>
                     </Link>

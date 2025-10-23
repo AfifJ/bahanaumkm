@@ -170,9 +170,9 @@ export default function OrderShow({ order, canReviewProducts }) {
                         {order.items.map((item) => (
                             <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                                 <div className="flex items-start space-x-3">
-                                    {item.product.image_url && (
+                                    {item.product.primaryImage?.url && (
                                         <img
-                                            src={item.product.image_url}
+                                            src={item.product.primaryImage.url}
                                             alt={item.product.name}
                                             className="h-14 w-14 flex-shrink-0 rounded-md object-cover"
                                         />

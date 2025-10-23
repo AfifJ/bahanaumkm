@@ -13,10 +13,59 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, Link } from '@inertiajs/react';
-import { CornerUpRight, Edit, MoveUpRight, PlusIcon, Star, Trash, MessageSquare } from 'lucide-react';
+import ProductSearch from '@/components/product-search';
+import Pagination from '@/components/pagination';
+import { Head, Link, router } from '@inertiajs/react';
+import { CornerUpRight, Edit, MoveUpRight, PlusIcon, Star, Trash, MessageSquare, Layers } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-export default function Index({ products, can }) {
+export default function Index({ products, can, filters = {}, filterOptions = {} }) {
+    const [currentFilters, setCurrentFilters] = useState(filters);
+    console.log(products.data);
+
+    useEffect(() => {
+        setCurrentFilters(filters);
+    }, [filters]);
+
+    const handleFilterChange = (key, value) => {
+        let newFilters;
+
+        if (key === 'clear') {
+            // Clear all filters - start with empty object
+            newFilters = {};
+        } else {
+            newFilters = { ...currentFilters };
+
+            if (value === '' || value === null || value === undefined) {
+                delete newFilters[key];
+            } else {
+                newFilters[key] = value;
+            }
+        }
+
+        setCurrentFilters(newFilters);
+
+        // Update URL with new filters
+        router.get(
+            route('admin.products.index'),
+            newFilters,
+            {
+                preserveState: true,
+                preserveScroll: true,
+            }
+        );
+    };
+
+    const handlePageChange = (page) => {
+        router.get(
+            route('admin.products.index'),
+            { ...currentFilters, page },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            }
+        );
+    };
     const renderRating = (avgRating, reviewsCount) => {
         if (!avgRating || reviewsCount === 0) {
             return (
@@ -53,9 +102,9 @@ export default function Index({ products, can }) {
             ]}
         >
             <Head title="Produk" />
-            <div className="py-12">
+            <div className="py-4 px-4">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="flex flex-row items-center justify-between pb-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
                         <h2 className="text-2xl font-bold">Product List</h2>
                         {can.create && route('admin.products.create') && (
                             <Button asChild>
@@ -66,6 +115,13 @@ export default function Index({ products, can }) {
                             </Button>
                         )}
                     </div>
+
+                    {/* Search and Filters */}
+                    <ProductSearch
+                        filters={currentFilters}
+                        filterOptions={filterOptions}
+                        onFilterChange={handleFilterChange}
+                    />
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
@@ -85,7 +141,7 @@ export default function Index({ products, can }) {
                                 <TableRow key={product.id}>
                                     <TableCell>
                                         {(() => {
-                                            const imageUrl = product.primaryImage?.url || product.image_url;
+                                            const imageUrl = product.primary_image?.url;
                                             return imageUrl ? (
                                                 <div className="h-10 w-10 overflow-hidden rounded-md border">
                                                     <img src={imageUrl} alt={product.name} className="h-full w-full object-contain" loading="lazy" />
@@ -100,28 +156,96 @@ export default function Index({ products, can }) {
                                         })()}
                                     </TableCell>
                                     <TableCell className="font-medium text-blue-600 max-w-xs whitespace-nowrap overflow-hidden text-ellipsis" title={product.name}>
-                                        {can.edit && (
-                                            <Link href={route('admin.products.edit', product)}>
-                                                {product.name}  <MoveUpRight className='inline h-4 w-4' />
-                                            </Link>
-                                        )}
+                                        <div className="flex items-center gap-2">
+                                            {can.edit && (
+                                                <Link href={route('admin.products.edit', product)}>
+                                                    {product.name}  <MoveUpRight className='inline h-4 w-4' />
+                                                </Link>
+                                            )}
+                                            {product.has_variations && (
+                                                <Badge variant="secondary" className="text-xs">
+                                                    <Layers className="h-3 w-3 mr-1" />
+                                                    {product.skus_count || 0} Variasi
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </TableCell>
                                     <TableCell>{product.vendor?.name || '-'}</TableCell>
                                     <TableCell className="text-right">
-                                        {new Intl.NumberFormat('id-ID', {
-                                            style: 'currency',
-                                            currency: 'IDR',
-                                            minimumFractionDigits: 0,
-                                            maximumFractionDigits: 0,
-                                        }).format(product.buy_price)}
+                                        {product.has_variations ? (
+                                            <div className="text-right">
+                                                {product.buy_price_min !== product.buy_price_max ? (
+                                                    <div className="text-xs">
+                                                        <div>{new Intl.NumberFormat('id-ID', {
+                                                            style: 'currency',
+                                                            currency: 'IDR',
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 0,
+                                                        }).format(product.buy_price_min)}</div>
+
+                                                        <div className="text-gray-500">s/d</div>
+
+                                                        <div>{new Intl.NumberFormat('id-ID', {
+                                                            style: 'currency',
+                                                            currency: 'IDR',
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 0,
+                                                        }).format(product.buy_price_max)}</div>
+                                                    </div>
+                                                ) : (
+                                                    new Intl.NumberFormat('id-ID', {
+                                                        style: 'currency',
+                                                        currency: 'IDR',
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 0,
+                                                    }).format(product.buy_price_display)
+                                                )}
+                                            </div>
+                                        ) : (
+                                            new Intl.NumberFormat('id-ID', {
+                                                style: 'currency',
+                                                currency: 'IDR',
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            }).format(product.buy_price)
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {new Intl.NumberFormat('id-ID', {
-                                            style: 'currency',
-                                            currency: 'IDR',
-                                            minimumFractionDigits: 0,
-                                            maximumFractionDigits: 0,
-                                        }).format(product.sell_price)}
+                                        {product.has_variations ? (
+                                            <div className="text-right">
+                                                {product.sell_price_min !== product.sell_price_max ? (
+                                                    <div className="text-xs">
+                                                        <div>{new Intl.NumberFormat('id-ID', {
+                                                            style: 'currency',
+                                                            currency: 'IDR',
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 0,
+                                                        }).format(product.sell_price_min)}</div>
+                                                        <div className="text-gray-500">s/d</div>
+                                                        <div>{new Intl.NumberFormat('id-ID', {
+                                                            style: 'currency',
+                                                            currency: 'IDR',
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 0,
+                                                        }).format(product.sell_price_max)}</div>
+                                                    </div>
+                                                ) : (
+                                                    new Intl.NumberFormat('id-ID', {
+                                                        style: 'currency',
+                                                        currency: 'IDR',
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 0,
+                                                    }).format(product.sell_price_display)
+                                                )}
+                                            </div>
+                                        ) : (
+                                            new Intl.NumberFormat('id-ID', {
+                                                style: 'currency',
+                                                currency: 'IDR',
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            }).format(product.sell_price)
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         {renderRating(product.reviews_avg_rating, product.reviews_count)}
@@ -176,21 +300,12 @@ export default function Index({ products, can }) {
                             ))}
                         </TableBody>
                     </Table>
-                    <div className="mt-4 flex justify-center">
-                        {products.links.map(
-                            (link, index) =>
-                                link.url && (
-                                    <Link
-                                        key={index}
-                                        href={link.url}
-                                        className={`mx-1 rounded px-4 py-2 ${link.active ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                                        dangerouslySetInnerHTML={{
-                                            __html: link.label,
-                                        }}
-                                    />
-                                ),
-                        )}
-                    </div>
+
+                    {/* Custom Pagination */}
+                    <Pagination
+                        data={products}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
             </div>
         </AdminLayout>

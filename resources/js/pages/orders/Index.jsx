@@ -81,7 +81,7 @@ export default function OrdersIndex({ orders }) {
         <BuyerLayoutWrapper backLink={route('home')} title={'Riwayat Transaksi'}>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
 
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen px-4">
                 {/* Flash Messages */}
                 {flash?.success && (
                     <div className="mx-4 mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
@@ -96,7 +96,7 @@ export default function OrdersIndex({ orders }) {
                 )}
 
                 {/* Filter Tabs */}
-                <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+                <div className="sticky top-0 z-10 bg-white py-3">
                     <div className="flex gap-2 overflow-x-auto">
                         <Button
                             variant={filter.status === '' ? 'default' : 'ghost'}
@@ -134,7 +134,7 @@ export default function OrdersIndex({ orders }) {
                 </div>
 
                 {/* Orders List */}
-                <div className="p-4">
+                <div className="">
                     {filteredOrders.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <ShoppingBag className="h-16 w-16 text-gray-300 mb-4" />
@@ -178,9 +178,9 @@ export default function OrdersIndex({ orders }) {
                                     {/* Product Preview */}
                                     <div className="mb-3">
                                         <div className="flex items-center space-x-3">
-                                            {order.items[0]?.product?.image_url && (
+                                            {order.items[0]?.product?.primaryImage?.url && (
                                                 <img
-                                                    src={order.items[0].product.image_url}
+                                                    src={order.items[0].product.primaryImage.url}
                                                     alt={order.items[0].product.name}
                                                     className="h-12 w-12 rounded-lg object-cover"
                                                 />
@@ -249,40 +249,42 @@ export default function OrdersIndex({ orders }) {
                     )}
 
                     {/* Pagination */}
-                    {filteredOrders.length > 0 && (
-                        <div className="mt-6 border-t border-gray-200 pt-4">
+                    {filteredOrders.length > 0 && orders.links && orders.links.length > 3 && (
+                        <div className="py-4">
                             <div className="flex items-center justify-between">
                                 <div className="text-xs text-gray-500">
                                     Menampilkan {filteredOrders.length} dari {orders.total} transaksi
                                 </div>
                                 <div className="flex items-center space-x-1">
-                                    {/* Previous Button */}
-                                    <Link
-                                        href={orders.links[0].url || '#'}
-                                        className={`inline-flex items-center rounded-lg p-2 text-sm ${!orders.links[0].url ? 'cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-100'}`}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Link>
-
-                                    {/* Page Numbers */}
-                                    <div className="flex space-x-1">
-                                        {orders.links.slice(1, -1).map((link, index) => (
+                                    {orders.links.map((link, index) => {
+                                        const isFirst = index === 0;
+                                        const isLast = index === orders.links.length - 1;
+                                        
+                                        return (
                                             <Link
                                                 key={index}
                                                 href={link.url || '#'}
-                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium ${link.active ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'} ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    {/* Next Button */}
-                                    <Link
-                                        href={orders.links[orders.links.length - 1].url || '#'}
-                                        className={`inline-flex items-center rounded-lg p-2 text-sm ${!orders.links[orders.links.length - 1].url ? 'cursor-not-allowed text-gray-400' : 'text-gray-700 hover:bg-gray-100'}`}
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Link>
+                                                className={`inline-flex items-center justify-center h-9 ${
+                                                    isFirst || isLast 
+                                                        ? 'w-9' 
+                                                        : 'min-w-[2.25rem] px-2'
+                                                } text-sm border rounded-md font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-primary text-white border-primary'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                preserveScroll
+                                            >
+                                                {isFirst ? (
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                ) : isLast ? (
+                                                    <ChevronRight className="h-4 w-4" />
+                                                ) : (
+                                                    link.label
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

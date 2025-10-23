@@ -20,16 +20,23 @@ class Product extends Model
         'slug',
         'buy_price',
         'sell_price',
+        'base_price',
         'stock',
         'description',
-        'image_url',
-        'status'
+        'status',
+        'has_variations',
+        'different_prices',
+        'use_images'
     ];
 
     protected $casts = [
         'buy_price' => 'decimal:2',
         'sell_price' => 'decimal:2',
-        'status' => 'string'
+        'base_price' => 'decimal:2',
+        'status' => 'string',
+        'has_variations' => 'boolean',
+        'different_prices' => 'boolean',
+        'use_images' => 'boolean'
     ];
 
     protected $appends = ['average_rating', 'total_reviews'];
@@ -207,18 +214,25 @@ class Product extends Model
     }
 
     /**
-     * Get the image URL attribute (backward compatibility).
+     * Get the image URL attribute.
      */
     public function getImageUrlAttribute(): ?string
     {
-        // First try to get primary image from new relationship
+        // Get primary image from new relationship
         $primaryImage = $this->relationLoaded('primaryImage') ? $this->primaryImage : null;
         if ($primaryImage) {
             return $primaryImage->url;
         }
 
-        // Fallback to legacy image_url field
-        return $this->attributes['image_url'] ?? null;
+        // If no primary image loaded, try to get it from database
+        if (!$primaryImage) {
+            $primaryImage = $this->primaryImage()->first();
+            if ($primaryImage) {
+                return $primaryImage->url;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -260,12 +274,204 @@ class Product extends Model
         $image->setAsPrimary();
     }
 
+    
+    /**
+     * Get the SKUs for the product.
+     */
+    public function skus()
+    {
+        return $this->hasMany(ProductSku::class);
+    }
+
+    /**
+     * Get the SKUs with variation information for the product.
+     * Note: Simplified version - variation information is now stored directly in SKU.
+     */
+    public function skusWithVariations()
+    {
+        return $this->skus()->orderBy('sku_code');
+    }
+
+    /**
+     * Get the active SKUs for the product.
+     */
+    public function activeSkus()
+    {
+        return $this->skus()->available();
+    }
+
+    /**
+     * Get the total stock across all SKUs.
+     */
+    public function getTotalStockAttribute(): int
+    {
+        if ($this->has_variations) {
+            return $this->activeSkus()->sum('stock');
+        }
+        return $this->stock;
+    }
+
+    /**
+     * Get the minimum price across all SKUs.
+     */
+    public function getMinPriceAttribute(): float
+    {
+        if ($this->has_variations) {
+            $minPrice = $this->activeSkus()->min('price');
+            return $minPrice ?? $this->base_price ?? $this->sell_price ?? 0;
+        }
+        return $this->base_price ?? $this->sell_price ?? 0;
+    }
+
+    /**
+     * Get the maximum price across all SKUs.
+     */
+    public function getMaxPriceAttribute(): float
+    {
+        if ($this->has_variations) {
+            $maxPrice = $this->activeSkus()->max('price');
+            return $maxPrice ?? $this->base_price ?? $this->sell_price ?? 0;
+        }
+        return $this->base_price ?? $this->sell_price ?? 0;
+    }
+
+    /**
+     * Check if product has any available SKUs.
+     */
+    public function hasAvailableSkus(): bool
+    {
+        if ($this->has_variations) {
+            return $this->activeSkus()->exists();
+        }
+        return $this->stock > 0 && $this->status === 'active';
+    }
+
+    /**
+     * Check if product has any stock available (including SKUs).
+     */
+    public function hasStockAvailable(): bool
+    {
+        if ($this->has_variations) {
+            return $this->activeSkus()->where('stock', '>', 0)->exists();
+        }
+        return $this->stock > 0;
+    }
+
+    /**
+     * Get available stock count (including SKUs).
+     */
+    public function getAvailableStockCount(): int
+    {
+        if ($this->has_variations) {
+            return $this->activeSkus()->sum('stock');
+        }
+        return $this->stock;
+    }
+
+    /**
+     * Check if product can be assigned to sales (has sufficient stock).
+     */
+    public function canBeAssignedToSales(int $quantity = 1): bool
+    {
+        if ($this->has_variations) {
+            // For products with variations, check if any SKU has sufficient stock
+            return $this->activeSkus()->where('stock', '>=', $quantity)->exists();
+        }
+        return $this->stock >= $quantity;
+    }
+
     /**
      * Get the route key for the model.
      */
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    /**
+     * Check if product has any orders (trigger for edit restrictions).
+     */
+    public function hasOrders(): bool
+    {
+        return $this->hasMany(OrderItem::class, 'product_id')->exists();
+    }
+
+    /**
+     * Get order items for this product.
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'product_id');
+    }
+
+    /**
+     * Check if a specific SKU has orders.
+     */
+    public function skuHasOrders(int $skuId): bool
+    {
+        return $this->orderItems()->where('sku_id', $skuId)->exists();
+    }
+
+    /**
+     * Get list of attribute names used in variations (parsed from variant_name).
+     */
+    public function getUsedVariationAttributes(): array
+    {
+        if (!$this->has_variations) {
+            return [];
+        }
+
+        $attributes = [];
+        $skus = $this->skus()->get();
+        
+        foreach ($skus as $sku) {
+            if ($sku->variant_name) {
+                // Parse variant_name format: "Ukuran: L, Warna: Merah"
+                $parts = explode(',', $sku->variant_name);
+                foreach ($parts as $part) {
+                    if (strpos($part, ':') !== false) {
+                        [$attrName] = explode(':', $part, 2);
+                        $attrName = trim($attrName);
+                        if (!in_array($attrName, $attributes)) {
+                            $attributes[] = $attrName;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $attributes;
+    }
+
+    /**
+     * Get list of all variation values used across all SKUs.
+     */
+    public function getUsedVariationValues(): array
+    {
+        if (!$this->has_variations) {
+            return [];
+        }
+
+        $values = [];
+        $skus = $this->skus()->get();
+        
+        foreach ($skus as $sku) {
+            if ($sku->variant_name) {
+                // Parse variant_name format: "Ukuran: L, Warna: Merah"
+                $parts = explode(',', $sku->variant_name);
+                foreach ($parts as $part) {
+                    if (strpos($part, ':') !== false) {
+                        [, $value] = explode(':', $part, 2);
+                        $value = trim($value);
+                        if (!in_array($value, $values)) {
+                            $values[] = $value;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $values;
     }
 
 }

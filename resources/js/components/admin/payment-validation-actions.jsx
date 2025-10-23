@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Eye, Clock, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
+import PaymentProofDialog from '@/components/admin/payment-proof-dialog';
 
 export function PaymentValidationActions({
   order,
@@ -12,6 +13,7 @@ export function PaymentValidationActions({
   const { processing } = useForm();
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [isProofDialogOpen, setIsProofDialogOpen] = useState(false);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -135,7 +137,7 @@ export function PaymentValidationActions({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open(`/storage/${order.payment_proof}`, '_blank')}
+            onClick={() => setIsProofDialogOpen(true)}
           >
             <Eye className="h-4 w-4 mr-2" />
             Lihat Bukti
@@ -225,6 +227,13 @@ export function PaymentValidationActions({
           )}
         </div>
       )}
+
+      {/* Payment Proof Dialog */}
+      <PaymentProofDialog
+        isOpen={isProofDialogOpen}
+        onClose={() => setIsProofDialogOpen(false)}
+        proofPath={order.payment_proof}
+      />
     </div>
   );
 }

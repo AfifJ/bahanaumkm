@@ -26,9 +26,6 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
         if (product.primaryImage?.url) {
             return product.primaryImage.url;
         }
-        if (product.image_url) {
-            return product.image_url;
-        }
         return null;
     };
 
@@ -71,12 +68,25 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
     };
 
     const handleCheckout = () => {
-        router.get(route('buyer.cart.checkout'));
+        console.log('🛒 Checkout clicked');
+        console.log('Route:', route('buyer.cart.checkout'));
+        
+        router.get(route('buyer.cart.checkout'), {}, {
+            onSuccess: () => {
+                console.log('✅ Checkout redirect successful');
+            },
+            onError: (errors) => {
+                console.error('❌ Checkout error:', errors);
+            }
+        });
     };
 
-    const getStockStatus = (product) => {
-        if (product.stock <= 0) return 'out_of_stock';
-        if (product.stock < 5) return 'low_stock';
+    const getStockStatus = (item) => {
+        // Use SKU stock if available, otherwise use product stock
+        const stock = item.sku?.stock ?? item.product.stock;
+        
+        if (stock <= 0) return 'out_of_stock';
+        if (stock < 5) return 'low_stock';
         return 'in_stock';
     };
 
@@ -158,7 +168,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                         {/* Cart Items */}
                         <div className="space-y-4">
                             {cartItems.map((item) => {
-                                const stockStatus = getStockStatus(item.product);
+                                const stockStatus = getStockStatus(item);
                                 const imageUrl = getImageUrl(item.product);
 
                                 return (
@@ -189,9 +199,24 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                         >
                                                             {item.product.name}
                                                         </Link>
-                                                        <div className="mt-1">
+                                                        
+                                                        {/* Variation Info */}
+                                                        {item.sku && (
+                                                            <div className="mt-1 flex items-center gap-2">
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {item.sku.variant_name || item.variation_summary}
+                                                                </Badge>
+                                                                {item.sku.sku_code && (
+                                                                    <span className="text-xs text-gray-500">
+                                                                        SKU: {item.sku.sku_code}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        
+                                                        <div className="mt-2">
                                                             <p className="text-lg font-bold text-gray-900">
-                                                                {formatPrice(item.product.sell_price)}
+                                                                {formatPrice(item.sku?.price || item.product.sell_price)}
                                                             </p>
                                                             <p className="text-sm text-gray-500">
                                                                 Per item
@@ -199,7 +224,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                         </div>
                                                     </div>
 
-                                                    <div className="text-right">
+                                                    <div className="text-right ml-4">
                                                         <div className="text-lg font-bold text-gray-900">
                                                             {formatPrice(item.subtotal)}
                                                         </div>
@@ -215,7 +240,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                         variant="outline"
                                                         className={getStockStatusColor(stockStatus)}
                                                     >
-                                                        {getStockStatusText(stockStatus)} ({item.product.stock})
+                                                        {getStockStatusText(stockStatus)} ({item.sku?.stock || item.product.stock})
                                                     </Badge>
                                                 </div>
                                             </div>
@@ -244,14 +269,14 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                         }}
                                                         className="w-16 text-center"
                                                         min="1"
-                                                        max={item.product.stock}
+                                                        max={item.sku?.stock || item.product.stock}
                                                         disabled={updatingItems.has(item.id)}
                                                     />
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                                                        disabled={item.quantity >= item.product.stock || updatingItems.has(item.id)}
+                                                        disabled={item.quantity >= (item.sku?.stock || item.product.stock) || updatingItems.has(item.id)}
                                                         className="w-8 h-8 p-0"
                                                     >
                                                         <Plus className="h-4 w-4" />

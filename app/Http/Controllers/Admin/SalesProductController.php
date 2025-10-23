@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BorrowedProduct;
 use App\Models\Product;
+use App\Models\ProductSku;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,17 +65,39 @@ class SalesProductController extends Controller
             ->where('status', 'active')
             ->get(['id', 'name', 'email', 'phone']);
 
-        $products = Product::with('category')
-            ->where('stock', '>', 0)
+        $products = Product::with([
+            'category',
+            'primaryImage',
+            'images' => function ($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'skus' => function ($query) {
+                $query->where('status', 'active');
+            }
+        ])
+            ->where('status', 'active')
             ->get()
             ->map(function ($product) {
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'category' => $product->category->name ?? 'Uncategorized',
-                    'stock' => $product->stock,
-                    'image_url' => $product->image_url,
+                    'stock' => $product->getTotalStockAttribute(),
                     'sell_price' => $product->sell_price,
+                    'primary_image' => $product->primaryImage,
+                    'has_variations' => $product->has_variations,
+                    'min_price' => $product->min_price,
+                    'max_price' => $product->max_price,
+                    'skus' => $product->skus->map(function ($sku) {
+                        return [
+                            'id' => $sku->id,
+                            'sku_code' => $sku->sku_code,
+                            'variant_name' => $sku->variant_name,
+                            'price' => $sku->price,
+                            'stock' => $sku->stock,
+                            'status' => $sku->status,
+                        ];
+                    }),
                 ];
             });
 
@@ -88,20 +111,22 @@ class SalesProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'sale_id' => 'required|exists:users,id',
-            'assignments' => 'required|array|min:1',
-            'assignments.*.product_id' => 'required|exists:products,id',
-            'assignments.*.quantity' => 'required|integer|min:1',
-            'assignments.*.borrowed_date' => 'required|date',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.product_sku_id' => 'nullable|exists:product_skus,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.borrowed_date' => 'required|date',
         ], [
             'sale_id.required' => 'Sales harus dipilih',
             'sale_id.exists' => 'Sales tidak valid',
-            'assignments.required' => 'Harus ada minimal 1 produk',
-            'assignments.min' => 'Harus ada minimal 1 produk',
-            'assignments.*.product_id.required' => 'Produk harus dipilih',
-            'assignments.*.product_id.exists' => 'Produk tidak valid',
-            'assignments.*.quantity.required' => 'Jumlah harus diisi',
-            'assignments.*.quantity.min' => 'Jumlah minimal 1',
-            'assignments.*.borrowed_date.required' => 'Tanggal pinjam harus diisi',
+            'products.required' => 'Harus ada minimal 1 produk',
+            'products.min' => 'Harus ada minimal 1 produk',
+            'products.*.product_id.required' => 'Produk harus dipilih',
+            'products.*.product_id.exists' => 'Produk tidak valid',
+            'products.*.product_sku_id.exists' => 'Variasi produk tidak valid',
+            'products.*.quantity.required' => 'Jumlah harus diisi',
+            'products.*.quantity.min' => 'Jumlah minimal 1',
+            'products.*.borrowed_date.required' => 'Tanggal pinjam harus diisi',
         ]);
 
         if ($validator->fails()) {
@@ -114,38 +139,78 @@ class SalesProductController extends Controller
             DB::beginTransaction();
 
             $saleId = $request->sale_id;
-            $assignments = $request->assignments;
+            $products = $request->products;
 
-            foreach ($assignments as $assignment) {
-                $product = Product::find($assignment['product_id']);
+            foreach ($products as $productData) {
+                $product = Product::find($productData['product_id']);
+                $sku = null;
 
-                // Check if product has sufficient stock
-                if ($product->stock < $assignment['quantity']) {
-                    throw new \Exception("Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}");
+                // Handle SKU validation if provided (product with variations)
+                if (!empty($productData['product_sku_id'])) {
+                    $sku = ProductSku::find($productData['product_sku_id']);
+
+                    // Verify SKU belongs to the product
+                    if (!$sku || $sku->product_id !== $product->id) {
+                        throw new \Exception("Variasi produk tidak valid untuk produk {$product->name}");
+                    }
+
+                    // Check if SKU has sufficient stock
+                    if ($sku->stock < $productData['quantity']) {
+                        throw new \Exception("Stok variasi {$sku->variant_name} tidak mencukupi. Stok tersedia: {$sku->stock}");
+                    }
+                } else {
+                    // For products without SKU, check product stock
+                    if ($product->stock < $productData['quantity']) {
+                        throw new \Exception("Stok produk {$product->name} tidak mencukupi. Stok tersedia: {$product->stock}");
+                    }
                 }
 
-                // Check if product is already assigned to this sales user
-                $existingAssignment = BorrowedProduct::where('sale_id', $saleId)
-                    ->where('product_id', $assignment['product_id'])
-                    ->where('status', 'borrowed')
-                    ->first();
+                // Check for duplicate assignment (considering SKU)
+                $duplicateQuery = BorrowedProduct::where('sale_id', $saleId)
+                    ->where('product_id', $productData['product_id'])
+                    ->where('status', 'borrowed');
 
-                if ($existingAssignment) {
-                    throw new \Exception("Produk {$product->name} sudah ditugaskan kepada sales ini");
+                // Add SKU check if SKU is provided
+                if (!empty($productData['product_sku_id'])) {
+                    $duplicateQuery->where('sku_id', $productData['product_sku_id']);
+                    $existingAssignment = $duplicateQuery->first();
+
+                    if ($existingAssignment) {
+                        throw new \Exception("Variasi produk {$sku->variant_name} sudah ditugaskan kepada sales ini");
+                    }
+                } else {
+                    // For simple products, check only by product_id where sku_id is null
+                    $duplicateQuery->whereNull('sku_id');
+                    $existingAssignment = $duplicateQuery->first();
+
+                    if ($existingAssignment) {
+                        throw new \Exception("Produk {$product->name} sudah ditugaskan kepada sales ini");
+                    }
                 }
 
                 // Create borrowed product record
-                BorrowedProduct::create([
+                $borrowedProductData = [
                     'sale_id' => $saleId,
-                    'product_id' => $assignment['product_id'],
-                    'borrowed_quantity' => $assignment['quantity'],
+                    'product_id' => $productData['product_id'],
+                    'borrowed_quantity' => $productData['quantity'],
                     'sold_quantity' => 0,
                     'status' => 'borrowed',
-                    'borrowed_date' => $assignment['borrowed_date'],
-                ]);
+                    'borrowed_date' => $productData['borrowed_date'],
+                ];
 
-                // Reduce product stock
-                $product->decrement('stock', $assignment['quantity']);
+                // Add SKU if provided
+                if (!empty($productData['product_sku_id'])) {
+                    $borrowedProductData['sku_id'] = $productData['product_sku_id'];
+                }
+
+                BorrowedProduct::create($borrowedProductData);
+
+                // Reduce stock (SKU stock if SKU provided, otherwise product stock)
+                if (!empty($productData['product_sku_id'])) {
+                    $sku->decrement('stock', $productData['quantity']);
+                } else {
+                    $product->decrement('stock', $productData['quantity']);
+                }
             }
 
             DB::commit();
@@ -198,7 +263,6 @@ class SalesProductController extends Controller
                     'id' => $borrowedProduct->product->id,
                     'name' => $borrowedProduct->product->name,
                     'category' => $borrowedProduct->product->category->name ?? 'Uncategorized',
-                    'image_url' => $borrowedProduct->product->image_url,
                 ],
                 'borrowed_quantity' => $borrowedProduct->borrowed_quantity,
                 'sold_quantity' => $borrowedProduct->sold_quantity,
@@ -218,7 +282,7 @@ class SalesProductController extends Controller
             abort(404);
         }
 
-        $borrowedProducts = BorrowedProduct::with(['product.category'])
+        $borrowedProducts = BorrowedProduct::with(['product.category', 'sku'])
             ->where('sale_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get()
@@ -229,8 +293,13 @@ class SalesProductController extends Controller
                         'id' => $borrowedProduct->product->id,
                         'name' => $borrowedProduct->product->name,
                         'category' => $borrowedProduct->product->category->name ?? 'Uncategorized',
-                        'image_url' => $borrowedProduct->product->image_url,
+                        'has_variations' => $borrowedProduct->product->has_variations,
                     ],
+                    'sku' => $borrowedProduct->sku ? [
+                        'id' => $borrowedProduct->sku->id,
+                        'sku_code' => $borrowedProduct->sku->sku_code,
+                        'variant_name' => $borrowedProduct->sku->variant_name,
+                    ] : null,
                     'borrowed_quantity' => $borrowedProduct->borrowed_quantity,
                     'sold_quantity' => $borrowedProduct->sold_quantity,
                     'current_stock' => $borrowedProduct->current_stock,
@@ -361,10 +430,7 @@ class SalesProductController extends Controller
     public function returnProduct(Request $request, BorrowedProduct $borrowedProduct)
     {
         if ($borrowedProduct->status === 'returned') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Produk sudah dikembalikan'
-            ], 400);
+            return back()->with('error', 'Produk sudah dikembalikan');
         }
 
         $validator = Validator::make($request->all(), [
@@ -378,11 +444,9 @@ class SalesProductController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
+            return back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         try {
@@ -391,7 +455,11 @@ class SalesProductController extends Controller
             $returnQuantity = $request->return_all ? $borrowedProduct->current_stock : $request->return_quantity;
 
             // Return specified quantity to product stock
-            $borrowedProduct->product->increment('stock', $returnQuantity);
+            if ($borrowedProduct->sku) {
+                $borrowedProduct->sku->increment('stock', $returnQuantity);
+            } else {
+                $borrowedProduct->product->increment('stock', $returnQuantity);
+            }
 
             // Update borrowed product
             $borrowedProduct->update([
@@ -402,22 +470,14 @@ class SalesProductController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Produk berhasil dikembalikan ke stok',
-                'data' => [
-                    'return_quantity' => $returnQuantity,
-                    'return_date' => $request->return_date,
-                ]
-            ]);
+            return back()->with('success', "Produk berhasil dikembalikan ke stok ({$returnQuantity} unit)");
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengembalikan produk: ' . $e->getMessage()
-            ], 500);
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal mengembalikan produk: ' . $e->getMessage());
         }
     }
 

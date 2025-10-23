@@ -147,44 +147,35 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                                     Menampilkan {products.from} sampai {products.to} dari {products.total} produk
                                 </div>
                                 <div className="flex items-center space-x-1">
-                                    {/* Previous Button */}
-                                    <Link
-                                        href={products.links[0].url || '#'}
-                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!products.links[0].url
-                                            ? 'cursor-not-allowed text-gray-400'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                        <span className="ml-1">Sebelumnya</span>
-                                    </Link>
-
-                                    {/* Page Numbers */}
-                                    <div className="flex space-x-1">
-                                        {products.links.slice(1, -1).map((link, index) => (
+                                    {products.links.map((link, index) => {
+                                        const isFirst = index === 0;
+                                        const isLast = index === products.links.length - 1;
+                                        
+                                        return (
                                             <Link
                                                 key={index}
                                                 href={link.url || '#'}
-                                                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium ${link.active
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'text-gray-700 hover:bg-gray-50'
-                                                    } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    {/* Next Button */}
-                                    <Link
-                                        href={products.links[products.links.length - 1].url || '#'}
-                                        className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium ${!products.links[products.links.length - 1].url
-                                            ? 'cursor-not-allowed text-gray-400'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <span className="mr-1">Selanjutnya</span>
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Link>
+                                                className={`inline-flex items-center justify-center ${
+                                                    isFirst || isLast 
+                                                        ? 'h-9 w-9' 
+                                                        : 'h-9 min-w-[2.25rem] px-2'
+                                                } text-sm border rounded-md font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-primary text-white border-primary'
+                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                preserveScroll
+                                            >
+                                                {isFirst ? (
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                ) : isLast ? (
+                                                    <ChevronRight className="h-4 w-4" />
+                                                ) : (
+                                                    link.label
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
