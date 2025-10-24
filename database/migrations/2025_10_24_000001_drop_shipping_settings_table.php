@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->foreignId('sale_id')->nullable()->constrained('sales')->onDelete('set null');
-        });
+        Schema::dropIfExists('shipping_settings');
     }
 
     /**
@@ -21,9 +19,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropForeign(['sale_id']);
-            $table->dropColumn('sale_id');
+        Schema::create('shipping_settings', function (Blueprint $table) {
+            $table->id();
+            $table->decimal('price_per_km', 10, 2)->default(0);
+            $table->timestamps();
         });
     }
 };

@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('borrowed_products', function (Blueprint $table) {
-            $table->dropForeign(['sale_id']);
-        });
-
         Schema::table('orders', function (Blueprint $table) {
-            $table->dropForeign(['sale_id']);
+            $table->foreignId('sale_id')->nullable()->constrained('users')->onDelete('set null');
         });
     }
 
@@ -25,12 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('borrowed_products', function (Blueprint $table) {
-            $table->foreign('sale_id')->references('id')->on('sales')->cascadeOnDelete();
-        });
-
         Schema::table('orders', function (Blueprint $table) {
-            $table->foreign('sale_id')->references('id')->on('sales')->cascadeOnDelete();
+            $table->dropForeign(['sale_id']);
+            $table->dropColumn('sale_id');
         });
     }
 };

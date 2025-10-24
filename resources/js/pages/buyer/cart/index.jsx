@@ -70,7 +70,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
     const handleCheckout = () => {
         console.log('🛒 Checkout clicked');
         console.log('Route:', route('buyer.cart.checkout'));
-        
+
         router.get(route('buyer.cart.checkout'), {}, {
             onSuccess: () => {
                 console.log('✅ Checkout redirect successful');
@@ -84,7 +84,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
     const getStockStatus = (item) => {
         // Use SKU stock if available, otherwise use product stock
         const stock = item.sku?.stock ?? item.product.stock;
-        
+
         if (stock <= 0) return 'out_of_stock';
         if (stock < 5) return 'low_stock';
         return 'in_stock';
@@ -199,7 +199,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                         >
                                                             {item.product.name}
                                                         </Link>
-                                                        
+
                                                         {/* Variation Info */}
                                                         {item.sku && (
                                                             <div className="mt-1 flex items-center gap-2">
@@ -213,7 +213,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                                                 )}
                                                             </div>
                                                         )}
-                                                        
+
                                                         <div className="mt-2">
                                                             <p className="text-lg font-bold text-gray-900">
                                                                 {formatPrice(item.sku?.price || item.product.sell_price)}
@@ -327,7 +327,7 @@ export default function CartIndex({ cartItems, subtotal, formatted_subtotal, ite
                                     Lanjut Belanja
                                 </Button>
                                 <Button
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                                    className={'flex-1'}
                                     onClick={handleCheckout}
                                 >
                                     <CreditCard className="h-4 w-4 mr-2" />

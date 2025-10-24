@@ -45,7 +45,7 @@ class Setting extends Model
     /**
      * Set setting value by key
      */
-    public static function setValue(string $key, $value, string $type = 'text', string $description = null)
+    public static function setValue(string $key, $value, string $type = 'text', ?string $description = null)
     {
         return static::updateOrCreate(
             ['key' => $key],
@@ -67,5 +67,26 @@ class Setting extends Model
             $settings[$setting->key] = static::getValue($setting->key);
         }
         return $settings;
+    }
+
+    /**
+     * Get shipping price per kilometer
+     */
+    public static function getShippingPricePerKm($default = 0)
+    {
+        return static::getValue('shipping_price_per_km', $default);
+    }
+
+    /**
+     * Set shipping price per kilometer
+     */
+    public static function setShippingPricePerKm($price)
+    {
+        return static::setValue(
+            'shipping_price_per_km',
+            $price,
+            'number',
+            'Harga ongkos kirim per kilometer'
+        );
     }
 }

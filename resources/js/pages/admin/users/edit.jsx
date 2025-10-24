@@ -7,20 +7,47 @@ import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import { parseDistance, formatDistanceInMeters, formatDistanceForInput } from '@/lib/utils';
+import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 export default function UserEdit({ user, role, mitraProfile }) {
+    const [hasChanges, setHasChanges] = useState(false);
+    
     const { data, setData, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         status: user.status,
         hotel_name: mitraProfile?.hotel_name || '',
         address: mitraProfile?.address || '',
-        distance_from_warehouse: mitraProfile?.distance_from_warehouse || 0,
+        distance_from_warehouse: formatDistanceForInput(mitraProfile?.distance_from_warehouse || 0),
         // city: mitraProfile?.city || '',
         phone: mitraProfile?.phone || '',
         // partner_tier: mitraProfile?.partner_tier || '',
         // commission_rate: mitraProfile?.commission_rate || '',
     });
+
+    // Check for changes whenever data changes
+    useEffect(() => {
+        const originalData = {
+            name: user.name,
+            email: user.email,
+            status: user.status,
+            hotel_name: mitraProfile?.hotel_name || '',
+            address: mitraProfile?.address || '',
+            distance_from_warehouse: formatDistanceForInput(mitraProfile?.distance_from_warehouse || 0),
+            phone: mitraProfile?.phone || '',
+        };
+
+        const changes = Object.keys(data).some(key => {
+            if (key === 'distance_from_warehouse') {
+                return parseFloat(data[key]) !== parseFloat(originalData[key]);
+            }
+            return data[key] !== originalData[key];
+        });
+
+        setHasChanges(changes);
+    }, [data, user, mitraProfile]);
 
     const roleTitles = {
         Admin: 'Admin',
@@ -32,7 +59,27 @@ export default function UserEdit({ user, role, mitraProfile }) {
 
     const submit = (e) => {
         e.preventDefault();
-        router.put(route('admin.users.update', { role: role.name, user: user.id }));
+        
+        if (!hasChanges) {
+            toast.error('Tidak ada perubahan data untuk disimpan.');
+            return;
+        }
+        
+        // Convert distance from km to meters before submitting
+        const formData = {
+            ...data,
+            distance_from_warehouse: parseDistance(data.distance_from_warehouse)
+        };
+        
+        router.put(route('admin.users.update', { role: role.name, user: user.id }), formData, {
+            onSuccess: () => {
+                toast.success('Data Mitra berhasil diperbarui!');
+            },
+            onError: (errors) => {
+                toast.error('Terjadi kesalahan saat memperbarui data.');
+                console.error('Update errors:', errors);
+            }
+        });
     };
 
     return (
@@ -54,7 +101,7 @@ export default function UserEdit({ user, role, mitraProfile }) {
                         </Link>
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Edit {roleTitles[role.name] || role.name}</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Edit {roleTitles[role.name] || role.name}</h2>
                         <p className="text-muted-foreground">{role.description}</p>
                     </div>
                 </div>
@@ -167,19 +214,19 @@ export default function UserEdit({ user, role, mitraProfile }) {
                                                     id="distance_from_warehouse"
                                                     type="number"
                                                     min="0"
-                                                    step="100"
+                                                    step="0.1"
                                                     value={data.distance_from_warehouse}
-                                                    onChange={(e) => setData('distance_from_warehouse', parseInt(e.target.value) || 0)}
-                                                    placeholder="Masukkan jarak dalam km"
+                                                    onChange={(e) => setData('distance_from_warehouse', e.target.value)}
+                                                    placeholder="Masukkan jarak dalam kilometer"
                                                     required
                                                 />
                                                 {errors.distance_from_warehouse && (
                                                     <p className="text-sm text-red-500">{errors.distance_from_warehouse}</p>
                                                 )}
                                                 <p className="text-sm text-gray-500">
-                                                    Jarak dalam meter dari gudang ke hotel mitra. 
+                                                    Masukkan jarak dari gudang ke hotel mitra dalam kilometer (km).
                                                     {data.distance_from_warehouse > 0 && (
-                                                        <span> ({data.distance_from_warehouse / 1000} KM)</span>
+                                                        <span> {data.distance_from_warehouse} km = {formatDistanceInMeters(parseDistance(data.distance_from_warehouse))} meter</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -220,7 +267,10 @@ export default function UserEdit({ user, role, mitraProfile }) {
                             )}
 
                             <div className="flex gap-4">
-                                <Button type="submit" disabled={processing}>
+                                <Button
+                                    type="submit"
+                                    disabled={processing || !hasChanges}
+                                >
                                     {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                                 </Button>
                                 <Button variant="outline" asChild>

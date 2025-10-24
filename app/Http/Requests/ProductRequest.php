@@ -124,6 +124,33 @@ class ProductRequest extends FormRequest
                     }
                 }
             }
+
+            // Custom validation untuk total gambar produk (existing + new) pada update
+            if (($this->isMethod('PUT') || $this->isMethod('PATCH')) && $this->route('product')) {
+                $product = $this->route('product');
+                $existingImagesCount = $product->images()->count();
+                $newImagesCount = count($this->file('images', []));
+                $totalImagesCount = $existingImagesCount + $newImagesCount;
+
+                // Get image data from request to check which existing images are being kept
+                $imageData = $this->input('image_data', []);
+                $existingImagesToKeep = isset($imageData['existing']) ? count($imageData['existing']) : 0;
+                
+                // Calculate final image count after update
+                $finalImageCount = $existingImagesToKeep + $newImagesCount;
+
+                if ($finalImageCount > 5) {
+                    $validator->errors()->add('images',
+                        'Total gambar produk tidak boleh lebih dari 5. Saat ini ada ' . $existingImagesToKeep .
+                        ' gambar yang akan disimpan dan Anda mencoba menambah ' . $newImagesCount .
+                        ' gambar baru. Total: ' . $finalImageCount . ' gambar (maksimal 5).');
+                }
+
+                if ($finalImageCount < 1 && $existingImagesCount > 0) {
+                    $validator->errors()->add('images',
+                        'Produk harus memiliki minimal 1 gambar. Anda tidak dapat menghapus semua gambar.');
+                }
+            }
         });
     }
 
@@ -204,7 +231,7 @@ class ProductRequest extends FormRequest
             'images.required' => 'Gambar produk wajib diisi minimal 1 gambar.',
             'images.array' => 'Gambar produk harus berupa array.',
             'images.min' => 'Minimal harus ada 1 gambar produk.',
-            'images.max' => 'Maksimal 5 gambar produk yang diizinkan.',
+            'images.max' => 'Maksimal 5 gambar produk yang diizinkan (selain gambar variasi).',
 
             'images.*.required' => 'File gambar wajib diisi.',
             'images.*.image' => 'File harus berupa gambar.',

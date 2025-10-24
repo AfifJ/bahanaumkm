@@ -186,13 +186,18 @@ export default function SalesProductCreate({ salesUsers, products }) {
         >
             <Head title="Tugaskan Produk ke Sales" />
 
-            <div className="flex-1 space-y-4 p-8">
+            <div className="flex-1 space-y-4 py-6 sm:px-6 px-4">
                 {/* Header */}
-                <div className="flex items-center">
+                <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Tugaskan Produk ke Sales</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Tugaskan Produk ke Sales</h2>
                         <p className="text-muted-foreground">Pilih sales dan produk yang akan ditugaskan</p>
                     </div>
+                    <Button asChild type="button" variant="outline" className="mr-4">
+                        <Link href={route('admin.sales-products.index')} className="mr-4">
+                            Kembali
+                        </Link>
+                    </Button>
                 </div>
 
                 {/* Flash Messages */}

@@ -13,7 +13,7 @@ export default function CategoryIndex({ categories, layout }) {
             <ScrollToTop />
             <Head title="Kategori Produk" />
 
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto">
                 <div className="my-4">
                     <Breadcrumbs
                         breadcrumbs={[

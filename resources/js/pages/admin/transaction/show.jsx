@@ -211,25 +211,49 @@ export default function Transaction({ order }) {
                                     <Package className="h-4 w-4" />
                                     <h3 className="text-base font-semibold">Detail Produk</h3>
                                 </div>
-                                <div className="space-y-3">
-                                    {order.items.map((item, index) => (
-                                        <div key={item.id} className="flex justify-between items-start pb-3 border-b border-gray-100 last:border-b-0">
-                                            <div className="flex-1">
-                                                <div className="font-medium text-sm">{item.product.name}</div>
-                                                <div className="text-xs text-gray-600 mt-1">
-                                                    Vendor: {item.product.vendor?.name || '-'}
-                                                </div>
-                                                <div className="text-xs text-gray-600">
-                                                    {item.quantity} × {formatCurrency(item.unit_price)}
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-semibold text-sm">
-                                                    {formatCurrency(item.total_price)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Produk
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Vendor
+                                                </th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Qty
+                                                </th>
+                                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Harga
+                                                </th>
+                                                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Total
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {order.items.map((item, index) => (
+                                                <tr key={item.id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-4 text-sm">
+                                                        <div className="font-medium text-gray-900">{item.product.name}</div>
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm text-gray-600">
+                                                        {item.product.vendor?.name || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm text-center">
+                                                        {item.quantity}
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm text-right">
+                                                        {formatCurrency(item.unit_price)}
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm font-medium text-right">
+                                                        {formatCurrency(item.total_price)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </CardContent>
                         </Card>
@@ -267,7 +291,7 @@ export default function Transaction({ order }) {
                                             />
                                             <div className="mt-2 text-center">
                                                 <Button variant="outline" size="sm" onClick={() => handleViewProof(order.payment_proof)}>
-                                                    Lihat Gambar Asli
+                                                    Lihat Gambar
                                                 </Button>
                                             </div>
                                         </div>
@@ -318,15 +342,19 @@ export default function Transaction({ order }) {
                                     Informasi Pembeli
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Nama</p>
-                                    <p className="font-medium">{order.buyer?.name || '-'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Email</p>
-                                    <p className="text-sm text-gray-900">{order.buyer?.email || '-'}</p>
-                                </div>
+                            <CardContent className="p-4">
+                                <table className="min-w-full">
+                                    <tbody>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm font-medium text-gray-600 w-1/4">Nama</td>
+                                            <td className="py-3 text-sm text-gray-900">{order.buyer?.name || '-'}</td>
+                                        </tr>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm font-medium text-gray-600 w-1/4">Email</td>
+                                            <td className="py-3 text-sm text-gray-900">{order.buyer?.email || '-'}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </CardContent>
                         </Card>
 
@@ -338,15 +366,19 @@ export default function Transaction({ order }) {
                                     Informasi Pengiriman
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Mitra</p>
-                                    <p className="font-medium">{order.mitra?.hotel_name || '-'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600">Alamat</p>
-                                    <p className="text-sm text-gray-900">{order.mitra?.address || '-'}</p>
-                                </div>
+                            <CardContent className="p-4">
+                                <table className="min-w-full">
+                                    <tbody>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm font-medium text-gray-600 w-1/4">Mitra</td>
+                                            <td className="py-3 text-sm text-gray-900">{order.mitra?.hotel_name || '-'}</td>
+                                        </tr>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm font-medium text-gray-600 w-1/4">Alamat</td>
+                                            <td className="py-3 text-sm text-gray-900">{order.mitra?.address || '-'}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </CardContent>
                         </Card>
 
@@ -355,25 +387,25 @@ export default function Transaction({ order }) {
                             <CardHeader>
                                 <CardTitle className="text-lg">Ringkasan Pesanan</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600">Total Items</span>
-                                    <span className="font-medium">{order.items?.length || 0} produk</span>
-                                </div>
-                                <div className="border-t pt-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-semibold">Total Pembayaran</span>
-                                        <span className="text-xl font-bold text-green-600">{formatCurrency(order.total_amount)}</span>
-                                    </div>
-                                </div>
-                                {order.partner_commission > 0 && (
-                                    <div className="text-xs text-gray-600 pt-2 border-t">
-                                        <div className="flex justify-between">
-                                            <span>Komisi Mitra:</span>
-                                            <span>{formatCurrency(order.partner_commission)}</span>
-                                        </div>
-                                    </div>
-                                )}
+                            <CardContent className="p-4">
+                                <table className="min-w-full">
+                                    <tbody>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm font-medium text-gray-600">Total Items</td>
+                                            <td className="py-3 text-sm text-gray-900 text-right">{order.items?.length || 0} produk</td>
+                                        </tr>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm font-semibold text-gray-900">Total Pembayaran</td>
+                                            <td className="py-3 text-xl font-bold text-green-600 text-right">{formatCurrency(order.total_amount)}</td>
+                                        </tr>
+                                        {order.partner_commission > 0 && (
+                                            <tr className="border-b">
+                                                <td className="py-3 text-xs text-gray-600">Komisi Mitra</td>
+                                                <td className="py-3 text-xs text-gray-900 text-right">{formatCurrency(order.partner_commission)}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </CardContent>
                         </Card>
 

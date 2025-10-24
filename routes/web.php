@@ -18,6 +18,9 @@ Route::get('/', function () {
         if (auth()->user()->isMitra()) {
             return redirect('/mitra/dashboard');
         }
+        if (auth()->user()->isVendor()) {
+            return redirect('/vendor/dashboard');
+        }
     }
     return app(HomeController::class)->index();
 })->name('home');
@@ -31,6 +34,26 @@ Route::get('/search', [CatalogController::class, 'search'])->name('search');
 Route::get('/product/{product}', [CatalogController::class, 'productShow'])->name('product.show');
 
 Route::get('/vendor/profile/{vendor}', [CatalogController::class, 'vendorShow'])->name('vendor.show');
+
+// Handle /products route with role-based redirect
+Route::get('/products', function () {
+    if (auth()->check()) {
+        if (auth()->user()->role_id === 1) {
+            return redirect('/admin/dashboard');
+        }
+        if (auth()->user()->isSales()) {
+            return redirect('/sales/dashboard');
+        }
+        if (auth()->user()->isMitra()) {
+            return redirect('/mitra/dashboard');
+        }
+        if (auth()->user()->isVendor()) {
+            return redirect('/vendor/dashboard');
+        }
+    }
+    // If not authenticated, redirect to login
+    return redirect('/login');
+})->name('products.redirect');
 
 // Review Routes
 Route::middleware(['auth'])->group(function () {

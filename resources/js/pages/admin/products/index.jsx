@@ -102,15 +102,16 @@ export default function Index({ products, can, filters = {}, filterOptions = {} 
             ]}
         >
             <Head title="Produk" />
-            <div className="py-4 px-4">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
-                        <h2 className="text-2xl font-bold">Product List</h2>
+
+            <div className="py-6">
+                <div className="px-4 sm:px-6">
+                    <div className="flex flex-row items-center justify-between pb-4">
+                        <h2 className="text-2xl font-bold">Daftar Produk</h2>
                         {can.create && route('admin.products.create') && (
                             <Button asChild>
                                 <Link href={route('admin.products.create')}>
                                     <PlusIcon className="mr-2 h-4 w-4" />
-                                    Add Product
+                                    Tambah Produk
                                 </Link>
                             </Button>
                         )}
@@ -125,15 +126,15 @@ export default function Index({ products, can, filters = {}, filterOptions = {} 
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
-                                <TableHead>Image</TableHead>
-                                <TableHead>Name</TableHead>
+                                <TableHead>Gambar</TableHead>
+                                <TableHead>Nama</TableHead>
                                 <TableHead>Vendor</TableHead>
-                                <TableHead className="text-right">Buy Price</TableHead>
-                                <TableHead className="text-right">Sell Price</TableHead>
+                                <TableHead className="text-right">Harga Beli</TableHead>
+                                <TableHead className="text-right">Harga Jual</TableHead>
                                 <TableHead className="text-center">Rating</TableHead>
-                                <TableHead className="text-right">Stock</TableHead>
+                                <TableHead className="text-right">Stok</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -250,7 +251,23 @@ export default function Index({ products, can, filters = {}, filterOptions = {} 
                                     <TableCell className="text-center">
                                         {renderRating(product.reviews_avg_rating, product.reviews_count)}
                                     </TableCell>
-                                    <TableCell className="text-right">{product.stock}</TableCell>
+                                    <TableCell className="text-right">
+                                        {product.has_variations ? (
+                                            <div className="text-right">
+                                                {product.stock_min !== product.stock_max ? (
+                                                    <div className="text-xs">
+                                                        <div>{product.stock_min}</div>
+                                                        <div className="text-gray-500">-</div>
+                                                        <div>{product.stock_max}</div>
+                                                    </div>
+                                                ) : (
+                                                    product.stock_min
+                                                )}
+                                            </div>
+                                        ) : (
+                                            product.stock
+                                        )}
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant="outline">{product.status}</Badge>
                                     </TableCell>
@@ -278,14 +295,14 @@ export default function Index({ products, can, filters = {}, filterOptions = {} 
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
                                                     <AlertDialogHeader>
-                                                        <AlertDialogTitle>Apakah anda yakin?</AlertDialogTitle>
+                                                        <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
                                                         <AlertDialogDescription>
                                                             Penghapusan data tidak bisa dibatalkan. Tindakan ini akan menghapus data secara permanen
                                                             dari server.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogCancel>Batal</AlertDialogCancel>
                                                         <AlertDialogAction asChild>
                                                             <Link href={route('admin.products.destroy', product)} method="delete" as="button">
                                                                 Lanjutkan

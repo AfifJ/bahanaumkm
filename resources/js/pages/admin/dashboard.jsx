@@ -3,7 +3,7 @@ import { SalesChart } from '@/components/admin/sales-chart';
 import { RecentActivities } from '@/components/admin/recent-activities';
 import { AlertsPanel } from '@/components/admin/alerts-panel';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { DollarSign, ShoppingCart, Package, Users } from 'lucide-react';
 
 const breadcrumbs = [

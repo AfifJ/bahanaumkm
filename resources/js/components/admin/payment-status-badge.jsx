@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Clock, Eye, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, Eye, CheckCircle, XCircle, AlertCircle, Package, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function PaymentStatusBadge({ status, size = 'default', showIcon = true, className }) {
@@ -10,6 +10,12 @@ export function PaymentStatusBadge({ status, size = 'default', showIcon = true, 
       case 'validation':
         return <Eye className="h-4 w-4" />;
       case 'paid':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'processed':
+        return <Package className="h-4 w-4" />;
+      case 'shipped':
+        return <Truck className="h-4 w-4" />;
+      case 'delivered':
         return <CheckCircle className="h-4 w-4" />;
       case 'rejected':
         return <XCircle className="h-4 w-4" />;
@@ -25,6 +31,9 @@ export function PaymentStatusBadge({ status, size = 'default', showIcon = true, 
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-50',
       validation: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-50',
       paid: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-50',
+      processed: 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-50',
+      shipped: 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-50',
+      delivered: 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-50',
       rejected: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-50',
       cancelled: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-50',
     };
@@ -36,6 +45,9 @@ export function PaymentStatusBadge({ status, size = 'default', showIcon = true, 
       pending: 'Menunggu Pembayaran',
       validation: 'Menunggu Validasi',
       paid: 'Sudah Dibayar',
+      processed: 'Diproses',
+      shipped: 'Dikirim',
+      delivered: 'Diterima',
       rejected: 'Ditolak',
       cancelled: 'Dibatalkan',
     };
@@ -73,9 +85,9 @@ export function PaymentStatusBadge({ status, size = 'default', showIcon = true, 
         className
       )}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex justify-center items-center gap-1">
         {showIcon && (
-          <div className={iconSizeClass()}>
+          <div className={''}>
             {getStatusIcon(status)}
           </div>
         )}

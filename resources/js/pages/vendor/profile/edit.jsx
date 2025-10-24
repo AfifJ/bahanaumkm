@@ -113,7 +113,7 @@ export default function Edit({ user }) {
             <Head title="Pengaturan Profil - Vendor" />
 
             <div className="py-6">
-                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-4xl sm:px-6  ">
                     {/* Header */}
                     <div className="mb-6">
                         <div className="flex items-center space-x-4">

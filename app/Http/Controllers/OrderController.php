@@ -9,7 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductSku;
 use App\Models\Review;
-use App\Models\ShippingSetting;
+use App\Models\Setting;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -73,28 +73,28 @@ class OrderController extends Controller
             }
             
             $mitra = MitraProfile::get();
-            $shippingSetting = ShippingSetting::first();
-            
+            $shippingPricePerKm = Setting::getShippingPricePerKm();
+
             return Inertia::render('orders/create', [
                 'cartItems' => $items,
                 'subtotal' => $subtotal,
                 'fromCart' => true,
                 'mitra' => $mitra,
-                'shippingSetting' => $shippingSetting
+                'shippingPricePerKm' => $shippingPricePerKm
             ]);
         }
         
         // Handle single product buy now
-        $productId = $request->input('product_id');
+        $productSlug = $request->input('product_slug');
         $quantity = $request->input('quantity');
         $skuId = $request->input('sku_id');
         
-        if (!$productId || !$quantity) {
+        if (!$productSlug || !$quantity) {
             return redirect()->route('home')
                 ->with('error', 'Data produk tidak lengkap');
         }
         
-        $product = Product::with(['primaryImage', 'images'])->find($productId);
+        $product = Product::with(['primaryImage', 'images'])->where('slug', $productSlug)->first();
         
         if (!$product) {
             return redirect()->route('home')
@@ -108,7 +108,7 @@ class OrderController extends Controller
         }
 
         $mitra = MitraProfile::get();
-        $shippingSetting = ShippingSetting::first();
+        $shippingPricePerKm = Setting::getShippingPricePerKm();
 
         return Inertia::render('orders/create', [
             'product' => $product,
@@ -116,7 +116,7 @@ class OrderController extends Controller
             'sku' => $sku,
             'fromCart' => false,
             'mitra' => $mitra,
-            'shippingSetting' => $shippingSetting
+            'shippingPricePerKm' => $shippingPricePerKm
         ]);
     }
 
@@ -203,12 +203,12 @@ class OrderController extends Controller
             
             if ($request->mitra_id) {
                 $mitraProfile = MitraProfile::find($request->mitra_id);
-                $shippingSetting = ShippingSetting::first();
-                
-                if ($mitraProfile && $shippingSetting && $mitraProfile->distance_from_warehouse > 0) {
+                $shippingPricePerKm = Setting::getShippingPricePerKm();
+
+                if ($mitraProfile && $shippingPricePerKm > 0 && $mitraProfile->distance_from_warehouse > 0) {
                     // Convert meters to KM and calculate shipping cost
                     $distanceInKm = $mitraProfile->distance_from_warehouse / 1000;
-                    $shippingCost = $distanceInKm * $shippingSetting->price_per_km;
+                    $shippingCost = $distanceInKm * $shippingPricePerKm;
                 }
             }
 

@@ -56,7 +56,7 @@ const Index = ({ report, availableMonths = [], month: initialMonth = '' }) => {
         >
             <Head title="Laporan" />
             <div className="py-6">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6  ">
                     <div className="">
                         <div>
                             {availableMonths.length > 0 && <Select value={selectedMonth} onValueChange={handleMonthChange}>

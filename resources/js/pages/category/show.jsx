@@ -56,7 +56,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
             <ScrollToTop />
             <Head title={`Produk ${currentCategory.name}`} />
 
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto">
                 {/* Breadcrumb */}
                 <div className="my-4">
                     <Breadcrumbs
@@ -72,7 +72,7 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                 </div>
 
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Produk {currentCategory.name}</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Produk {currentCategory.name}</h1>
                     <Button
                         variant={'outline'}
                         onClick={() => setShowFilters(!showFilters)}
@@ -182,7 +182,6 @@ export default function CategoryShow({ products, categories, currentCategory, fi
                     </>
                 ) : (
                     <div className="text-center py-12">
-                        <div className="text-gray-400 text-6xl mb-4">📦</div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Produk tidak ditemukan</h3>
                         <p className="text-gray-600 mb-4">
                             Coba ubah filter pencarian Anda atau lihat semua produk.

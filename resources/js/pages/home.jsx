@@ -40,7 +40,7 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                             <section className="bg-gray-50 py-16">
                                 <div className="container mx-auto px-4">
                                     <div className="mb-12 text-center">
-                                        <h2 className="mb-4 text-3xl font-bold text-gray-900">Produk Unggulan</h2>
+                                        <h2 className="mb-4 text-2xl font-bold text-gray-900">Produk Unggulan</h2>
                                         <p className="text-lg text-gray-600">Produk pilihan dengan kualitas terbaik</p>
                                     </div>
 
@@ -124,7 +124,6 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                         <ProductList productList={latestProducts} />
                     ) : (
                         <div className="py-12 text-center">
-                            <div className="mb-4 text-6xl text-gray-400">🆕</div>
                             <h3 className="mb-2 text-lg font-medium text-gray-900">Belum ada produk</h3>
                             <p className="text-gray-600">Produk akan ditampilkan di sini</p>
                         </div>
@@ -140,7 +139,7 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
             {/* Call to Action Section */}
             {/* <section className="bg-blue-600 py-16 text-white">
                 <div className="container mx-auto px-4 text-center">
-                    <h2 className="mb-4 text-3xl font-bold">Siap Berbelanja?</h2>
+                    <h2 className="mb-4 text-2xl font-bold">Siap Berbelanja?</h2>
                     <p className="mb-8 text-xl opacity-90">Jelajahi ribuan produk UMKM berkualitas dengan harga terbaik</p>
                     <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
                         <Link href={route('category.index')}>Mulai Berbelanja</Link>

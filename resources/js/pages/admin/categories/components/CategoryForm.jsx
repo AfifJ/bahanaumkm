@@ -100,12 +100,12 @@ export default function CategoryForm({ data, setData, errors, processing, onSubm
                 </div>
 
                 <div className="flex items-center justify-end space-x-4">
-                    <Button asChild type="button" variant="ghost">
+                    <Button variant="outline" asChild>
                         <Link href="/admin/categories">Batal</Link>
                     </Button>
                     <Button type="submit" disabled={processing}>
                         {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                        {isEdit ? 'Update' : 'Simpan'}
+                        {isEdit ? 'Perbarui' : 'Simpan'}
                     </Button>
                 </div>
             </div>

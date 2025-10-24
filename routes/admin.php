@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\SalesProductController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\ShippingSettingController;
 use Inertia\Inertia;
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/', function () {
@@ -85,11 +84,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::get('/', [SettingController::class, 'index'])->name('index');
         Route::put('/', [SettingController::class, 'update'])->name('update');
         Route::post('/', [SettingController::class, 'update'])->name('update.post'); // Support for file uploads with _method: 'PUT'
-    });
-
-    // Shipping Settings Routes
-    Route::prefix('shipping-settings')->name('shipping-settings.')->group(function () {
-        Route::get('/', [ShippingSettingController::class, 'index'])->name('index');
-        Route::put('/', [ShippingSettingController::class, 'update'])->name('update');
     });
 });

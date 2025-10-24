@@ -16,11 +16,11 @@ export default function SalesProductIndex({ salesUsers, recentAssignments }) {
         >
             <Head title="Manajemen Produk Sales" />
 
-            <div className="flex-1 space-y-4 p-8">
+            <div className="flex-1 space-y-4 py-6 px-4 sm:px-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Manajemen Produk Sales</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Manajemen Produk Sales</h2>
                         <p className="text-muted-foreground">Kelola penugasan produk kepada tim sales lapangan</p>
                     </div>
                     <Button asChild>

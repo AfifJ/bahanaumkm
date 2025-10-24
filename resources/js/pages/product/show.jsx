@@ -125,8 +125,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
             // Only show success toast if user is logged in and product was added successfully
             if (result.success && !result.redirect) {
-                // Silent update - no success toast shown
-                console.log('Produk berhasil ditambahkan ke keranjang');
+                toast.success(`${product.name} berhasil ditambahkan ke keranjang!`);
             }
         } catch (error) {
             toast.error(error.message || 'Gagal menambahkan produk ke keranjang');
@@ -155,7 +154,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
         // Prepare checkout parameters
         const checkoutParams = {
-            product_id: product.id,
+            product_slug: product.slug,
             quantity: quantity,
         };
 
@@ -247,7 +246,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
                             {/* Product Name and Category */}
                             <div>
                                 <div className="flex items-start justify-between gap-3 mb-2">
-                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 flex-1">{product.name}</h1>
+                                    <h1 className="text-xl sm:text-2xl md:text-2xl font-bold text-gray-900 flex-1">{product.name}</h1>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -279,7 +278,7 @@ export default function ProductShow({ product, relatedProducts, layout, flash, i
 
                             {/* Price and Stock */}
                             <div className="space-y-2">
-                                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
+                                <p className="text-2xl sm:text-2xl md:text-4xl font-bold text-primary">
                                     {(() => {
                                         const price = getCurrentPrice();
                                         if (typeof price === 'object' && price.min && price.max) {

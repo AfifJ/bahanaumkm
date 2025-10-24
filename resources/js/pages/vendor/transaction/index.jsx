@@ -79,7 +79,7 @@ const Index = ({ orders, availableMonths = [], month: initialMonth = '' }) => {
         >
             <Head title="Transaksi" />
             <div className="py-6">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6  ">
                     {availableMonths.length > 0 && <Select value={selectedMonth} onValueChange={handleMonthChange}>
                         <SelectTrigger>
                             <SelectValue placeholder={selectedMonth || "Pilih Bulan"} />

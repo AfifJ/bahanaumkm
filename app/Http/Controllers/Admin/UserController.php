@@ -76,11 +76,14 @@ class UserController extends Controller
             $mitraData = $request->validate([
                 'hotel_name' => 'required|string|max:255',
                 'address' => 'required|string',
+                'distance_from_warehouse' => 'required|numeric|min:0',
                 // 'city' => 'required|string|max:100',
                 'phone' => 'nullable|string|max:20',
                 // 'partner_tier' => 'required|in:premium,standard,basic',
                 // 'commission_rate' => 'required|numeric|min:0|max:100'
             ]);
+
+            // Distance is already converted to meters by frontend, no conversion needed
 
             $mitraData['user_id'] = $user->id;
             $mitraData['unique_code'] = 'MITRA-' . Str::upper(Str::random(8));
@@ -133,12 +136,14 @@ class UserController extends Controller
                 $mitraData = $request->validate([
                     'hotel_name' => 'required|string|max:255',
                     'address' => 'required|string',
-                    'distance_from_warehouse' => 'required|integer|min:0',
-                    'city' => 'required|string|max:100',
+                    'distance_from_warehouse' => 'required|numeric|min:0',
+                    // 'city' => 'required|string|max:100',
                     'phone' => 'nullable|string|max:20',
                     // 'partner_tier' => 'required|in:premium,standard,basic',
                     // 'commission_rate' => 'required|numeric|min:0|max:100'
                 ]);
+
+                // Distance is already converted to meters by frontend, no conversion needed
 
                 $mitraProfile->update($mitraData);
             }
@@ -153,6 +158,12 @@ class UserController extends Controller
      */
     public function destroy($roleName, User $user)
     {
+        // Prevent admin from deleting themselves
+        if ($roleName === 'Admin' && auth()->id() === $user->id) {
+            return redirect()->route('admin.users.index', ['role' => $roleName])
+                ->with('error', 'Anda tidak dapat menghapus akun Anda sendiri');
+        }
+
         // Jika role adalah Mitra, hapus juga profil mitra
         if ($roleName === 'Mitra') {
             MitraProfile::where('user_id', $user->id)->delete();

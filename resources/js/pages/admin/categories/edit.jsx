@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/admin-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import CategoryForm from './components/CategoryForm';
+import { Button } from '@/components/ui/button';
 
 export default function CategoriesEdit({ category }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -24,23 +25,36 @@ export default function CategoriesEdit({ category }) {
     };
 
     return (
-        <AdminLayout>
+        <AdminLayout
+            title="Edit Kategori"
+            breadcrumbs={[
+                {
+                    title: 'Kategori',
+                    href: route('admin.categories.index'),
+                },
+                {
+                    title: 'Edit',
+                    href: route('admin.categories.edit', category),
+                },
+            ]}
+        >
             <Head title="Edit Kategori" />
 
-            <div className="flex-1 space-y-4 p-8 pt-6">
-                <div className="flex items-center justify-between space-y-2">
-                    <h2 className="text-3xl font-bold tracking-tight">Edit Kategori</h2>
-                </div>
+            <div className="py-6">
+                <div className="mx-auto max-w-7xl sm:px-6 px-4">
+                    <div className="flex flex-row items-center justify-between pb-4">
+                        <h2 className="text-2xl font-bold">Edit Kategori</h2>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={route('admin.categories.index')}>
+                                Kembali
+                            </Link>
+                        </Button>
+                    </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Edit Kategori</CardTitle>
-                        <CardDescription>Edit informasi kategori produk</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                    <div className="">
                         <CategoryForm data={data} setData={setData} errors={errors} processing={processing} onSubmit={handleSubmit} isEdit={true} />
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
         </AdminLayout>
     );

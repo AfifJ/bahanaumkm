@@ -76,7 +76,7 @@ export default function Show({ product, transactionStats, reviews, ratingStats }
             <Head title={`Detail Produk - ${product.name}`} />
 
             <div className="py-6">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6  ">
                     {/* Header */}
                     <div className="mb-6">
                         <div className="flex items-center space-x-4">

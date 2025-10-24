@@ -17,33 +17,11 @@ class UserSeeder extends Seeder
     {
         // Get roles
         $adminRole = Role::where('name', 'Admin')->first();
-        $vendorRole = Role::where('name', 'Vendor')->first();
-        $mitraRole = Role::where('name', 'Mitra')->first();
-
-        // Create admin user
         User::create([
             'name' => 'Administrator',
-            'email' => 'admin@bahana.id',
-            'password' => Hash::make('password'),
+            'email' => 'bahana@admin.com',
+            'password' => Hash::make('bahana@admin.com'),
             'role_id' => $adminRole->id,
-            'status' => 'active'
-        ]);
-
-        // Create vendor user
-        User::create([
-            'name' => 'UMKM Local Vendor',
-            'email' => 'vendor@bahana.id',
-            'password' => Hash::make('password'),
-            'role_id' => $vendorRole->id,
-            'status' => 'active'
-        ]);
-
-        // Create mitra user
-        User::create([
-            'name' => 'Hotel Partner',
-            'email' => 'mitra@bahana.id',
-            'password' => Hash::make('password'),
-            'role_id' => $mitraRole->id,
             'status' => 'active'
         ]);
     }

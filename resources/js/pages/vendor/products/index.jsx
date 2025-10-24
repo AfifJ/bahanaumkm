@@ -29,7 +29,7 @@ export default function Index({ products }) {
         >
             <Head title="Produk Saya" />
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6  ">
                     <div className="flex flex-row items-center justify-between pb-4">
                         <h2 className="text-2xl font-bold">Daftar Produk</h2>
                     </div>

@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('borrowed_products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sale_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('sale_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('sku_id')->nullable()->constrained('product_skus')->cascadeOnDelete();
             $table->integer('borrowed_quantity')->default(0);
             $table->integer('sold_quantity')->default(0);
             $table->enum('status', ['borrowed', 'returned'])->default('borrowed');

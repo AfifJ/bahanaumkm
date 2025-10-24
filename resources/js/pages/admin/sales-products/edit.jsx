@@ -27,7 +27,7 @@ export default function SalesProductEdit({ assignment }) {
         >
             <Head title="Edit Penugasan Produk" />
 
-            <div className="flex-1 space-y-4 p-8">
+            <div className="flex-1 space-y-4 py-6 sm:px-6 px-4">
                 {/* Header */}
                 <div className="flex items-center">
                     <Button variant="ghost" asChild className="mr-4">
@@ -37,7 +37,7 @@ export default function SalesProductEdit({ assignment }) {
                         </Link>
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Edit Penugasan Produk</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Edit Penugasan Produk</h2>
                         <p className="text-muted-foreground">Perbarui jumlah produk yang ditugaskan</p>
                     </div>
                 </div>

@@ -58,17 +58,14 @@ export default function MitraTransactions({ transactions }) {
             <Head title="Riwayat Transaksi Mitra" />
 
             {/* Search and Filter */}
-            <Card className="mb-6 m-4">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+            <div className="px-4 pt-4 pb-4 space-y-4">
+                <div>
+                    <div className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />
                         Riwayat Transaksi
-                    </CardTitle>
-                    <CardDescription>
-                        Semua transaksi yang terjadi di mitra Anda
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+                    </div>
+                </div>
+                <div>
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -80,13 +77,13 @@ export default function MitraTransactions({ transactions }) {
                             />
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 m-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4">
                 <Card>
-                    <CardContent className="pt-6">
+                    <CardContent>
                         <div className="flex items-center">
                             <Calendar className="h-8 w-8 text-blue-600" />
                             <div className="ml-4">
@@ -97,7 +94,7 @@ export default function MitraTransactions({ transactions }) {
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent className="pt-6">
+                    <CardContent>
                         <div className="flex items-center">
                             <TrendingUp className="h-8 w-8 text-green-600" />
                             <div className="ml-4">

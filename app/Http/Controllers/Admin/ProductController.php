@@ -57,7 +57,7 @@ class ProductController extends Controller
 
         $products = $query->latest()->paginate(10);
 
-        // Calculate display prices for products with variations
+        // Calculate display prices and stock for products with variations
         $products->getCollection()->transform(function ($product) {
             if ($product->has_variations) {
                 // Get pricing from active SKUs
@@ -70,6 +70,13 @@ class ProductController extends Controller
                     $product->sell_price_max = $activeSkus->max('price');
                     $product->buy_price_min = $activeSkus->min('buy_price');
                     $product->buy_price_max = $activeSkus->max('buy_price');
+                    
+                    // Calculate stock range for products with variations
+                    $stockMin = $activeSkus->min('stock');
+                    $stockMax = $activeSkus->max('stock');
+                    $product->stock_min = $stockMin;
+                    $product->stock_max = $stockMax;
+                    $product->stock_total = $activeSkus->sum('stock');
                 } else {
                     // Fallback to product level prices if no active SKUs
                     $product->sell_price_display = $product->sell_price ?? 0;
@@ -78,6 +85,11 @@ class ProductController extends Controller
                     $product->sell_price_max = $product->sell_price ?? 0;
                     $product->buy_price_min = $product->buy_price ?? 0;
                     $product->buy_price_max = $product->buy_price ?? 0;
+                    
+                    // No SKUs means no stock
+                    $product->stock_min = 0;
+                    $product->stock_max = 0;
+                    $product->stock_total = 0;
                 }
             } else {
                 // For products without variations, use product level prices
@@ -87,6 +99,11 @@ class ProductController extends Controller
                 $product->sell_price_max = $product->sell_price ?? 0;
                 $product->buy_price_min = $product->buy_price ?? 0;
                 $product->buy_price_max = $product->buy_price ?? 0;
+                
+                // For non-variation products, all stock values are the same
+                $product->stock_min = $product->stock ?? 0;
+                $product->stock_max = $product->stock ?? 0;
+                $product->stock_total = $product->stock ?? 0;
             }
             
             return $product;
@@ -207,7 +224,15 @@ class ProductController extends Controller
 
             // Handle multiple image uploads (new system)
             if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $index => $image) {
+                $images = $request->file('images');
+                $imageCount = count($images);
+                
+                // Validate image count before processing
+                if ($imageCount > 5) {
+                    throw new \Exception('Maksimal 5 gambar produk yang diizinkan (selain gambar variasi).');
+                }
+                
+                foreach ($images as $index => $image) {
                     $path = $image->store('products', 'public');
                     $isPrimary = $index === 0; // First image is primary
                     $product->addImage($path, $isPrimary, $index);
@@ -740,6 +765,14 @@ class ProductController extends Controller
         
         \Log::info('Images to keep: ' . count($existingImages));
         \Log::info('New files to upload: ' . count($uploadedFiles));
+        
+        // Validate total image count before processing
+        $totalImagesAfterUpdate = count($existingImages) + count($uploadedFiles);
+        if ($totalImagesAfterUpdate > 5) {
+            throw new \Exception('Total gambar produk tidak boleh lebih dari 5 (selain gambar variasi). ' .
+                'Saat ini ada ' . count($existingImages) . ' gambar yang akan disimpan ' .
+                'dan Anda mencoba menambah ' . count($uploadedFiles) . ' gambar baru.');
+        }
         
         // Collect IDs of images to keep
         $imagesToKeep = [];

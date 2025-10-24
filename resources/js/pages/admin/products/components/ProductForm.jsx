@@ -46,7 +46,7 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
     const updateImagesData = (previews) => {
         console.log('=== UPDATE IMAGES DATA ===');
         console.log('Current previews:', previews);
-        
+
         // Separate existing images from new files
         const existingImages = [];
         const newFiles = [];
@@ -161,17 +161,49 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
     });
 
     const handleMultipleImageChange = (files) => {
-        const newImages = Array.from(files).map((file, index) => ({
-            id: Date.now() + index,
-            url: URL.createObjectURL(file),
-            is_primary: imagePreviews.length === 0 && index === 0, // First image is primary if no existing images
-            file: file,
-            sort_order: imagePreviews.length + index
-        }));
+        const currentImageCount = imagePreviews.length;
+        const maxImages = 5;
+        const filesToProcess = Array.from(files);
 
-        const updatedPreviews = [...imagePreviews, ...newImages];
-        setImagePreviews(updatedPreviews);
-        updateImagesData(updatedPreviews);
+        // Check if adding these files would exceed the limit
+        if (currentImageCount + filesToProcess.length > maxImages) {
+            const allowedFiles = filesToProcess.slice(0, maxImages - currentImageCount);
+            const rejectedCount = filesToProcess.length - allowedFiles.length;
+
+            if (rejectedCount > 0) {
+                toast.error(`Maksimal ${maxImages} gambar yang diizinkan. ${rejectedCount} gambar tidak dapat ditambahkan.`);
+            }
+
+            // Only process allowed files
+            if (allowedFiles.length === 0) {
+                return; // No files can be added
+            }
+
+            const newImages = allowedFiles.map((file, index) => ({
+                id: Date.now() + index,
+                url: URL.createObjectURL(file),
+                is_primary: currentImageCount === 0 && index === 0, // First image is primary if no existing images
+                file: file,
+                sort_order: currentImageCount + index
+            }));
+
+            const updatedPreviews = [...imagePreviews, ...newImages];
+            setImagePreviews(updatedPreviews);
+            updateImagesData(updatedPreviews);
+        } else {
+            // Process all files normally
+            const newImages = filesToProcess.map((file, index) => ({
+                id: Date.now() + index,
+                url: URL.createObjectURL(file),
+                is_primary: currentImageCount === 0 && index === 0, // First image is primary if no existing images
+                file: file,
+                sort_order: currentImageCount + index
+            }));
+
+            const updatedPreviews = [...imagePreviews, ...newImages];
+            setImagePreviews(updatedPreviews);
+            updateImagesData(updatedPreviews);
+        }
     };
 
     const handleFileInputChange = (e) => {
@@ -287,12 +319,19 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
     };
 
     return (
-        <form onSubmit={onSubmit} className='px-4' encType="multipart/form-data">
-            <h1 className='text-xl font-bold mb-3'>Informasi produk</h1>
+        <form onSubmit={onSubmit} encType="multipart/form-data">
+            <div className="flex space-x-2 justify-between">
+                <h1 className='text-xl font-bold mb-3'>Informasi produk</h1>
+                <Button asChild type="button" variant="outline" className="mr-4">
+                    <Link href="/admin/products" className="mr-4">
+                        Kembali
+                    </Link>
+                </Button>
+            </div>
             <div className="mb-6">
                 <Label className="mb-2 block text-sm font-medium">
                     Gambar Produk
-                    <span className="ml-2 text-xs text-gray-500">(Maksimal 5 gambar, PNG/JPG/GIF hingga 10MB)</span>
+                    <span className="ml-2 text-xs text-gray-500">({imagePreviews.length}/5 gambar, PNG/JPG/GIF hingga 10MB)</span>
                 </Label>
 
                 <Input
@@ -385,6 +424,14 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                         </span>
                                     </Button>
                                 )}
+                                {imagePreviews.length >= 5 && (
+                                    <div className="w-full aspect-square h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                        <div className="text-center p-4">
+                                            <p className="text-sm text-gray-500 font-medium">Maksimal 5 Gambar</p>
+                                            <p className="text-xs text-gray-400 mt-1">Hapus gambar yang ada untuk menambahkan yang baru</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </Card>
@@ -412,7 +459,7 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                             </p>
                             <div className="text-xs text-gray-500">
                                 <p>• PNG, JPG, JPEG, GIF, WebP</p>
-                                <p>• Maksimal 5 gambar</p>
+                                <p>• Minimal 1, maksimal 5 gambar</p>
                                 <p>• Maksimal 10MB per gambar</p>
                                 <p>• Gambar pertama akan menjadi gambar utama</p>
                             </div>
@@ -420,18 +467,6 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                     </Card>
                 )}
 
-                {/* Warning untuk gambar kosong */}
-                {imagePreviews.length === 0 && (
-                    <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="flex items-center">
-                            <AlertTriangle className="h-4 w-4 text-yellow-600 mr-2" />
-                            <p className="text-sm text-yellow-800">
-                                <strong>Perhatian:</strong> Produk belum memiliki gambar. 
-                                Produk harus memiliki minimal 1 gambar sebelum disimpan.
-                            </p>
-                        </div>
-                    </div>
-                )}
 
                 <InputError message={errors.images} className="mt-2" />
             </div>
@@ -515,15 +550,6 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
 
                 {data.has_variations && (
                     <div className="space-y-4 mt-4">
-                        <div className="flex justify-between items-center space-x-3">
-                            <Label htmlFor="different_prices">Harga Berbeda per Variasi</Label>
-                            <Switch
-                                id="different_prices"
-                                checked={data.different_prices || false}
-                                onCheckedChange={(checked) => setData('different_prices', checked)}
-                            />
-                        </div>
-
                         <div className="flex justify-between items-center space-x-3">
                             <Label htmlFor="use_images">Gunakan Gambar per Variasi</Label>
                             <Switch

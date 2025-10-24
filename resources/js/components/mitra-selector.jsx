@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, ChevronDown, Search } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatDistanceInMeters, formatDistance } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef } from "react"
@@ -104,7 +104,7 @@ export function MitraSelector({ mitra = [], onSelect, selectedMitra }) {
                                             <div className="text-gray-500 text-xs mt-1">{item.address}</div>
                                             {item.distance_from_warehouse && (
                                                 <div className="text-gray-400 text-xs mt-1">
-                                                    Jarak: {item.distance_from_warehouse} meter ({item.distance_from_warehouse / 1000} KM)
+                                                    Jarak: {formatDistanceInMeters(item.distance_from_warehouse)} meter ({formatDistance(item.distance_from_warehouse)} KM)
                                                 </div>
                                             )}
                                         </div>

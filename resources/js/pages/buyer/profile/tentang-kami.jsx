@@ -87,15 +87,15 @@ const TentangKami = () => {
                     <h2 className="text-xl  font-semibold text-gray-900 mb-4 sm:mb-6 text-center">Dampak Positif untuk UMKM</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
                         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm min-w-0">
-                            <div className="text-xl  lg:text-3xl font-bold text-blue-600 mb-1 sm:mb-2">500+</div>
+                            <div className="text-xl  lg:text-2xl font-bold text-blue-600 mb-1 sm:mb-2">500+</div>
                             <div className="text-xs  text-gray-600 font-medium break-words">UMKM Terdaftar</div>
                         </div>
                         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm min-w-0">
-                            <div className="text-xl  lg:text-3xl font-bold text-green-600 mb-1 sm:mb-2">150+</div>
+                            <div className="text-xl  lg:text-2xl font-bold text-green-600 mb-1 sm:mb-2">150+</div>
                             <div className="text-xs  text-gray-600 font-medium break-words">Mitra Hotel</div>
                         </div>
                         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm min-w-0">
-                            <div className="text-xl  lg:text-3xl font-bold text-purple-600 mb-1 sm:mb-2">10K+</div>
+                            <div className="text-xl  lg:text-2xl font-bold text-purple-600 mb-1 sm:mb-2">10K+</div>
                             <div className="text-xs  text-gray-600 font-medium break-words">Produk Terjual</div>
                         </div>
                     </div>

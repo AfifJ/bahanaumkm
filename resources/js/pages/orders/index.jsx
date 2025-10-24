@@ -15,8 +15,9 @@ export default function OrdersIndex({ orders }) {
     const getStatusColor = (status) => {
         const colors = {
             pending: 'bg-yellow-100 text-yellow-800',
+            validation: 'bg-orange-100 text-orange-800',
             paid: 'bg-blue-100 text-blue-800',
-            processing: 'bg-purple-100 text-purple-800',
+            processed: 'bg-purple-100 text-purple-800',
             shipped: 'bg-indigo-100 text-indigo-800',
             delivered: 'bg-green-100 text-green-800',
             cancelled: 'bg-red-100 text-red-800',
@@ -60,17 +61,17 @@ export default function OrdersIndex({ orders }) {
         }
 
         if (filter.status === 'belum_dibayar') {
-            // Status belum dibayar: pending (menunggu bayar)
-            return ['pending'].includes(order.status);
+            // Status belum dibayar: pending, validation (menunggu pembayaran, menunggu validasi)
+            return ['pending', 'validation'].includes(order.status);
         }
 
         if (filter.status === 'berlangsung') {
-            // Status yang berlangsung: paid, processing, shipped
-            return ['paid', 'processing', 'shipped'].includes(order.status);
+            // Status yang berlangsung: dibayar, diproses, dikirim
+            return ['paid', 'processed', 'shipped'].includes(order.status);
         }
 
         if (filter.status === 'selesai') {
-            // Status yang selesai: delivered, cancelled
+            // Status yang selesai: selesai, ditolak, dibatalkan
             return ['delivered', 'cancelled'].includes(order.status);
         }
 
@@ -81,7 +82,7 @@ export default function OrdersIndex({ orders }) {
         <BuyerLayoutWrapper backLink={route('home')} title={'Riwayat Transaksi'}>
             <Head title="Riwayat Transaksi - Bahana UMKM" />
 
-            <div className="min-h-screen px-4">
+            <div className="min-h-screen px-4 container mx-auto">
                 {/* Flash Messages */}
                 {flash?.success && (
                     <div className="mx-4 mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
@@ -166,7 +167,8 @@ export default function OrdersIndex({ orders }) {
                                             <span className="text-sm font-medium text-gray-900">#{order.order_code}</span>
                                         </div>
                                         <div className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(order.status)}`}>
-                                            {order.status === 'pending' && 'Menunggu Bayar'}
+                                            {order.status === 'pending' && 'Menunggu Pembayaran'}
+                                            {order.status === 'validation' && 'Menunggu Validasi'}
                                             {order.status === 'paid' && 'Dibayar'}
                                             {order.status === 'processed' && 'Diproses'}
                                             {order.status === 'shipped' && 'Dikirim'}

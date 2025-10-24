@@ -33,7 +33,7 @@ export default function MitraReports({ orderItems, summary }) {
             <Head title="Laporan Keuangan Mitra" />
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 m-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4 mt-4 mx-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
@@ -74,49 +74,17 @@ export default function MitraReports({ orderItems, summary }) {
                 </Card>
             </div>
 
-            {/* Commission Formula Explanation */}
-            <Card className="mb-6 m-4">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
-                        Formula Komisi
-                    </CardTitle>
-                    <CardDescription>
-                        Cara perhitungan komisi untuk setiap produk
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
-                                i
-                            </div>
-                            <h3 className="font-semibold text-blue-900">Rumus Komisi</h3>
-                        </div>
-                        <div className="space-y-2 text-blue-800">
-                            <p className="font-mono text-sm">
-                                Komisi = (Harga Jual - Harga Beli) × 25% × Jumlah
-                            </p>
-                            <p className="text-sm">
-                                Contoh: (Rp50.000 - Rp30.000) × 25% × 2 pcs = Rp10.000
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Detailed Commission Breakdown */}
-            <Card className={'m-4'}>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+            <div className={'mx-4'}>
+                <div>
+                    <div className="flex items-center gap-2 font-bold">
                         <FileText className="h-5 w-5" />
                         Detail Komisi Per Item
-                    </CardTitle>
-                    <CardDescription>
+                    </div>
+                    <div className='text-muted-foreground text-sm'>
                         Rincian komisi dari setiap item yang terjual
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+                    </div>
+                </div>
+                <div>
                     {orderItems.data.length === 0 ? (
                         <div className="text-center py-8">
                             <FileText className="mx-auto h-12 w-12 text-gray-400" />
@@ -207,10 +175,10 @@ export default function MitraReports({ orderItems, summary }) {
                                         key={index}
                                         href={link.url || '#'}
                                         className={`px-3 py-2 text-sm rounded-md ${link.active
-                                                ? 'bg-blue-600 text-white'
-                                                : link.url
-                                                    ? 'bg-white border text-gray-700 hover:bg-gray-50'
-                                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            ? 'bg-blue-600 text-white'
+                                            : link.url
+                                                ? 'bg-white border text-gray-700 hover:bg-gray-50'
+                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                             }`}
                                         dangerouslySetInnerHTML={{ __html: link.label }}
                                     />
@@ -218,8 +186,8 @@ export default function MitraReports({ orderItems, summary }) {
                             </div>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </MitraLayout>
     );
 }

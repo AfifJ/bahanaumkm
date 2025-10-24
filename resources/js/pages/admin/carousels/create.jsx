@@ -1,12 +1,14 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Upload, Image as ImageIcon } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
+import ImageUploadDialog from '@/components/admin/image-upload-dialog';
 
 export default function Create() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -19,6 +21,7 @@ export default function Create() {
 
     const [imagePreview, setImagePreview] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const fileInputRef = useRef(null);
 
     const handleSubmit = (e) => {
@@ -43,7 +46,26 @@ export default function Create() {
     };
 
     const handleImageClick = () => {
-        fileInputRef.current?.click();
+        setIsDialogOpen(true);
+    };
+
+    const handleDialogSave = (croppedFile) => {
+        // Handle cropped file from dialog
+        setData('image', croppedFile);
+
+        // Generate preview for cropped image
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(croppedFile);
+
+        setIsDialogOpen(false);
+        toast.success('Gambar berhasil dipotong dan diunggah!');
+    };
+
+    const handleDialogCancel = () => {
+        setIsDialogOpen(false);
     };
 
     const handleImageChange = (e) => {
@@ -51,13 +73,13 @@ export default function Create() {
         if (file) {
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                toast.error('Please select an image file');
+                toast.error('Silakan pilih file gambar');
                 return;
             }
 
             // Validate file size (2MB max)
             if (file.size > 2 * 1024 * 1024) {
-                toast.error('File size must be less than 2MB');
+                toast.error('Ukuran file harus kurang dari 2MB');
                 return;
             }
 
@@ -80,103 +102,85 @@ export default function Create() {
 
     return (
         <AdminLayout
-            title="Create Carousel"
+            title="Buat Carousel"
             breadcrumbs={[
                 {
                     title: 'Carousel',
                     href: route('admin.carousels.index'),
                 },
                 {
-                    title: 'Create',
+                    title: 'Buat',
                     href: route('admin.carousels.create'),
                 },
             ]}
         >
-            <Head title="Create Carousel" />
+            <Head title="Buat Carousel" />
 
             <div className="py-6">
-                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-6">
-                        <div className="flex items-center space-x-4">
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href={route('admin.carousels.index')}>
-                                    <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Back to Carousels
-                                </Link>
-                            </Button>
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">
-                                    Create New Carousel
-                                </h1>
-                                <p className="text-sm text-gray-600">
-                                    Add a new carousel to display on the home page
-                                </p>
-                            </div>
-                        </div>
+                <div className="mx-auto max-w-7xl sm:px-6 px-4">
+                    <div className="flex flex-row items-center justify-between pb-4">
+                        <h2 className="text-2xl font-bold">Buat Carousel Baru</h2>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={route('admin.carousels.index')}>
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Kembali ke Carousel
+                            </Link>
+                        </Button>
                     </div>
 
-                    <div className="bg-white shadow rounded-lg">
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div className="">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Image Upload */}
                             <div>
-                                <Label>Carousel Image *</Label>
+                                <Label>Gambar Carousel *</Label>
                                 <div className="mt-2">
-                                    <div className="flex items-center space-x-6">
-                                        <div className="flex-shrink-0">
-                                            {imagePreview ? (
-                                                <div className="relative">
-                                                    <img
-                                                        src={imagePreview}
-                                                        alt="Preview"
-                                                        className="h-32 w-48 object-cover rounded-md border"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleRemoveImage}
-                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                                    >
-                                                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            ) : (
+                                    <div className="flex-shrink-0">
+                                        {imagePreview ? (
+                                            <div className="relative group">
+                                                <img
+                                                    src={imagePreview}
+                                                    alt="Preview"
+                                                    className="h-full aspect-[4/1] object-cover rounded-md border"
+                                                />
                                                 <div
                                                     onClick={handleImageClick}
-                                                    className="h-32 w-48 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+                                                    className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity rounded-md"
                                                 >
-                                                    <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
-                                                    <p className="text-xs text-gray-500 text-center">
-                                                        Click to upload image
+                                                    <ImageIcon className="h-8 w-8 text-white mb-2" />
+                                                    <p className="text-xs text-white text-center font-medium">
+                                                        Klik untuk mengubah gambar
                                                     </p>
                                                 </div>
-                                            )}
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageChange}
-                                                className="hidden"
-                                            />
-                                        </div>
-
-                                        <div className="flex-1">
-                                            <Button
-                                                type="button"
-                                                variant="outline"
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveImage}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-10"
+                                                >
+                                                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div
                                                 onClick={handleImageClick}
-                                                className="mb-2"
+                                                className="h-full aspect-[4/1] border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
                                             >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                Choose Image
-                                            </Button>
-                                            <p className="text-sm text-gray-600">
-                                                Recommended size: 1200x600px (2:1 ratio). Max file size: 2MB.
-                                                Supported formats: JPEG, PNG, JPG, GIF.
-                                            </p>
-                                        </div>
+                                                <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
+                                                <p className="text-xs text-gray-500 text-center">
+                                                    Klik untuk mengunggah gambar
+                                                </p>
+                                            </div>
+                                        )}
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                            className="hidden"
+                                        />
                                     </div>
+
                                     {errors.image && (
                                         <p className="mt-1 text-sm text-red-600">{errors.image}</p>
                                     )}
@@ -185,17 +189,17 @@ export default function Create() {
 
                             {/* Title */}
                             <div>
-                                <Label htmlFor="title">Title</Label>
+                                <Label htmlFor="title">Judul</Label>
                                 <Input
                                     id="title"
                                     type="text"
                                     value={data.title}
                                     onChange={(e) => setData('title', e.target.value)}
-                                    placeholder="Enter carousel title (optional)"
+                                    placeholder="Masukkan judul carousel (opsional)"
                                     className="mt-1"
                                 />
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Title is optional but recommended for accessibility.
+                                    Judul opsional namun direkomendasikan untuk aksesibilitas.
                                 </p>
                                 {errors.title && (
                                     <p className="mt-1 text-sm text-red-600">{errors.title}</p>
@@ -204,17 +208,17 @@ export default function Create() {
 
                             {/* Link URL */}
                             <div>
-                                <Label htmlFor="link_url">Link URL</Label>
+                                <Label htmlFor="link_url">URL Link</Label>
                                 <Input
                                     id="link_url"
                                     type="url"
                                     value={data.link_url}
                                     onChange={(e) => setData('link_url', e.target.value)}
-                                    placeholder="https://example.com"
+                                    placeholder="https://contoh.com"
                                     className="mt-1"
                                 />
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Optional: Users will be redirected to this URL when they click on the carousel.
+                                    Opsional: Pengguna akan diarahkan ke URL ini saat mengklik carousel.
                                 </p>
                                 {errors.link_url && (
                                     <p className="mt-1 text-sm text-red-600">{errors.link_url}</p>
@@ -223,7 +227,7 @@ export default function Create() {
 
                             {/* Sort Order */}
                             <div>
-                                <Label htmlFor="sort_order">Sort Order</Label>
+                                <Label htmlFor="sort_order">Urutan Sortir</Label>
                                 <Input
                                     id="sort_order"
                                     type="number"
@@ -234,7 +238,7 @@ export default function Create() {
                                     className="mt-1"
                                 />
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Determines the display order. Lower numbers appear first. Leave empty for auto-assignment.
+                                    Menentukan urutan tampilan. Angka lebih rendah akan muncul pertama. Kosongkan untuk penugasan otomatis.
                                 </p>
                                 {errors.sort_order && (
                                     <p className="mt-1 text-sm text-red-600">{errors.sort_order}</p>
@@ -243,42 +247,46 @@ export default function Create() {
 
                             {/* Active Status */}
                             <div className="flex items-center space-x-2">
-                                <Checkbox
+                                <Switch
                                     id="is_active"
                                     checked={data.is_active}
                                     onCheckedChange={(checked) => setData('is_active', checked)}
                                 />
-                                <Label htmlFor="is_active">Active</Label>
+                                <Label htmlFor="is_active">Aktif</Label>
+                                <Badge variant={data.is_active ? 'default' : 'secondary'} className="ml-2">
+                                    {data.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                </Badge>
                             </div>
                             <p className="text-sm text-gray-500 -mt-4">
-                                Only active carousels will be displayed on the home page.
+                                Hanya carousel yang aktif akan ditampilkan di halaman utama.
                             </p>
 
                             {/* Actions */}
-                            <div className="flex justify-end space-x-3 pt-6 border-t">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                        reset();
-                                        setImagePreview(null);
-                                        fileInputRef.current.value = '';
-                                    }}
-                                >
-                                    Reset
+                            <div className="flex justify-end space-x-3 pt-6">
+                                <Button variant="outline" asChild>
+                                    <Link href={route('admin.carousels.index')}>
+                                        Batal
+                                    </Link>
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={processing || !data.image}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white"
                                 >
-                                    {processing ? 'Creating...' : 'Create Carousel'}
+                                    {processing ? 'Membuat...' : 'Buat Carousel'}
                                 </Button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+
+            {/* Image Upload Dialog */}
+            <ImageUploadDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                onSave={handleDialogSave}
+                onCancel={handleDialogCancel}
+            />
         </AdminLayout>
     );
 }

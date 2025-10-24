@@ -23,28 +23,34 @@ class MitraController extends Controller
                 ->with('error', 'Please complete your profile first.');
         }
 
-        // Get today's sales
+        // Get today's sales (only completed/delivered orders)
         $todaySales = Order::where('mitra_id', $mitraProfile->id)
+            ->where('status', 'delivered')
             ->whereDate('created_at', today())
             ->with('items.product')
             ->get();
 
-        // Get month's sales
+        // Get month's sales (only completed/delivered orders)
         $monthSales = Order::where('mitra_id', $mitraProfile->id)
+            ->where('status', 'delivered')
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->with('items.product')
             ->get();
 
-        // Calculate commissions
+        // Calculate commissions (only completed/delivered orders)
         $todayCommission = $this->calculateCommission($todaySales);
         $monthCommission = $this->calculateCommission($monthSales);
         $totalCommission = $this->calculateCommission(
-            Order::where('mitra_id', $mitraProfile->id)->with('items.product')->get()
+            Order::where('mitra_id', $mitraProfile->id)
+                ->where('status', 'delivered')
+                ->with('items.product')
+                ->get()
         );
 
-        // Get recent transactions
+        // Get recent transactions (only completed/delivered orders)
         $recentTransactions = Order::where('mitra_id', $mitraProfile->id)
+            ->where('status', 'delivered')
             ->with(['items.product'])
             ->latest()
             ->take(5)
@@ -61,11 +67,12 @@ class MitraController extends Controller
                 ];
             });
 
-        // Sales data for chart (last 7 days)
+        // Sales data for chart (last 7 days, only completed/delivered orders)
         $salesChart = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i)->format('Y-m-d');
             $daySales = Order::where('mitra_id', $mitraProfile->id)
+                ->where('status', 'delivered')
                 ->whereDate('created_at', $date)
                 ->with('items.product')
                 ->get();
@@ -85,7 +92,7 @@ class MitraController extends Controller
                 'month_sales' => $monthSales->sum('total_amount'),
                 'month_commission' => $monthCommission,
                 'total_commission' => $totalCommission,
-                'total_orders' => Order::where('mitra_id', $mitraProfile->id)->count(),
+                'total_orders' => Order::where('mitra_id', $mitraProfile->id)->where('status', 'delivered')->count(),
             ],
             'recentTransactions' => $recentTransactions,
             'salesChart' => $salesChart,
@@ -103,6 +110,7 @@ class MitraController extends Controller
         }
 
         $transactions = Order::where('mitra_id', $mitraProfile->id)
+            ->where('status', 'delivered')
             ->with(['items.product'])
             ->latest()
             ->paginate(15)
@@ -134,9 +142,10 @@ class MitraController extends Controller
                 ->with('error', 'Please complete your profile first.');
         }
 
-        // Get detailed order items with commission breakdown
+        // Get detailed order items with commission breakdown (only from completed/delivered orders)
         $orderItems = OrderItem::whereHas('order', function ($query) use ($mitraProfile) {
-            $query->where('mitra_id', $mitraProfile->id);
+            $query->where('mitra_id', $mitraProfile->id)
+                  ->where('status', 'delivered');
         })
         ->with(['order', 'product'])
         ->latest()
@@ -157,11 +166,18 @@ class MitraController extends Controller
             ];
         });
 
-        // Summary statistics
-        $totalOrders = Order::where('mitra_id', $mitraProfile->id)->count();
-        $totalRevenue = Order::where('mitra_id', $mitraProfile->id)->sum('total_amount');
+        // Summary statistics (only completed/delivered orders)
+        $totalOrders = Order::where('mitra_id', $mitraProfile->id)
+                           ->where('status', 'delivered')
+                           ->count();
+        $totalRevenue = Order::where('mitra_id', $mitraProfile->id)
+                            ->where('status', 'delivered')
+                            ->sum('total_amount');
         $totalCommission = $this->calculateCommission(
-            Order::where('mitra_id', $mitraProfile->id)->with('items.product')->get()
+            Order::where('mitra_id', $mitraProfile->id)
+                ->where('status', 'delivered')
+                ->with('items.product')
+                ->get()
         );
 
         return Inertia::render('mitra/reports/index', [
@@ -206,7 +222,6 @@ class MitraController extends Controller
         $request->validate([
             'hotel_name' => 'required|string|max:255',
             'address' => 'required|string|max:500',
-            'city' => 'required|string|max:100',
             'phone' => 'required|string|max:20',
         ]);
 
@@ -220,7 +235,6 @@ class MitraController extends Controller
         $mitraProfile->update([
             'hotel_name' => $request->hotel_name,
             'address' => $request->address,
-            'city' => $request->city,
             'phone' => $request->phone,
         ]);
 

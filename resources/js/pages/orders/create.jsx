@@ -6,8 +6,9 @@ import { Package, MapPin, DollarSign, Plus, Minus, X, Clipboard, Wallet } from '
 import { useState, useEffect } from 'react';
 import { MitraSelector } from '@/components/mitra-selector';
 import { useLocationStorage } from '@/hooks/use-location-storage';
+import { formatDistanceInMeters, formatDistance } from '@/lib/utils';
 
-export default function OrderCreate({ flash, product, quantity, sku, cartItems, fromCart, subtotal, mitra, shippingSetting }) {
+export default function OrderCreate({ flash, product, quantity, sku, cartItems, fromCart, subtotal, mitra, shippingPricePerKm }) {
     const { data, setData, processing, errors } = useForm({
         product_id: product?.id || '',
         quantity: quantity || 1,
@@ -22,6 +23,7 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
     const [selectedMitra, setSelectedMitra] = useState(null);
     const [submitError, setSubmitError] = useState('');
     const [selectedSku, setSelectedSku] = useState(sku || null);
+    const [showNotesForm, setShowNotesForm] = useState(false);
     const { selectedLocation } = useLocationStorage();
 
     // Handle cart checkout vs single product
@@ -33,7 +35,7 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
 
         // Calculate shipping cost when mitra is selected
         if (selectedMitra && selectedMitra.distance_from_warehouse > 0) {
-            const pricePerKm = shippingSetting?.price_per_km || 5000;
+            const pricePerKm = shippingPricePerKm || 5000;
             const distanceInKm = selectedMitra.distance_from_warehouse / 1000;
             const calculatedShippingCost = distanceInKm * pricePerKm;
             setShippingCost(calculatedShippingCost);
@@ -99,6 +101,12 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
     const handleSubmit = (e) => {
         e.preventDefault();
         setSubmitError('');
+
+        // Validate hotel selection first
+        if (!data.mitra_id) {
+            setSubmitError('Silakan pilih hotel tujuan terlebih dahulu.');
+            return;
+        }
 
         // Validate based on checkout type
         if (isCartCheckout) {
@@ -210,14 +218,14 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
     }
 
     return (
-        <BuyerLayoutWrapper 
-            withBottomNav={false} 
-            backLink={isCartCheckout ? route('buyer.cart.index') : route('product.show', product)} 
+        <BuyerLayoutWrapper
+            withBottomNav={false}
+            backLink={isCartCheckout ? route('buyer.cart.index') : route('product.show', product)}
             title={isCartCheckout ? 'Checkout Keranjang' : 'Checkout Pesanan'}
         >
             <Head title="Checkout - Bahana UMKM" />
             <form onSubmit={handleSubmit}>
-                <div className="container mx-auto py-2 *:px-4 *:py-4 divide-y-4">
+                <div className="container mx-auto py-2 space-y-6">
                     {flash?.error && (
                         <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-700 border border-red-200">
                             {flash.error}
@@ -226,7 +234,7 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
 
                     {/* Submit Error */}
                     {submitError && (
-                        <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-700 border border-red-200">
+                        <div className="mb-4 rounded-lg bg-red-50 p-4 text-red-700 border border-red-200">
                             {submitError}
                         </div>
                     )}
@@ -350,36 +358,59 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
 
                     {/* Notes Section */}
                     <div className="">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <Clipboard className="h-5 w-5 mr-2" />
-                            Catatan untuk Penjual (Opsional)
-                        </h2>
                         <div className="space-y-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Tulis catatan atau permintaan khusus untuk penjual
-                                </label>
-                                <textarea
-                                    value={data.notes}
-                                    onChange={(e) => setData('notes', e.target.value)}
-                                    placeholder="Contoh: Mohon dikemas dengan hati-hati, atau pesan khusus lainnya..."
-                                    rows={4}
-                                    maxLength={500}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                />
-                                <div className="flex justify-between items-center mt-1">
-                                    <p className="text-xs text-gray-500">
-                                        Berikan informasi yang penting untuk penjual
-                                    </p>
-                                    <p className={`text-xs ${500 - data.notes.length < 50 ? 'text-orange-500' : 'text-gray-500'
-                                        }`}>
-                                        {500 - data.notes.length} karakter tersisa
+                            {!showNotesForm ? (
+                                <div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setShowNotesForm(true)}
+                                    >
+                                        <Clipboard className="h-4 w-4 mr-2" />
+                                        Tambah Catatan
+                                    </Button>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        Tambahkan catatan atau permintaan khusus untuk penjual (opsional)
                                     </p>
                                 </div>
-                                {errors.notes && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
-                                )}
-                            </div>
+                            ) : (
+                                <div>
+                                    <div className="mb-3">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Tulis catatan atau permintaan khusus untuk penjual
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.notes}
+                                            onChange={(e) => setData('notes', e.target.value)}
+                                            placeholder="Catatan untuk penjual"
+                                            maxLength={500}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                        {errors.notes && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                setShowNotesForm(false);
+                                                setData('notes', '');
+                                            }}
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={() => setShowNotesForm(false)}
+                                        >
+                                            Simpan Catatan
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -404,12 +435,6 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
                                     </span>
                                 </div>
 
-                                {selectedMitra && (
-                                    <div className="text-sm text-gray-500">
-                                        Jarak: {selectedMitra.distance_from_warehouse} meter ({selectedMitra.distance_from_warehouse / 1000} KM)
-                                    </div>
-                                )}
-
                                 <div className="border-t pt-3">
                                     <div className="flex justify-between text-lg font-semibold">
                                         <span>Total</span>
@@ -418,41 +443,21 @@ export default function OrderCreate({ flash, product, quantity, sku, cartItems, 
                                 </div>
                             </div>
 
-
-                            {/* Terms and Conditions */}
-                            {/* <div className="mt-6">
-                                    <div className="flex items-center space-x-2">
-                                        <input
-                                            type="checkbox"
-                                            id="terms"
-                                            required
-                                            className="text-blue-600 focus:ring-blue-500"
-                                        />
-                                        <label htmlFor="terms" className="text-sm text-gray-700">
-                                            Saya menyetujui{' '}
-                                            <Link href="/terms" className="text-blue-600 hover:text-blue-800">
-                                                syarat dan ketentuan
-                                            </Link>
-                                        </label>
-                                    </div>
-                                </div> */}
-
-                            {/* Submit Button */}
                             <Button
                                 type="submit"
                                 disabled={processing || (!isCartCheckout && !product)}
-                                className="w-full mt-6 bg-primary text-white py-3 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                                className="w-full mb-3 mt-3"
                             >
                                 {processing ? 'Memproses...' : 'Bayar dengan QRIS'}
                             </Button>
 
-                            {/* Continue Shopping */}
-                            <Link
-                                href={route('home')}
-                                className="w-full mt-3 inline-block text-center text-blue-600 hover:text-blue-800 py-2 border border-blue-600 rounded-md"
-                            >
-                                Lanjutkan Belanja
-                            </Link>
+                            <Button variant={'outline'} className={'w-full'} asChild>
+                                <Link
+                                    href={route('home')}
+                                >
+                                    Lanjutkan Belanja
+                                </Link>
+                            </Button>
                         </div>
 
                         {/* Payment Notice */}

@@ -63,7 +63,7 @@ export function ReviewList({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Overall Rating */}
                         <div className="text-center md:text-left">
-                            <div className="text-3xl font-bold text-gray-900 mb-1">
+                            <div className="text-2xl font-bold text-gray-900 mb-1">
                                 {summary.averageRating.toFixed(1)}
                             </div>
                             <div className="flex items-center justify-center md:justify-start mb-2">

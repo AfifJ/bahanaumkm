@@ -23,10 +23,14 @@ class SettingController extends Controller
         // Get current QRIS image value
         $qrisImage = Setting::getValue('qris_image', 'qris/qris-code.png');
 
+        // Get shipping price per km
+        $shippingPricePerKm = Setting::getShippingPricePerKm();
+
         // Debug: Log the values being sent to frontend
         \Log::info('Admin Settings Index - Values:', [
             'admin_commission' => Setting::getValue('admin_commission', 10),
             'sales_commission' => Setting::getValue('sales_commission', 5),
+            'shipping_price_per_km' => $shippingPricePerKm,
             'qris_image' => $qrisImage,
             'qris_image_url' => $qrisImage ? "/storage/{$qrisImage}" : null,
             'settings_count' => $settings->count(),
@@ -37,6 +41,7 @@ class SettingController extends Controller
             'settings' => $settings,
             'adminCommission' => Setting::getValue('admin_commission', 10),
             'salesCommission' => Setting::getValue('sales_commission', 5),
+            'shippingPricePerKm' => $shippingPricePerKm,
             'qrisImage' => $qrisImage,
         ]);
     }
@@ -55,6 +60,11 @@ class SettingController extends Controller
             'sales_commission' => [
                 'value' => '5',
                 'description' => 'Komisi Sales (%)',
+                'type' => 'number'
+            ],
+            'shipping_price_per_km' => [
+                'value' => '5000',
+                'description' => 'Harga ongkos kirim per kilometer',
                 'type' => 'number'
             ],
             'qris_image' => [
@@ -85,6 +95,7 @@ class SettingController extends Controller
     {
         \Log::info('Settings Update Request:', [
             'has_commissions' => $request->has(['admin_commission', 'sales_commission']),
+            'has_shipping_price' => $request->has('shipping_price_per_km'),
             'has_qris_file' => $request->hasFile('qris_image'),
             'request_data' => $request->all()
         ]);
@@ -96,6 +107,12 @@ class SettingController extends Controller
             if ($request->has(['admin_commission', 'sales_commission'])) {
                 $this->updateCommissions($request);
                 $updatedTypes[] = 'komisi';
+            }
+
+            // Update shipping price per km if provided
+            if ($request->has('shipping_price_per_km')) {
+                $this->updateShippingPrice($request);
+                $updatedTypes[] = 'ongkir';
             }
 
             // Update QRIS image if provided
@@ -178,5 +195,24 @@ class SettingController extends Controller
             'new_path' => $path,
             'full_url' => "/storage/{$path}"
         ]);
+    }
+
+    /**
+     * Update shipping price per km
+     */
+    private function updateShippingPrice(Request $request)
+    {
+        $request->validate([
+            'shipping_price_per_km' => 'required|numeric|min:0',
+        ]);
+
+        \Log::info('Updating Shipping Price:', [
+            'shipping_price_per_km' => $request->shipping_price_per_km
+        ]);
+
+        // Update shipping price per km using the helper method
+        Setting::setShippingPricePerKm($request->shipping_price_per_km);
+
+        \Log::info('Shipping price updated successfully');
     }
 }

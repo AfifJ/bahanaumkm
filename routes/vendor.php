@@ -1,24 +1,13 @@
 <?php
 
+use App\Http\Controllers\Vendor\DashboardController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Vendor\ProfileController;
 use App\Http\Controllers\Vendor\ReportController;
 use App\Http\Controllers\Vendor\TransactionController;
 use Inertia\Inertia;
 Route::prefix('vendor')->name('vendor.')->middleware(['auth', 'role:Vendor'])->group(function () {
-    Route::get('dashboard', function () {
-        $user = auth()->user()->load('role');
-        return Inertia::render('vendor/dashboard', [
-            'auth' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role ? $user->role->name : null,
-                ]
-            ]
-        ]);
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile Routes
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');

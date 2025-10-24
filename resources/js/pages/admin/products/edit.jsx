@@ -167,8 +167,8 @@ export default function Edit({ product, vendors, categories }) {
             ]}
         >
             <Head title="Edit Product" />
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-6">
+                <div className="mx-auto max-w-7xl sm:px-6 px-4 ">
                     {/* Flash Messages */}
                     {props.flash?.success && (
                         <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">

@@ -43,7 +43,7 @@ export default function SalesProductShow({ assignment, transactionHistory }) {
                             </Link>
                         </Button>
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight">Detail Penugasan Produk</h2>
+                            <h2 className="text-2xl font-bold tracking-tight">Detail Penugasan Produk</h2>
                             <p className="text-muted-foreground">Informasi lengkap penugasan produk ke sales</p>
                         </div>
                     </div>

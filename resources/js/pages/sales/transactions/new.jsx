@@ -501,7 +501,7 @@ export default function NewTransaction({ products = [] }) {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-blue-600">
                   {formatCurrency(totalAmount || 0)}
                 </div>
                 {items.length > 0 && (

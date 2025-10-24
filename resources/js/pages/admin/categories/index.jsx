@@ -14,18 +14,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 
 export default function CategoriesIndex() {
     const { categories, can } = usePage().props;
 
     return (
-        <AdminLayout>
+        <AdminLayout title="Kelola Kategori"
+            breadcrumbs={[
+                {
+                    title: 'Kategori',
+                    href: route('admin.categories.index'),
+                },
+            ]}>
             <Head title="Kelola Kategori" />
 
-            <div className="flex-1 space-y-4 p-8 pt-6">
+            <div className="flex-1 space-y-4 sm:px-6 pt-6 px-4">
                 <div className="flex items-center justify-between space-y-2">
-                    <h2 className="text-3xl font-bold tracking-tight">Kelola Kategori</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">Kelola Kategori</h2>
                     {can.create && (
                         <Button asChild>
                             <Link href={route('admin.categories.create')}>
@@ -35,13 +41,9 @@ export default function CategoriesIndex() {
                         </Button>
                     )}
                 </div>
-
-                <div>
-                    <div>Kelola semua kategori produk yang tersedia</div>
-                </div>
                 <div>
                     <Table>
-                        <TableHeader>
+                        <TableHeader className={'bg-gray-50'}>
                             <TableRow>
                                 <TableHead>Gambar</TableHead>
                                 <TableHead>Nama</TableHead>
@@ -76,6 +78,11 @@ export default function CategoriesIndex() {
                                     </TableCell>
                                     <TableCell>{new Date(category.created_at).toLocaleDateString('id-ID')}</TableCell>
                                     <TableCell className="space-x-2 text-right">
+                                        <Link href={route('admin.categories.show', category)}>
+                                            <Button variant="outline" size="sm">
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
                                         <Link href={route('admin.categories.edit', category)}>
                                             <Button variant="outline" size="sm">
                                                 <Pencil className="h-4 w-4" />

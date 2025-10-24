@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import { parseDistance, formatDistanceInMeters, formatDistance, formatDistanceForInput } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function UserCreate({ role, mitraUsers }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -15,6 +17,7 @@ export default function UserCreate({ role, mitraUsers }) {
         password_confirmation: '',
         hotel_name: '',
         address: '',
+        distance_from_warehouse: '',
         // city: '',
         phone: '',
         // partner_tier: '',
@@ -31,7 +34,34 @@ export default function UserCreate({ role, mitraUsers }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.users.store', { role: role.name }));
+        
+        // Check if all required fields are filled
+        const requiredFields = role.name === 'Mitra'
+            ? ['name', 'email', 'password', 'password_confirmation', 'hotel_name', 'address', 'distance_from_warehouse']
+            : ['name', 'email', 'password', 'password_confirmation'];
+            
+        const isEmpty = requiredFields.some(field => !data[field] || data[field].trim() === '');
+        
+        if (isEmpty) {
+            toast.error('Harap lengkapi semua field yang wajib diisi.');
+            return;
+        }
+        
+        // Convert distance from km to meters before submitting
+        const formData = {
+            ...data,
+            distance_from_warehouse: parseDistance(data.distance_from_warehouse)
+        };
+        
+        post(route('admin.users.store', { role: role.name }), formData, {
+            onSuccess: () => {
+                toast.success(`${roleTitles[role.name] || role.name} berhasil dibuat!`);
+            },
+            onError: (errors) => {
+                toast.error('Terjadi kesalahan saat membuat data.');
+                console.error('Create errors:', errors);
+            }
+        });
     };
 
     return (
@@ -45,7 +75,7 @@ export default function UserCreate({ role, mitraUsers }) {
         >
             <Head title={`Tambah ${roleTitles[role.name] || role.name}`} />
 
-            <div className="flex-1 space-y-4 p-8">
+            <div className="flex-1 space-y-4 py-6 sm:px-6 px-4">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" asChild>
                         <Link href={route('admin.users.index', { role: role.name })}>
@@ -53,7 +83,7 @@ export default function UserCreate({ role, mitraUsers }) {
                         </Link>
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Tambah {roleTitles[role.name] || role.name}</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Tambah {roleTitles[role.name] || role.name}</h2>
                         <p className="text-muted-foreground">{role.description}</p>
                     </div>
                 </div>
@@ -168,6 +198,31 @@ export default function UserCreate({ role, mitraUsers }) {
                                                     placeholder="Masukkan nomor telepon"
                                                 />
                                                 {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="distance_from_warehouse">
+                                                    Jarak dari Gudang
+                                                </Label>
+                                                <Input
+                                                    id="distance_from_warehouse"
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.1"
+                                                    value={data.distance_from_warehouse}
+                                                    onChange={(e) => setData('distance_from_warehouse', e.target.value)}
+                                                    placeholder="Masukkan jarak dalam kilometer"
+                                                    required
+                                                />
+                                                {errors.distance_from_warehouse && (
+                                                    <p className="text-sm text-red-500">{errors.distance_from_warehouse}</p>
+                                                )}
+                                                <p className="text-sm text-gray-500">
+                                                    Masukkan jarak dari gudang ke hotel mitra dalam kilometer (km).
+                                                    {data.distance_from_warehouse > 0 && (
+                                                        <span> {data.distance_from_warehouse} km = {formatDistanceInMeters(parseDistance(data.distance_from_warehouse))} meter</span>
+                                                    )}
+                                                </p>
                                             </div>
 
                                             {/* <div className="space-y-2">

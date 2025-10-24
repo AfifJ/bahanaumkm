@@ -37,7 +37,7 @@ const rightNavItems = [
     },
 ];
 
-const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
+const activeItemStyles = 'text-neutral-900';
 
 export function AppHeader({ breadcrumbs = [] }) {
     const page = usePage();
@@ -66,7 +66,7 @@ export function AppHeader({ breadcrumbs = [] }) {
                             <SheetContent side="left" className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar">
                                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <Logo className="h-6 fill-current text-black dark:text-white"/>
+                                    <Logo className="h-6 fill-current text-black"/>
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
@@ -102,7 +102,7 @@ export function AppHeader({ breadcrumbs = [] }) {
                                             {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4"/>}
                                             {item.title}
                                         </Link>
-                                        {page.url === item.href && (<div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>)}
+                                        {page.url === item.href && (<div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black"></div>)}
                                     </NavigationMenuItem>))}
                             </NavigationMenuList>
                         </NavigationMenu>
@@ -143,7 +143,7 @@ export function AppHeader({ breadcrumbs = [] }) {
                                 <Button variant="ghost" className="size-10 rounded-full p-1">
                                     <Avatar className="size-8 overflow-hidden rounded-full">
                                         <AvatarImage src={auth.user.avatar} alt={auth.user.name}/>
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
                                     </Avatar>

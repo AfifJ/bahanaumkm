@@ -70,7 +70,7 @@ export default function MitraDashboard({ mitraProfile, stats, recentTransactions
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mx-4">
+           {/*  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mx-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Penjualan Hari Ini</CardTitle>
@@ -122,113 +122,7 @@ export default function MitraDashboard({ mitraProfile, stats, recentTransactions
                         </p>
                     </CardContent>
                 </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-4">
-                {/* Sales Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Grafik Penjualan 7 Hari Terakhir</CardTitle>
-                        <CardDescription>
-                            Penjualan dan komisi harian
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {salesChart.map((day, index) => (
-                                <div key={index} className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="text-sm font-medium w-20">
-                                            {formatDate(day.date)}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <div className="text-right">
-                                            <div className="text-sm font-medium">
-                                                {formatCurrency(day.sales)}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                +{formatCurrency(day.commission)}
-                                            </div>
-                                        </div>
-                                        <div className="w-16 bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-blue-600 h-2 rounded-full"
-                                                style={{
-                                                    width: `${Math.min((day.sales / Math.max(...salesChart.map(d => d.sales))) * 100, 100)}%`
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Recent Transactions */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Transaksi Terakhir</CardTitle>
-                        <CardDescription>
-                            5 transaksi terbaru
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {recentTransactions.length === 0 ? (
-                                <p className="text-sm text-gray-500 text-center py-4">
-                                    Belum ada transaksi
-                                </p>
-                            ) : (
-                                recentTransactions.map((transaction) => (
-                                    <div
-                                        key={transaction.id}
-                                        className="flex items-center justify-between p-3 border rounded-lg"
-                                    >
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <div className="font-medium text-sm">
-                                                        {transaction.order_code}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {transaction.customer_name}
-                                                    </div>
-                                                    <div className="text-xs text-gray-400">
-                                                        {formatDateTime(transaction.created_at)}
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="font-medium text-sm">
-                                                        {formatCurrency(transaction.total_amount)}
-                                                    </div>
-                                                    <div className="text-xs text-green-600">
-                                                        +{formatCurrency(transaction.commission)}
-                                                    </div>
-                                                    <Badge className={`text-xs mt-1 ${getStatusColor(transaction.status)}`}>
-                                                        {transaction.status}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        {recentTransactions.length > 0 && (
-                            <div className="mt-4">
-                                <a
-                                    href={route('mitra.transactions')}
-                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                                >
-                                    Lihat semua transaksi →
-                                </a>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+            </div> */}
         </MitraLayout>
     );
 }

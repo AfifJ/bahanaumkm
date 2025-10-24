@@ -27,7 +27,7 @@ class ReportController extends Controller
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->where('products.vendor_id', $vendorId)
-            ->whereIn('orders.status', ['paid', 'validation']);
+            ->whereIn('orders.status', ['delivered']);
 
         // Filter by month jika ada
         if ($month) {
@@ -86,7 +86,7 @@ class ReportController extends Controller
                 ->leftJoin('product_skus', 'order_items.sku_id', '=', 'product_skus.id')
                 ->where('products.vendor_id', $vendorId)
                 ->where('products.has_variations', true)
-                ->whereIn('orders.status', ['paid', 'validation'])
+                ->whereIn('orders.status', ['delivered'])
                 ->when($month, function ($query) use ($month) {
                     // Apply same month filter as above
                     $indonesianToEnglish = [
