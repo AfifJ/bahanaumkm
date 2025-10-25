@@ -1,5 +1,5 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { ArrowLeftRight, LayoutGrid, Package, Settings, Tag, Truck, Users, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeftRight, LayoutGrid, Package, Settings, Tag, Truck, Users, Image as ImageIcon, Bell } from 'lucide-react';
 
 const mainNavItems = [
     {

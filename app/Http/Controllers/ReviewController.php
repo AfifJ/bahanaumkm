@@ -37,7 +37,7 @@ class ReviewController extends Controller
             return back()->with('error', 'Produk tidak ditemukan dalam pesanan ini.');
         }
 
-        if ($order->status !== 'delivered') {
+        if (!in_array($order->status, ['completed'])) {
             return back()->with('error', 'Anda hanya bisa mereview produk dari pesanan yang sudah selesai.');
         }
 

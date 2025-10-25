@@ -4,20 +4,22 @@ import { route } from 'ziggy-js';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { PaymentStatusBadge } from '@/components/admin/payment-status-badge';
 import { PaymentCard } from '@/components/admin/payment-card';
 import { PaymentValidationActions } from '@/components/admin/payment-validation-actions';
 import PaymentProofDialog from '@/components/admin/payment-proof-dialog';
-import { Calendar, User, MapPin, Package, CreditCard, AlertCircle } from 'lucide-react';
+import { Calendar, User, MapPin, Package, CreditCard, AlertCircle, ChevronDown } from 'lucide-react';
+import { toast } from 'sonner';
 
 const getStatusBadgeVariant = (status) => {
     switch (status) {
         case 'pending': return 'secondary';
         case 'paid': return 'default';
         case 'processed': return 'outline';
-        case 'shipped': return 'secondary';
+        case 'out_for_delivery': return 'secondary';
         case 'delivered': return 'default';
         case 'cancelled': return 'destructive';
         default: return 'secondary';
@@ -30,7 +32,7 @@ const getStatusLabel = (status) => {
         'validation': 'Menunggu Validasi',
         'paid': 'Sudah Dibayar',
         'processed': 'Diproses',
-        'shipped': 'Dikirim',
+        'out_for_delivery': 'Sedang Diantar Kurir',
         'delivered': 'Selesai',
         'cancelled': 'Dibatalkan'
     };
@@ -40,11 +42,15 @@ const getStatusLabel = (status) => {
 const getNextAvailableStatuses = (currentStatus) => {
     const transitions = {
         'pending': ['validation', 'cancelled'],
-        'validation': ['paid', 'cancelled'],
+        'validation': ['paid', 'payment_rejected', 'cancelled'],
         'paid': ['processed', 'cancelled'],
-        'processed': ['shipped', 'cancelled'],
-        'shipped': ['delivered'],
-        'delivered': [],
+        'processed': ['out_for_delivery', 'cancelled'],
+        'out_for_delivery': ['delivered', 'failed_delivery'],
+        'delivered': ['returned'],
+        'payment_rejected': ['validation', 'cancelled'],
+        'failed_delivery': ['out_for_delivery', 'cancelled'],
+        'returned': ['refunded'],
+        'refunded': [],
         'cancelled': [],
     };
     return transitions[currentStatus] || [];
@@ -58,6 +64,11 @@ export default function Transaction({ order }) {
     const [selectedStatus, setSelectedStatus] = useState(order.status);
     const [isProofDialogOpen, setIsProofDialogOpen] = useState(false);
     const [selectedProofPath, setSelectedProofPath] = useState(null);
+    const [isUploadingProof, setIsUploadingProof] = useState(false);
+    const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+    const [isDeliveryProofDialogOpen, setIsDeliveryProofDialogOpen] = useState(false);
+    const [deliveryProofPreview, setDeliveryProofPreview] = useState(null);
+    const [selectedDeliveryProof, setSelectedDeliveryProof] = useState(null);
 
     const handleStatusUpdate = () => {
         const payload = {
@@ -113,6 +124,67 @@ export default function Transaction({ order }) {
 
     const availableStatuses = getNextAvailableStatuses(order.status);
 
+    const handleUploadDeliveryProof = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validasi file
+        if (!file.type.startsWith('image/')) {
+            toast.error('Hanya file gambar yang diperbolehkan');
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) { // 2MB
+            toast.error('Ukuran file maksimal 2MB');
+            return;
+        }
+
+        // Create preview and open dialog
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setDeliveryProofPreview(e.target.result);
+            setSelectedDeliveryProof(file);
+            setIsDeliveryProofDialogOpen(true);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSaveDeliveryProof = () => {
+        if (!selectedDeliveryProof) return;
+
+        setIsUploadingProof(true);
+
+        const formData = new FormData();
+        formData.append('delivery_proof', selectedDeliveryProof);
+
+        router.post(route('admin.transaction.upload-delivery-proof', order.id), formData, {
+            onSuccess: () => {
+                // Show success message
+                toast.success('Bukti pengiriman berhasil diupload!');
+
+                // Clear preview and close dialog
+                setDeliveryProofPreview(null);
+                setSelectedDeliveryProof(null);
+                setIsDeliveryProofDialogOpen(false);
+
+                // Page will automatically reload with updated data
+            },
+            onError: (errors) => {
+                console.error('Error uploading delivery proof:', errors);
+                toast.error(errors.delivery_proof || 'Gagal mengupload bukti pengiriman');
+            },
+            onFinish: () => {
+                setIsUploadingProof(false);
+            },
+        });
+    };
+
+    const handleCancelDeliveryProof = () => {
+        setDeliveryProofPreview(null);
+        setSelectedDeliveryProof(null);
+        setIsDeliveryProofDialogOpen(false);
+    };
+
     return (
         <AdminLayout
             title="Detail Transaksi"
@@ -150,19 +222,6 @@ export default function Transaction({ order }) {
                     {/* Main Content */}
                     <div className="space-y-4">
                         {/* Payment Validation Actions */}
-                        <Card>
-                            <CardContent>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <CreditCard className="h-4 w-4" />
-                                    <h3 className="text-base font-semibold">Validasi Pembayaran</h3>
-                                </div>
-                                <PaymentValidationActions
-                                    order={order}
-                                    onSuccess={handlePaymentAction}
-                                    showQuickActions={true}
-                                />
-                            </CardContent>
-                        </Card>
 
                         {/* Status Management */}
                         {availableStatuses.length > 0 && (
@@ -260,57 +319,142 @@ export default function Transaction({ order }) {
 
                         {/* Payment Details */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5" />
-                                    Informasi Pembayaran
+                            <CardHeader
+                                className="cursor-pointer hover:bg-gray-50 transition-colors"
+                                onClick={() => setShowPaymentInfo(!showPaymentInfo)}
+                            >
+                                <CardTitle className="text-lg flex items-center gap-2 justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <CreditCard className="h-5 w-5" />
+                                        Informasi Pembayaran
+                                    </div>
+                                    <ChevronDown
+                                        className={`h-5 w-5 transition-transform duration-200 ${showPaymentInfo ? 'rotate-180' : ''
+                                            }`}
+                                    />
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">Metode Pembayaran</p>
-                                        <p className="font-semibold uppercase">{order.payment_method || 'QRIS'}</p>
+                            {showPaymentInfo && (
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-600">Metode Pembayaran</p>
+                                            <p className="font-semibold uppercase">{order.payment_method || 'QRIS'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-600">Total Pembayaran</p>
+                                            <p className="font-semibold text-lg text-green-600">{formatCurrency(order.total_amount)}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">Total Pembayaran</p>
-                                        <p className="font-semibold text-lg text-green-600">{formatCurrency(order.total_amount)}</p>
-                                    </div>
-                                </div>
 
-                                {order.payment_proof && (
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600 mb-2">Bukti Pembayaran</p>
-                                        <div className="bg-gray-50 rounded-lg p-4">
-                                            <img
-                                                src={`/storage/${order.payment_proof}`}
-                                                alt="Payment Proof"
-                                                className="h-40 w-auto mx-auto rounded cursor-pointer hover:opacity-80 transition-opacity border"
-                                                onClick={() => handleViewProof(order.payment_proof)}
-                                                onError={handleImageError}
-                                            />
-                                            <div className="mt-2 text-center">
-                                                <Button variant="outline" size="sm" onClick={() => handleViewProof(order.payment_proof)}>
-                                                    Lihat Gambar
-                                                </Button>
+                                    {order.payment_proof && (
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-600 mb-2">Bukti Pembayaran</p>
+                                            <div className="bg-gray-50 rounded-lg p-4">
+                                                <img
+                                                    src={`/storage/${order.payment_proof}`}
+                                                    alt="Payment Proof"
+                                                    className="h-40 w-auto mx-auto rounded cursor-pointer hover:opacity-80 transition-opacity border"
+                                                    onClick={() => handleViewProof(order.payment_proof)}
+                                                    onError={handleImageError}
+                                                />
+                                                <div className="mt-2 text-center">
+                                                    <Button variant="outline" size="sm" onClick={() => handleViewProof(order.payment_proof)}>
+                                                        Lihat Gambar
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {order.paid_at && (
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 text-green-700">
-                                            <AlertCircle className="h-5 w-5" />
-                                            <span className="font-medium">Pembayaran Terverifikasi</span>
+                                    {order.paid_at && (
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                            <div className="flex items-center gap-2 text-green-700">
+                                                <AlertCircle className="h-5 w-5" />
+                                                <span className="font-medium">Pembayaran Terverifikasi</span>
+                                            </div>
+                                            <p className="text-sm text-green-600 mt-1">
+                                                Dibayar pada: {formatDate(order.paid_at)}
+                                            </p>
                                         </div>
-                                        <p className="text-sm text-green-600 mt-1">
-                                            Dibayar pada: {formatDate(order.paid_at)}
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
+                                    )}
+                                </CardContent>
+                            )}
                         </Card>
+
+                        {/* Delivery Proof Upload Section - hanya untuk status out_for_delivery */}
+                        {order.status === 'out_for_delivery' && !order.delivery_proof && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Package className="h-5 w-5" />
+                                        Upload Bukti Pengiriman
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                                            Bukti Pengiriman
+                                        </label>
+                                        <input
+                                            type="file"
+                                            id="delivery_proof_upload"
+                                            accept="image/jpeg,image/png,image/jpg"
+                                            className="hidden"
+                                            onChange={handleUploadDeliveryProof}
+                                            disabled={isUploadingProof}
+                                        />
+                                        <label
+                                            htmlFor="delivery_proof_upload"
+                                            className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                        >
+                                            <div className="text-center">
+                                                <Package className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                                                <span className="text-sm text-gray-600">
+                                                    Klik untuk upload bukti pengiriman
+                                                </span>
+                                                <span className="text-xs text-gray-500 block">
+                                                    (JPEG, PNG, max 2MB)
+                                                </span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Display Uploaded Delivery Proof */}
+                        {order.status === 'delivered' && order.delivery_proof && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <AlertCircle className="h-5 w-5 text-green-600" />
+                                        Bukti Pengiriman Terupload
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <img
+                                            src={`/storage/${order.delivery_proof}`}
+                                            alt="Delivery Proof"
+                                            className="w-full h-48 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity border"
+                                            onClick={() => handleViewProof(order.delivery_proof)}
+                                            onError={handleImageError}
+                                        />
+                                        <div className="mt-2 text-center">
+                                            <Button variant="outline" size="sm" onClick={() => handleViewProof(order.delivery_proof)}>
+                                                Lihat Gambar
+                                            </Button>
+                                        </div>
+                                        {order.delivery_proof_uploaded_at && (
+                                            <div className="mt-2 text-xs text-gray-500 text-center">
+                                                Diupload: {formatDate(order.delivery_proof_uploaded_at)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Buyer Notes */}
                         {order.notes && (
@@ -395,6 +539,14 @@ export default function Transaction({ order }) {
                                             <td className="py-3 text-sm text-gray-900 text-right">{order.items?.length || 0} produk</td>
                                         </tr>
                                         <tr className="border-b">
+                                            <td className="py-3 text-sm text-gray-600">Subtotal Produk</td>
+                                            <td className="py-3 text-sm text-gray-900 text-right">{formatCurrency(order.total_amount - order.shipping_cost)}</td>
+                                        </tr>
+                                        <tr className="border-b">
+                                            <td className="py-3 text-sm text-gray-600">Ongkos Kirim</td>
+                                            <td className="py-3 text-sm text-gray-900 text-right">{formatCurrency(order.shipping_cost)}</td>
+                                        </tr>
+                                        <tr className="border-b">
                                             <td className="py-3 text-sm font-semibold text-gray-900">Total Pembayaran</td>
                                             <td className="py-3 text-xl font-bold text-green-600 text-right">{formatCurrency(order.total_amount)}</td>
                                         </tr>
@@ -420,6 +572,52 @@ export default function Transaction({ order }) {
                 onClose={() => setIsProofDialogOpen(false)}
                 proofPath={selectedProofPath}
             />
+
+            {/* Delivery Proof Preview Dialog */}
+            <Dialog open={isDeliveryProofDialogOpen} onOpenChange={setIsDeliveryProofDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Preview Bukti Pengiriman</DialogTitle>
+                        <DialogDescription>
+                            Periksa kembali bukti pengiriman sebelum menyimpan.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <div className="bg-gray-50 rounded-lg p-4">
+                            <img
+                                src={deliveryProofPreview}
+                                alt="Delivery Proof Preview"
+                                className="w-full h-96 object-contain rounded border"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={handleCancelDeliveryProof}
+                            disabled={isUploadingProof}
+                        >
+                            Batal
+                        </Button>
+                        <Button
+                            onClick={handleSaveDeliveryProof}
+                            disabled={isUploadingProof}
+                            className="min-w-[150px]"
+                        >
+                            {isUploadingProof ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span>Menyimpan...</span>
+                                </div>
+                            ) : (
+                                'Simpan Bukti Pengiriman'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }

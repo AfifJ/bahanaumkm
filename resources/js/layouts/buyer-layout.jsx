@@ -1,10 +1,13 @@
-import { Navbar04 } from '@/components/ui/navbar-04';
+// import Navbar04 from '@/components/ui/navbar-04';
 import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
 import { router, usePage } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 import { useCart } from '@/hooks/use-cart';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Home, Heart, User, Package, HelpCircle, LayoutDashboard, ShoppingCart, ArrowLeftRight } from 'lucide-react';
+import { Home, Heart, User, Package, HelpCircle, LayoutDashboard, ShoppingCart, ArrowLeftRight, Bell } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Navbar04 } from '../components/ui/navbar-04';
 
 export default ({ children, mainNavItems }) => {
     const { auth } = usePage().props;

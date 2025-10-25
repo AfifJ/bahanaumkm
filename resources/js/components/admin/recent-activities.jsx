@@ -27,7 +27,7 @@ export function RecentActivities({ recentOrders, lowStockProducts }) {
             validation: 'bg-blue-100 text-blue-800',
             paid: 'bg-green-100 text-green-800',
             processing: 'bg-purple-100 text-purple-800',
-            shipped: 'bg-indigo-100 text-indigo-800',
+            out_for_delivery: 'bg-cyan-100 text-cyan-800',
             delivered: 'bg-green-100 text-green-800',
             cancelled: 'bg-red-100 text-red-800',
         };
@@ -40,7 +40,7 @@ export function RecentActivities({ recentOrders, lowStockProducts }) {
             validation: 'Menunggu Validasi',
             paid: 'Sudah Dibayar',
             processing: 'Diproses',
-            shipped: 'Dikirim',
+            out_for_delivery: 'Sedang Diantar',
             delivered: 'Selesai',
             cancelled: 'Dibatalkan'
         };

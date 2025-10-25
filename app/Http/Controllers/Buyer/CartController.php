@@ -18,7 +18,7 @@ class CartController extends Controller
         $cartItems = Cart::forUser(Auth::id())
             ->withProduct()
             ->withSku()
-            ->orderBy('created_at', 'desc') // Sort by newest first (most recently added)
+            ->orderBy('updated_at', 'desc') // Sort by most recently modified
             ->get()
             ->filter(function ($item) {
                 return $item->isValid();
@@ -122,7 +122,7 @@ class CartController extends Controller
         $cartItems = Cart::forUser(Auth::id())
             ->withProduct()
             ->withSku()
-            ->orderBy('created_at', 'desc') // Sort by newest first (most recently added)
+            ->orderBy('updated_at', 'desc') // Sort by most recently modified
             ->get()
             ->filter(function ($item) {
                 return $item->isValid();

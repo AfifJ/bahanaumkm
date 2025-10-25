@@ -1,22 +1,51 @@
 import { Button } from '@/components/ui/button';
-import { ConfirmationDialog } from '@/components/confirmation-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import PaymentProofDialog from '@/components/admin/payment-proof-dialog';
+import { ReviewForm, ReviewFormSuccess } from '@/components/review-form';
 import BuyerLayoutWrapper from '@/layouts/buyer-layout-wrapper';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { route } from 'ziggy-js';
-import { ArrowLeft, Calendar, CheckCircle, ChevronDown, ChevronUp, MapPin, Package, User, XCircle, Star } from 'lucide-react';
-import { useState } from 'react';
-import { ReviewForm } from '@/components/review-form';
-import { ReviewCard } from '@/components/review-card';
-import { RatingDisplay } from '@/components/rating-stars';
+import { ArrowLeft, Calendar, CheckCircle, ChevronDown, ChevronUp, MapPin, Package, User, XCircle, Eye, Truck, AlertTriangle, ArrowLeft as ReturnIcon, RefreshCw, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function OrderShow({ order, canReviewProducts }) {
     const { flash } = usePage().props;
-    const { put, processed } = useForm();
-    const [showTimeline, setShowTimeline] = useState(false);
-    const [showDetails, setShowDetails] = useState(false);
-    const [reviewForms, setReviewForms] = useState({});
-    const [submittingReviews, setSubmittingReviews] = useState({});
+    const [showDetails, setShowDetails] = useState(true)
+    const [showDeliveryProofDialog, setShowDeliveryProofDialog] = useState(false)
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+    const [showReviewDialog, setShowReviewDialog] = useState(false)
+    const [reviewSuccess, setReviewSuccess] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState(null)
+    const { put, processing } = useForm({
+        status: order.status,
+    });
+
+    const handleConfirmDelivery = () => {
+        router.post(route('buyer.orders.confirm-delivery', order.id), {}, {
+            onSuccess: () => {
+                toast.success('Pesanan berhasil dikonfirmasi sudah sampai!');
+                setShowConfirmDialog(false);
+                router.reload();
+            },
+            onError: (errors) => {
+                toast.error('Gagal mengkonfirmasi pesanan');
+            },
+        });
+    };
+
+    const handleReviewClick = (item) => {
+        setSelectedProduct(item);
+        setShowReviewDialog(true);
+        setReviewSuccess(false);
+    };
+
+    const handleReviewSuccess = () => {
+        setReviewSuccess(true);
+        setTimeout(() => {
+            setShowReviewDialog(false);
+            router.reload();
+        }, 2000);
+    };
 
     const getStatusColor = (status) => {
         const colors = {
@@ -24,20 +53,53 @@ export default function OrderShow({ order, canReviewProducts }) {
             validation: 'bg-blue-100 text-blue-800 border-blue-200',
             paid: 'bg-green-100 text-green-800 border-green-200',
             processed: 'bg-purple-100 text-purple-800 border-purple-200',
-            shipped: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+            out_for_delivery: 'bg-cyan-100 text-cyan-800 border-cyan-200',
             delivered: 'bg-green-100 text-green-800 border-green-200',
+            completed: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+            payment_rejected: 'bg-red-100 text-red-800 border-red-200',
+            failed_delivery: 'bg-orange-100 text-orange-800 border-orange-200',
             cancelled: 'bg-red-100 text-red-800 border-red-200',
+            returned: 'bg-gray-100 text-gray-800 border-gray-200',
+            refunded: 'bg-slate-100 text-slate-800 border-slate-200',
         };
         return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
     };
 
     const getStatusIcon = (status) => {
         const icons = {
+            pending: Package,
+            validation: Package,
+            paid: CheckCircle,
+            processed: Package,
+            out_for_delivery: Truck,
             delivered: CheckCircle,
+            completed: CheckCircle,
+            payment_rejected: XCircle,
+            failed_delivery: AlertTriangle,
             cancelled: XCircle,
+            returned: ReturnIcon,
+            refunded: RefreshCw,
             default: Package,
         };
         return icons[status] || icons.default;
+    };
+
+    const getStatusLabel = (status) => {
+        const labels = {
+            pending: 'Menunggu Pembayaran',
+            validation: 'Menunggu Validasi',
+            paid: 'Sudah Dibayar',
+            processed: 'Diproses',
+            out_for_delivery: 'Sedang Diantar Kurir',
+            delivered: 'Telah Sampai',
+            completed: 'Selesai',
+            payment_rejected: 'Pembayaran Ditolak',
+            failed_delivery: 'Pengiriman Gagal',
+            cancelled: 'Dibatalkan',
+            returned: 'Dikembalikan',
+            refunded: 'Direfund',
+        };
+        return labels[status] || status;
     };
 
     const formatPrice = (price) => {
@@ -58,102 +120,20 @@ export default function OrderShow({ order, canReviewProducts }) {
         });
     };
 
-    const handleCancelOrder = () => {
-        router.put(
-            route('buyer.orders.update', order.id),
-            {
-                status: 'cancelled',
-            },
-            {
-                onSuccess: () => {
-                    console.log('Cancel successful');
-                },
-                onError: (errors) => {
-                    console.error('Cancel failed:', errors);
-                },
-                onFinish: () => {
-                    console.log('Request cancel finished');
-                },
-            },
-        );
-    };
-
-    const handleBayarSekarang = () => {
-        router.put(
-            route('buyer.orders.update', order.id),
-            {
-                status: 'paid',
-            },
-            {
-                onSuccess: () => {
-                    console.log('Payment successful');
-                },
-                onError: (errors) => {
-                    console.error('Payment failed:', errors);
-                },
-                onFinish: () => {
-                    console.log('Request finished');
-                },
-            },
-        );
-    };
-
-    // Review management functions
-    const toggleReviewForm = (productId) => {
-        setReviewForms(prev => ({
-            ...prev,
-            [productId]: !prev[productId]
-        }));
-    };
-
-    const handleReviewSubmit = (productId) => {
-        setSubmittingReviews(prev => ({
-            ...prev,
-            [productId]: true
-        }));
-    };
-
-    const handleReviewSuccess = (productId) => {
-        // Hide the review form
-        setReviewForms(prev => ({
-            ...prev,
-            [productId]: false
-        }));
-
-        setSubmittingReviews(prev => ({
-            ...prev,
-            [productId]: false
-        }));
-
-        // Show success message
-        toast.success('Review berhasil ditambahkan!');
-
-        // Reload the page to show the updated review
-        router.reload();
-    };
-
     const StatusIcon = getStatusIcon(order.status);
 
     return (
         <BuyerLayoutWrapper withBottomNav={false} title={'Order Detail'} backLink={route('buyer.orders.index')}>
             <Head title={`Detail Pesanan #${order.order_code} - Bahana UMKM`} />
 
-            <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
+            <div className="container mx-auto px-3 py-4 space-y-4">
                 <div className="mb-4">
                     <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                            <h1 className="mb-1 text-lg font-bold text-gray-900 sm:text-xl">#{order.order_code}</h1>
-                            <div className={`inline-flex items-center space-x-1 rounded-full border px-3 py-1 text-xs ${getStatusColor(order.status)}`}>
-                                <StatusIcon className="h-3 w-3" />
-                                <span className="font-medium">
-                                    {order.status === 'pending' && 'Menunggu Pembayaran'}
-                                    {order.status === 'validation' && 'Menunggu Validasi'}
-                                    {order.status === 'paid' && 'Sudah Dibayar'}
-                                    {order.status === 'processed' && 'Diproses'}
-                                    {order.status === 'shipped' && 'Dikirim'}
-                                    {order.status === 'delivered' && 'Selesai'}
-                                    {order.status === 'cancelled' && 'Dibatalkan'}
-                                </span>
+                        <div>
+                            <h1 className="text-lg font-bold text-gray-900 sm:text-xl">#{order.order_code}</h1>
+                            <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                                <StatusIcon className="h-3 w-3 mr-2" />
+                                {getStatusLabel(order.status)}
                             </div>
                         </div>
                     </div>
@@ -164,11 +144,11 @@ export default function OrderShow({ order, canReviewProducts }) {
                 {flash?.error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{flash.error}</div>}
 
                 {/* Products Section */}
-                <div className="mb-4 py-4">
-                    <h2 className="mb-3 text-base font-semibold text-gray-900">Produk Dipesan</h2>
+                <div className="mb-4">
+                    <h2 className="text-base font-semibold text-gray-900 mb-2">Produk Dipesan</h2>
                     <div className="space-y-4">
                         {order.items.map((item) => (
-                            <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
+                            <div key={item.id} className="border rounded-lg p-3">
                                 <div className="flex items-start space-x-3">
                                     {item.product.primaryImage?.url && (
                                         <img
@@ -179,280 +159,349 @@ export default function OrderShow({ order, canReviewProducts }) {
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <h3 className="text-sm font-medium text-gray-900 line-clamp-2">{item.product.name}</h3>
-                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                        <div className="mt-1 flex-wrap items-center gap-2 text-xs text-gray-500">
                                             <span>Qty: {item.quantity}</span>
                                             <span>•</span>
                                             <span>{formatPrice(item.unit_price)}</span>
                                         </div>
-
-                                        {/* Product Rating Display */}
-                                        <div className="mt-2">
-                                            <RatingDisplay
-                                                rating={item.product.average_rating || 0}
-                                                size="sm"
-                                            />
-                                        </div>
+                                        {/* Review Status for Completed Orders */}
+                                        {order.status === 'completed' && (
+                                            <div className="mt-2 pt-2 border-t border-gray-100">
+                                                {item.existing_review ? (
+                                                    <div className="flex items-center space-x-2 text-xs">
+                                                        <div className="flex items-center">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star
+                                                                    key={i}
+                                                                    className={`h-3 w-3 ${i < item.existing_review.rating
+                                                                        ? 'text-yellow-400 fill-current'
+                                                                        : 'text-gray-300'
+                                                                        }`}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <span className="text-green-600 font-medium">Sudah direview</span>
+                                                    </div>
+                                                ) : (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => handleReviewClick(item)}
+                                                        className={'font-light'}
+                                                    >
+                                                        Beri Review
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-medium text-gray-900">{formatPrice(item.total_price)}</p>
                                     </div>
                                 </div>
-
-                                {/* Review Section for Delivered Orders */}
-                                {order.status === 'delivered' && (
-                                    <div className="mt-3 pt-3 border-t border-gray-200">
-                                        {item.existing_review ? (
-                                            // Show existing review
-                                            <div className="space-y-2">
-                                                <h4 className="text-sm font-medium text-gray-900 flex items-center">
-                                                    <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                                                    Review Anda
-                                                </h4>
-                                                <ReviewCard
-                                                    review={item.existing_review}
-                                                    showActions={false}
-                                                />
-                                            </div>
-                                        ) : item.can_review ? (
-                                            // Show review button or form
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="text-sm font-medium text-gray-900">Beri Review Produk</h4>
-                                                    {!reviewForms[item.product.id] && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => toggleReviewForm(item.product.id)}
-                                                            className="text-xs"
-                                                        >
-                                                            <Star className="h-3 w-3 mr-1" />
-                                                            Beri Review
-                                                        </Button>
-                                                    )}
-                                                </div>
-
-                                                {reviewForms[item.product.id] && (
-                                                    <ReviewForm
-                                                        productId={item.product.id}
-                                                        orderId={order.id}
-                                                        onSubmit={() => handleReviewSuccess(item.product.id)}
-                                                        onCancel={() => toggleReviewForm(item.product.id)}
-                                                        isLoading={submittingReviews[item.product.id]}
-                                                    />
-                                                )}
-                                            </div>
-                                        ) : null}
-                                    </div>
-                                )}
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Combined Summary & Info Card */}
-                <div className="mb-4 rounded-lg border bg-white p-4 shadow-sm">
+                <div className='flex space-x-2'>
+                    {/* Lanjutkan Pembayaran Button - Only for pending orders */}
+                    {order.status === 'pending' && (
+                        <Button asChild className={'w-full'}>
+                            <Link href={route('buyer.payment.show', order.id)}>
+                                Lanjutkan Pembayaran
+                            </Link>
+                        </Button>
+                    )}
+                    {/* View Delivery Proof - Only for delivered or completed orders */}
+                    {(order.status === 'delivered' || order.status === 'completed') && order.delivery_proof && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDeliveryProofDialog(true)}
+                            className="flex items-center gap-1 w-full"
+                        >
+                            <Eye className="h-3 w-3" />
+                            Lihat Bukti Pengiriman
+                        </Button>
+                    )}
+                    {/* Confirm Delivery Button - Show when delivered but not yet confirmed */}
+                    {order.status === 'delivered' && order.delivery_proof && (
+                        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                            <DialogTrigger asChild>
+                                <Button className="w-full" disabled={processing}>
+                                    Konfirmasi Penerimaan
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Konfirmasi Pesanan</DialogTitle>
+                                    <DialogDescription>
+                                        Admin telah mengupload bukti pengiriman. Apakah Anda yakin barang sudah diterima sesuai dengan bukti yang ada?
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowConfirmDialog(false)}
+                                    >
+                                        Belum, Saya Periksa Dulu
+                                    </Button>
+                                    <Button
+                                        onClick={handleConfirmDelivery}
+                                        disabled={processing}
+                                    >
+                                        Ya, Barang Sudah Sampai
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </div>
+
+                {/* Status-Specific UI Components */}
+
+                {/* Payment Rejected */}
+                {order.status === 'payment_rejected' && (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                        <h3 className="text-base font-semibold text-red-800 mb-2 flex items-center gap-2">
+                            <XCircle className="h-5 w-5 text-red-600" />
+                            Pembayaran Ditolak
+                        </h3>
+                        <div className="text-sm text-red-700 mb-3">
+                            <p className="mb-2">Pembayaran Anda tidak dapat divalidasi dengan alasan:</p>
+                            <div className="bg-white rounded p-3 border border-red-200">
+                                <p className="text-red-800">{order.reject_reason || 'Tidak ada alasan spesifik'}</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Link href={route('buyer.payment.show', order.id)}>
+                                <Button className="flex-1">
+                                    Upload Ulang Bukti Pembayaran
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {/* Failed Delivery */}
+                {order.status === 'failed_delivery' && (
+                    <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 p-4">
+                        <h3 className="text-base font-semibold text-orange-800 mb-2 flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-orange-600" />
+                            Pengiriman Gagal
+                        </h3>
+                        <div className="text-sm text-orange-700 mb-3">
+                            <p className="mb-2">Pengiriman pesanan Anda mengalami kendala:</p>
+                            <div className="bg-white rounded p-3 border border-orange-200">
+                                <p className="text-orange-800">{order.delivery_notes || 'Terjadi kendala saat pengiriman. Admin akan segera menghubungi Anda.'}</p>
+                            </div>
+                        </div>
+                        <div className="bg-orange-100 rounded p-3 border border-orange-200 mb-3">
+                            <p className="text-sm text-orange-700">
+                                <strong>Solusi:</strong> Admin akan mencoba mengirim ulang pesanan Anda atau menghubungi Anda untuk konfirmasi lebih lanjut.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Returned */}
+                {order.status === 'returned' && (
+                    <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <h3 className="text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                            <ReturnIcon className="h-5 w-5 text-gray-600" />
+                            Pesanan Dikembalikan
+                        </h3>
+                        <div className="text-sm text-gray-700 mb-3">
+                            <p className="mb-2">Pesanan Anda telah dikembalikan dengan alasan:</p>
+                            <div className="bg-white rounded p-3 border border-gray-200">
+                                <p className="text-gray-800">{order.delivery_notes || 'Permintaan pengembalian telah diproses.'}</p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-100 rounded p-3 border border-gray-200 mb-3">
+                            <p className="text-sm text-gray-700">
+                                <strong>Proses Refund:</strong> Dana akan dikembalikan ke metode pembayaran yang sama dalam 3-5 hari kerja.
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Link href={route('home')}>
+                                <Button className="flex-1">
+                                    Belanja Lagi
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {/* Refunded */}
+                {order.status === 'refunded' && (
+                    <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                        <h3 className="text-base font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                            <RefreshCw className="h-5 w-5 text-slate-600" />
+                            Refund Diproses
+                        </h3>
+                        <div className="text-sm text-slate-700 mb-3">
+                            <p className="mb-2">Refund untuk pesanan ini telah diproses:</p>
+                            <div className="bg-white rounded p-3 border border-slate-200">
+                                <p className="font-medium text-slate-800 mb-1">Nominal: {formatPrice(order.total_amount)}</p>
+                                <p className="text-slate-600">Metode: QRIS (akan dikembalikan ke akun yang sama)</p>
+                            </div>
+                        </div>
+                        <div className="bg-slate-100 rounded p-3 border border-slate-200 mb-3">
+                            <p className="text-sm text-slate-700">
+                                <strong>Estimasi dana masuk:</strong> 3-5 hari kerja
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Link href={route('home')}>
+                                <Button className="flex-1">
+                                    Belanja Lagi
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {/* Order Summary & Info */}
+                <div className="mb-4 rounded-lg border p-4 bg-white shadow-sm">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-base font-semibold text-gray-900">Ringkasan Pesanan</h2>
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowDetails(!showDetails)}
-                            className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700"
+                            className="w-full flex justify-between"
                         >
-                            <span>Detail</span>
+                            <h2 className="text-base font-semibold">Ringkasan Pesanan</h2>
                             {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </Button>
                     </div>
+                    <div className="space-y-3">
+                        {showDetails && (
+                            <div className="space-y-3 border-t pt-3 mt-3">
+                                {/* Informasi Pesanan */}
+                                <div className="flex justify-between items-center text-sm text-gray-600">
+                                    <span>Status Pesanan</span>
+                                    <div className="flex space-x-2 items-center">
+                                        <span className="font-medium text-indigo-600">
+                                            {getStatusLabel(order.status)}
+                                        </span>
+                                        {(order.status === 'delivered' || order.status === 'completed') && order.delivery_proof && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setShowDeliveryProofDialog(true)}
+                                                className="flex items-center gap-1"
+                                            >
+                                                <Eye className="h-3 w-3" />
+                                                Bukti Pengiriman
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
 
-                    <div className="mt-3 space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Subtotal</span>
-                            <span className="text-sm font-medium">{formatPrice(order.total_amount)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Ongkos kirim</span>
-                            <span className="text-sm font-medium">Gratis</span>
-                        </div>
-                        <div className="border-t pt-2">
-                            <div className="flex justify-between">
-                                <span className="font-semibold text-gray-900">Total</span>
-                                <span className="font-semibold text-gray-900">{formatPrice(order.total_amount)}</span>
-                            </div>
-                        </div>
-                    </div>
+                                {/* Informasi Pengiriman */}
+                                <div className="border-t pt-3 mt-3">
+                                    <h4 className="font-medium text-gray-900 mb-2">Informasi Pengiriman</h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Alamat Tujuan</span>
+                                            <span className="font-medium">{order.mitra?.hotel_name}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Alamat Lengkap</span>
+                                            <span className="font-medium text-right">{order.mitra?.address || '-'}</span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                    {showDetails && (
-                        <div className="mt-4 border-t pt-4">
-                            <h3 className="mb-2 text-sm font-medium text-gray-900">Informasi Pengiriman</h3>
-                            <div className="space-y-2 text-sm text-gray-600">
-                                {order.mitra && (
-                                    <div className="flex items-center space-x-2">
-                                        <User className="h-3 w-3" />
-                                        <span>Tujuan: {order.mitra.hotel_name}</span>
+                                {/* Catatan */}
+                                {order.notes && (
+                                    <div className="border-t pt-3 mt-3">
+                                        <h4 className="font-medium text-gray-900 mb-2">Catatan Pesanan</h4>
+                                        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded border">
+                                            {order.notes}
+                                        </p>
                                     </div>
                                 )}
-                                <div className="flex items-center space-x-2">
-                                    <Calendar className="h-3 w-3" />
-                                    <span>Dipesan: {formatDate(order.created_at)}</span>
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span className="font-medium">{formatPrice(order.total_amount)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Ongkos kirim</span>
+                                    <span className="font-medium">{formatPrice(order.shipping_cost || 0)}</span>
+                                </div>
+                                <div className="border-t pt-2">
+                                    <div className="flex justify-between text-sm text-gray-900">
+                                        <span>Total</span>
+                                        <span className="font-semibold text-lg text-green-600">{formatPrice((parseFloat(order.total_amount || 0)))}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+
+                    </div>
+
                 </div>
 
-                {/* Timeline Section - Collapsible */}
-                <div className="mb-4 rounded-lg border bg-white p-4 shadow-sm">
-                    <Button
-                        variant="ghost"
-                        onClick={() => setShowTimeline(!showTimeline)}
-                        className="flex w-full items-center justify-between text-left h-auto p-0"
-                    >
-                        <h2 className="text-base font-semibold text-gray-900">Status Pesanan</h2>
-                        {showTimeline ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
 
-                    {showTimeline && (
-                        <div className="mt-3 space-y-3">
-                            <div className="flex items-center space-x-3">
-                                <div className="h-2 w-2 rounded-full bg-green-500" />
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900">Pesanan dibuat</p>
-                                    <p className="text-xs text-gray-500">{formatDate(order.created_at)}</p>
-                                </div>
-                            </div>
 
-                            {['validation', 'paid', 'processed', 'shipped', 'delivered'].includes(order.status) && (
-                                <div className="flex items-center space-x-3">
-                                    <div className={`h-2 w-2 rounded-full ${['paid', 'processed', 'shipped', 'delivered'].includes(order.status) ? 'bg-green-500' : 'bg-blue-500'}`} />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {order.status === 'validation' ? 'Menunggu Validasi' : 'Pembayaran diterima'}
-                                        </p>
-                                        <p className="text-xs text-gray-500">{order.paid_at ? formatDate(order.paid_at) : '-'}</p>
-                                    </div>
-                                </div>
-                            )}
 
-                            {['processed', 'shipped', 'delivered'].includes(order.status) && (
-                                <div className="flex items-center space-x-3">
-                                    <div className={`h-2 w-2 rounded-full ${['processed', 'shipped', 'delivered'].includes(order.status) ? 'bg-green-500' : 'bg-gray-300'}`} />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">Pesanan diproses</p>
-                                        <p className="text-xs text-gray-500">{order.processed_at ? formatDate(order.processed_at) : '-'}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {['shipped', 'delivered'].includes(order.status) && (
-                                <div className="flex items-center space-x-3">
-                                    <div className={`h-2 w-2 rounded-full ${['shipped', 'delivered'].includes(order.status) ? 'bg-green-500' : 'bg-gray-300'}`} />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">Pesanan dikirim</p>
-                                        <p className="text-xs text-gray-500">{order.shipped_at ? formatDate(order.shipped_at) : '-'}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {order.status === 'delivered' && (
-                                <div className="flex items-center space-x-3">
-                                    <div className="h-2 w-2 rounded-full bg-green-500" />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">Pesanan selesai</p>
-                                        <p className="text-xs text-gray-500">{order.delivered_at ? formatDate(order.delivered_at) : '-'}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {order.status === 'cancelled' && (
-                                <div className="flex items-center space-x-3">
-                                    <div className="h-2 w-2 rounded-full bg-red-500" />
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">Pesanan dibatalkan</p>
-                                        <p className="text-xs text-gray-500">-</p>
-                                    </div>
-                                </div>
-                            )}
+                {/* Order Cancelled */}
+                {order.status === 'cancelled' && (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                        <h3 className="text-base font-semibold text-red-800 mb-2">Pesanan Dibatalkan</h3>
+                        <div className="text-sm text-red-700">
+                            Pesanan ini telah dibatalkan dan stok produk telah dikembalikan.
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
-                {/* Action Buttons - Sticky on Mobile */}
-                <div className="sticky bottom-4 z-10 mt-6">
-                    {order.status === 'pending' && (
-                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                            <h3 className="mb-2 text-sm font-medium text-yellow-800">Tindakan</h3>
-                            <p className="mb-3 text-xs text-yellow-700">
-                                Pesanan Anda menunggu pembayaran QRIS. Silakan scan QR code di halaman pembayaran.
-                            </p>
-                            <div className="space-y-2">
-                                <Button asChild className="w-full rounded-md bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700">
-                                    <Link href={route('buyer.payment.show', order.id)}>
-                                        Bayar dengan QRIS
-                                    </Link>
-                                </Button>
-                                <ConfirmationDialog
-                                    title="Batalkan Pesanan"
-                                    description="Apakah Anda yakin ingin membatalkan pesanan ini?"
-                                    confirmText="Batalkan"
-                                    cancelText="Batal"
-                                    variant="destructive"
-                                    onConfirm={handleCancelOrder}
-                                    disabled={processed}
-                                >
-                                    <Button
-                                        disabled={processed}
-                                        className="w-full rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
-                                    >
-                                        {processed ? 'Membatalkan...' : 'Batalkan Pesanan'}
-                                    </Button>
-                                </ConfirmationDialog>
-                            </div>
+                {/* Order Completed */}
+                {order.status === 'completed' && (
+                    <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                        <h3 className="text-base font-semibold text-emerald-800 mb-2">Pesanan Selesai</h3>
+                        <div className="text-sm text-emerald-700 mb-3">
+                            Terima kasih telah berbelanja di Bahana UMKM! Pesanan Anda telah selesai.
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {order.status === 'validation' && (
-                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                            <h3 className="mb-2 text-sm font-medium text-blue-800">Menunggu Validasi</h3>
-                            <p className="mb-3 text-xs text-blue-700">
-                                Bukti pembayaran Anda sedang divalidasi oleh admin. Proses ini biasanya memakan waktu 1x24 jam.
-                            </p>
-                            {order.payment_proof && (
-                                <div className="mb-3">
-                                    <span className="text-xs text-blue-700">Bukti Pembayaran: </span>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => window.open(`/storage/${order.payment_proof}`, '_blank')}
-                                        className="text-xs text-blue-600 hover:underline ml-1 p-0 h-auto"
-                                    >
-                                        Lihat Bukti
-                                    </Button>
-                                </div>
+                {/* Delivery Proof Dialog */}
+                <PaymentProofDialog
+                    isOpen={showDeliveryProofDialog}
+                    onClose={() => setShowDeliveryProofDialog(false)}
+                    proofPath={order.delivery_proof}
+                />
+
+                {/* Review Dialog */}
+                {selectedProduct && (
+                    <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+                        <DialogContent className="sm:max-w-md">
+                            {!reviewSuccess ? (
+                                <>
+                                    <DialogHeader>
+                                        <DialogTitle className="flex items-center gap-2">
+                                            <Star className="h-5 w-5 text-yellow-500" />
+                                            Review Produk
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            Beri rating dan review untuk <strong>{selectedProduct.product.name}</strong>
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <ReviewForm
+                                        productId={selectedProduct.product.id}
+                                        orderId={order.id}
+                                        onSubmit={handleReviewSuccess}
+                                        onCancel={() => setShowReviewDialog(false)}
+                                    />
+                                </>
+                            ) : (
+                                <ReviewFormSuccess onClose={() => setShowReviewDialog(false)} />
                             )}
-                        </div>
-                    )}
+                        </DialogContent>
+                    </Dialog>
+                )}
 
-                    {order.status === 'delivered' && (
-                        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                            <h3 className="mb-2 text-sm font-medium text-green-800">Pesanan Selesai</h3>
-                            <p className="text-xs text-green-700 mb-3">Terima kasih telah berbelanja di Bahana UMKM!</p>
-                            {canReviewProducts && order.items.some(item => item.can_review) && (
-                                <div className="bg-white bg-opacity-50 rounded-md p-2">
-                                    <p className="text-xs text-green-700 font-medium">
-                                        💡 Beri review untuk produk yang Anda beli dan bantu pembeli lain!
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {order.status === 'cancelled' && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                            <h3 className="mb-2 text-sm font-medium text-red-800">Pesanan Dibatalkan</h3>
-                            <p className="text-xs text-red-700">Pesanan ini telah dibatalkan.</p>
-                        </div>
-                    )}
-                </div>
             </div>
         </BuyerLayoutWrapper>
     );

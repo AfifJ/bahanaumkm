@@ -18,9 +18,14 @@ export default function OrdersIndex({ orders }) {
             validation: 'bg-orange-100 text-orange-800',
             paid: 'bg-blue-100 text-blue-800',
             processed: 'bg-purple-100 text-purple-800',
-            shipped: 'bg-indigo-100 text-indigo-800',
+            out_for_delivery: 'bg-cyan-100 text-cyan-800',
             delivered: 'bg-green-100 text-green-800',
+            completed: 'bg-green-100 text-green-800',
             cancelled: 'bg-red-100 text-red-800',
+            payment_rejected: 'bg-red-100 text-red-800',
+            failed_delivery: 'bg-orange-100 text-orange-800',
+            returned: 'bg-gray-100 text-gray-800',
+            refunded: 'bg-slate-100 text-slate-800',
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -66,13 +71,13 @@ export default function OrdersIndex({ orders }) {
         }
 
         if (filter.status === 'berlangsung') {
-            // Status yang berlangsung: dibayar, diproses, dikirim
-            return ['paid', 'processed', 'shipped'].includes(order.status);
+            // Status yang berlangsung: dibayar, diproses, sedang diantar
+            return ['paid', 'processed', 'out_for_delivery'].includes(order.status);
         }
 
         if (filter.status === 'selesai') {
-            // Status yang selesai: selesai, ditolak, dibatalkan
-            return ['delivered', 'cancelled'].includes(order.status);
+            // Status yang selesai: semua status final/akhir
+            return ['delivered', 'completed', 'cancelled', 'payment_rejected', 'failed_delivery', 'returned', 'refunded'].includes(order.status);
         }
 
         return true;
@@ -171,9 +176,14 @@ export default function OrdersIndex({ orders }) {
                                             {order.status === 'validation' && 'Menunggu Validasi'}
                                             {order.status === 'paid' && 'Dibayar'}
                                             {order.status === 'processed' && 'Diproses'}
-                                            {order.status === 'shipped' && 'Dikirim'}
-                                            {order.status === 'delivered' && 'Selesai'}
+                                            {order.status === 'out_for_delivery' && 'Sedang Diantar'}
+                                            {order.status === 'delivered' && 'Telah Sampai'}
+                                            {order.status === 'completed' && 'Selesai'}
                                             {order.status === 'cancelled' && 'Dibatalkan'}
+                                            {order.status === 'payment_rejected' && 'Pembayaran Ditolak'}
+                                            {order.status === 'failed_delivery' && 'Pengiriman Gagal'}
+                                            {order.status === 'returned' && 'Dikembalikan'}
+                                            {order.status === 'refunded' && 'Direfund'}
                                         </div>
                                     </div>
 
@@ -219,13 +229,26 @@ export default function OrdersIndex({ orders }) {
 
                                     {/* Actions */}
                                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                                        <Link
-                                            href={route('buyer.orders.show', order.id)}
-                                            className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <ArrowRight className="h-3 w-3" />
-                                        </Link>
+                                        <div className="flex items-center space-x-2">
+                                            <Button asChild variant={'outline'}>
+                                                <Link
+                                                    href={route('buyer.orders.show', order.id)}
+                                                >
+                                                    <span>Lihat Detail</span>
+                                                </Link>
+                                            </Button>
+                                            {order.status === 'pending' && (
+                                                <Button
+                                                    asChild
+                                                >
+                                                    <Link
+                                                        href={route('buyer.payment.show', order.id)}
+                                                    >
+                                                        <span>Lanjutkan Pembayaran</span>
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                        </div>
                                         {order.status === 'pending' && (
                                             <ConfirmationDialog
                                                 title="Batalkan Pesanan"
@@ -261,20 +284,18 @@ export default function OrdersIndex({ orders }) {
                                     {orders.links.map((link, index) => {
                                         const isFirst = index === 0;
                                         const isLast = index === orders.links.length - 1;
-                                        
+
                                         return (
                                             <Link
                                                 key={index}
                                                 href={link.url || '#'}
-                                                className={`inline-flex items-center justify-center h-9 ${
-                                                    isFirst || isLast 
-                                                        ? 'w-9' 
+                                                className={`inline-flex items-center justify-center h-9 ${isFirst || isLast
+                                                        ? 'w-9'
                                                         : 'min-w-[2.25rem] px-2'
-                                                } text-sm border rounded-md font-medium transition-colors ${
-                                                    link.active
+                                                    } text-sm border rounded-md font-medium transition-colors ${link.active
                                                         ? 'bg-primary text-white border-primary'
                                                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 preserveScroll
                                             >
                                                 {isFirst ? (

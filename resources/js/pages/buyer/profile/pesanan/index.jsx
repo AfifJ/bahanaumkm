@@ -28,10 +28,14 @@ export default function OrdersIndex({ orders }) {
             pending: 'bg-yellow-100 text-yellow-800',
             validation: 'bg-blue-100 text-blue-800',
             paid: 'bg-green-100 text-green-800',
-            processing: 'bg-purple-100 text-purple-800',
-            shipped: 'bg-indigo-100 text-indigo-800',
+            processed: 'bg-purple-100 text-purple-800',
+            out_for_delivery: 'bg-cyan-100 text-cyan-800',
             delivered: 'bg-green-100 text-green-800',
+            payment_rejected: 'bg-red-100 text-red-800',
+            failed_delivery: 'bg-orange-100 text-orange-800',
             cancelled: 'bg-red-100 text-red-800',
+            returned: 'bg-gray-100 text-gray-800',
+            refunded: 'bg-slate-100 text-slate-800',
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -165,10 +169,14 @@ export default function OrdersIndex({ orders }) {
                                                         {order.status === 'pending' && 'Menunggu Pembayaran'}
                                                         {order.status === 'validation' && 'Menunggu Validasi'}
                                                         {order.status === 'paid' && 'Sudah Dibayar'}
-                                                        {order.status === 'processing' && 'Diproses'}
-                                                        {order.status === 'shipped' && 'Dikirim'}
+                                                        {order.status === 'processed' && 'Diproses'}
+                                                        {order.status === 'out_for_delivery' && 'Sedang Diantar'}
                                                         {order.status === 'delivered' && 'Selesai'}
+                                                        {order.status === 'payment_rejected' && 'Pembayaran Ditolak'}
+                                                        {order.status === 'failed_delivery' && 'Pengiriman Gagal'}
                                                         {order.status === 'cancelled' && 'Dibatalkan'}
+                                                        {order.status === 'returned' && 'Dikembalikan'}
+                                                        {order.status === 'refunded' && 'Direfund'}
                                                     </div>
                                                     {/* <div className="flex items-center space-x-2 text-sm text-gray-500">
                                                     <span>{formatDate(order.created_at)}</span>

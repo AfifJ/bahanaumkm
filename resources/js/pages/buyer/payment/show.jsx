@@ -6,6 +6,16 @@ import { ArrowLeft, CreditCard, Image, Upload, CheckCircle } from 'lucide-react'
 import { useState, useRef } from 'react';
 
 export default function PaymentShow({ order, qrisImage }) {
+    // Debug: Log order data to verify values
+    console.log('🔍 Payment Page - Order Data:', {
+        order_id: order.id,
+        order_code: order.order_code,
+        total_amount: order.total_amount,
+        shipping_cost: order.shipping_cost,
+        subtotal: order.total_amount - order.shipping_cost,
+        status: order.status
+    });
+
     const { data, setData, post, processing, errors } = useForm({
         payment_proof: null,
     });
@@ -231,9 +241,19 @@ export default function PaymentShow({ order, qrisImage }) {
                             </div>
                         )}
                         <div className="border-t pt-2 mt-2">
-                            <div className="flex justify-between font-semibold">
-                                <span>Total Pembayaran</span>
-                                <span className="text-green-600">{formatPrice(order.total_amount)}</span>
+                            <div className="space-y-1">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Subtotal Produk</span>
+                                    <span className="font-medium">{formatPrice(order.total_amount - order.shipping_cost)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Ongkos Kirim</span>
+                                    <span className="font-medium">{formatPrice(order.shipping_cost)}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-base border-t pt-2 mt-2">
+                                    <span>Total Pembayaran</span>
+                                    <span className="text-green-600">{formatPrice(order.total_amount)}</span>
+                                </div>
                             </div>
                         </div>
                     </div>

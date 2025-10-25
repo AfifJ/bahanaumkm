@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CarouselController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SalesProductController;
 use App\Http\Controllers\Admin\SettingController;
@@ -63,6 +64,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::get('/{order}', [TransactionController::class, 'show'])->name('show');
         Route::put('/{order}', [TransactionController::class, 'update'])->name('update');
         Route::post('/bulk-update', [TransactionController::class, 'bulkUpdate'])->name('bulk.update');
+        Route::post('/{order}/upload-delivery-proof', [TransactionController::class, 'uploadDeliveryProof'])->name('upload-delivery-proof');
     });
 
     // Sales Product Management Routes
@@ -77,6 +79,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
         Route::post('/{borrowedProduct}/return-product', [SalesProductController::class, 'returnProduct'])->name('return-product');
         Route::delete('/{borrowedProduct}', [SalesProductController::class, 'destroy'])->name('destroy');
         Route::get('/sales/{user}', [SalesProductController::class, 'salesProducts'])->name('sales');
+    });
+
+    // Notification Routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::post('/{notificationId}/mark-read', [NotificationController::class, 'markAsRead'])->name('mark-read');
     });
 
     // Settings Routes

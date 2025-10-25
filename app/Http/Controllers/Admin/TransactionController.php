@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\User;
+use App\Notifications\AdminOrderOutForDelivery;
+use App\Notifications\BuyerDeliveryProofUploaded;
+use App\Notifications\AdminBuyerConfirmedDelivery;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
@@ -154,7 +159,9 @@ class TransactionController extends Controller
     public function update(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,validation,paid,processed,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,validation,paid,processed,out_for_delivery,delivered,payment_rejected,failed_delivery,cancelled,returned,refunded',
+            'reject_reason' => 'required_if:status,payment_rejected|string|max:500',
+            'delivery_notes' => 'required_if:status,failed_delivery,returned|string|max:500',
         ]);
 
         $oldStatus = $order->status;
@@ -163,17 +170,26 @@ class TransactionController extends Controller
         // Define allowed status transitions
         $allowedTransitions = [
             'pending' => ['validation', 'cancelled'],
-            'validation' => ['paid', 'cancelled'],
+            'validation' => ['paid', 'payment_rejected', 'cancelled'],
             'paid' => ['processed', 'cancelled'],
-            'processed' => ['shipped', 'cancelled'],
-            'shipped' => ['delivered'],
-            'delivered' => [],
+            'processed' => ['out_for_delivery', 'cancelled'],
+            'out_for_delivery' => ['delivered', 'failed_delivery'],
+            'delivered' => ['returned'],
+            'payment_rejected' => ['validation', 'cancelled'],
+            'failed_delivery' => ['out_for_delivery', 'cancelled'],
+            'returned' => ['refunded'],
+            'refunded' => [],
             'cancelled' => [],
         ];
 
         // Check if the transition is allowed
         if (!in_array($newStatus, $allowedTransitions[$oldStatus])) {
             return back()->with('error', 'Tidak dapat mengubah status dari ' . $oldStatus . ' ke ' . $newStatus);
+        }
+
+        // Special validation: Cannot change to "delivered" without delivery proof
+        if ($newStatus === 'delivered' && $oldStatus === 'out_for_delivery' && !$order->delivery_proof) {
+            return back()->with('error', 'Harap upload bukti pengiriman terlebih dahulu sebelum mengubah status menjadi "Telah Sampai"');
         }
 
         // Handle cancellation - restore stock
@@ -190,18 +206,55 @@ class TransactionController extends Controller
         // Update order status
         $updateData = ['status' => $newStatus];
 
+        // Add reason fields if provided
+        if ($request->has('reject_reason')) {
+            $updateData['reject_reason'] = $request->reject_reason;
+        }
+        if ($request->has('delivery_notes')) {
+            $updateData['delivery_notes'] = $request->delivery_notes;
+        }
+
         // Set timestamps when status changes
         if ($newStatus === 'paid' && $oldStatus !== 'paid') {
             $updateData['paid_at'] = now();
         }
         if ($newStatus === 'processed' && $oldStatus !== 'processed') {
             $updateData['processed_at'] = now();
+
+            // Auto-notify admin users when order is processed (ready for shipping)
+            $adminUsers = User::whereHas('role', function ($query) {
+                $query->where('name', 'Admin');
+            })->get();
+
+            foreach ($adminUsers as $admin) {
+                $admin->notify(new AdminOrderOutForDelivery($order));
+            }
         }
-        if ($newStatus === 'shipped' && $oldStatus !== 'shipped') {
-            $updateData['shipped_at'] = now();
+                if ($newStatus === 'out_for_delivery' && $oldStatus !== 'out_for_delivery') {
+            $updateData['out_for_delivery_at'] = now();
         }
         if ($newStatus === 'delivered' && $oldStatus !== 'delivered') {
             $updateData['delivered_at'] = now();
+        }
+        if ($newStatus === 'payment_rejected' && $oldStatus !== 'payment_rejected') {
+            $updateData['payment_rejected_at'] = now();
+        }
+        if ($newStatus === 'failed_delivery' && $oldStatus !== 'failed_delivery') {
+            $updateData['failed_delivery_at'] = now();
+        }
+        if ($newStatus === 'returned' && $oldStatus !== 'returned') {
+            $updateData['returned_at'] = now();
+
+            // Restore stock when order is returned
+            $order->load('items.product');
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+        }
+        if ($newStatus === 'refunded' && $oldStatus !== 'refunded') {
+            $updateData['refunded_at'] = now();
         }
 
         $order->update($updateData);
@@ -248,6 +301,42 @@ class TransactionController extends Controller
             : "Berhasil menolak {$updatedCount} transaksi";
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Upload delivery proof and mark order as delivered
+     */
+    public function uploadDeliveryProof(Request $request, Order $order)
+    {
+        $request->validate([
+            'delivery_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Max 2MB
+        ]);
+
+        // Only allow upload for out_for_delivery orders (sedang di jalan)
+        if ($order->status !== 'out_for_delivery') {
+            return back()->with('error', 'Bukti pengiriman hanya bisa diupload untuk order yang sedang dalam perjalanan');
+        }
+
+        // Handle file upload
+        if ($request->hasFile('delivery_proof')) {
+            $file = $request->file('delivery_proof');
+            $path = $file->store('delivery-proofs', 'public');
+
+            // Update order with delivery proof only (don't auto-change status)
+            $order->update([
+                'delivery_proof' => $path,
+                'delivery_proof_uploaded_at' => now(),
+            ]);
+
+            // Notify buyer that delivery proof is uploaded
+            if ($order->buyer) {
+                $order->buyer->notify(new BuyerDeliveryProofUploaded($order));
+            }
+
+            return back()->with('success', 'Bukti pengiriman berhasil diupload. Sekarang Anda dapat mengubah status menjadi "Telah Sampai".');
+        }
+
+        return back()->with('error', 'Gagal mengupload bukti pengiriman');
     }
 
     /**

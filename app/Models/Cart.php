@@ -150,6 +150,7 @@ class Cart extends Model
 
         if ($availableStock >= $newQuantity) {
             $this->update(['quantity' => $newQuantity]);
+            $this->touch(); // Update updated_at timestamp
             return true;
         }
 

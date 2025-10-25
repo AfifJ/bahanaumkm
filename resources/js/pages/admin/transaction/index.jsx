@@ -18,15 +18,18 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { route } from 'ziggy-js';
-import { Eye, Download, Filter, CreditCard, Clock, CheckCircle, XCircle, AlertCircle, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search, ChevronDown } from 'lucide-react';
+import { toast } from 'sonner';
+import { Eye, Download, Filter, CreditCard, Clock, CheckCircle, XCircle, AlertCircle, CheckSquare, XSquare, ChevronLeft, ChevronRight, Search, ChevronDown, Upload, Package } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { PaymentStatusBadge } from '@/components/admin/payment-status-badge';
 import { PaymentCard } from '@/components/admin/payment-card';
 import { PaymentValidationActions } from '@/components/admin/payment-validation-actions';
 import { StatusDropdown } from '@/components/admin/status-dropdown';
+import PaymentProofDialog from '@/components/admin/payment-proof-dialog';
 
 const formatPrice = (price) => {
     return new Intl.NumberFormat('id-ID', {
@@ -51,6 +54,11 @@ export default function Transaction({ orders, availableMonths = [], month: initi
     const [selectedOrders, setSelectedOrders] = useState(new Set());
     const [showFilters, setShowFilters] = useState(false);
     const [searchQuery, setSearchQuery] = useState(initialSearch);
+    const [showDeliveryProofDialog, setShowDeliveryProofDialog] = useState(null);
+    const [showUploadDeliveryDialog, setShowUploadDeliveryDialog] = useState(null);
+    const [isUploadingProof, setIsUploadingProof] = useState(false);
+    const [deliveryProofPreview, setDeliveryProofPreview] = useState(null);
+    const [selectedDeliveryProof, setSelectedDeliveryProof] = useState(null);
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -136,6 +144,66 @@ export default function Transaction({ orders, availableMonths = [], month: initi
         router.reload();
     };
 
+    const handleUploadDeliveryProof = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validasi file
+        if (!file.type.startsWith('image/')) {
+            toast.error('Hanya file gambar yang diperbolehkan');
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) { // 2MB
+            toast.error('Ukuran file maksimal 2MB');
+            return;
+        }
+
+        // Create preview and open dialog
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setDeliveryProofPreview(e.target.result);
+            setSelectedDeliveryProof(file);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSaveDeliveryProof = () => {
+        if (!selectedDeliveryProof || !showUploadDeliveryDialog) return;
+
+        setIsUploadingProof(true);
+
+        const formData = new FormData();
+        formData.append('delivery_proof', selectedDeliveryProof);
+
+        router.post(route('admin.transaction.upload-delivery-proof', showUploadDeliveryDialog.id), formData, {
+            onSuccess: () => {
+                // Clear preview and close dialog
+                setDeliveryProofPreview(null);
+                setSelectedDeliveryProof(null);
+                setShowUploadDeliveryDialog(null);
+                setIsUploadingProof(false);
+
+                // Show success message
+                toast.success('Bukti pengiriman berhasil diupload!');
+            },
+            onError: (errors) => {
+                console.error('Error uploading delivery proof:', errors);
+                toast.error(errors.delivery_proof || 'Gagal mengupload bukti pengiriman');
+                setIsUploadingProof(false);
+            },
+            onFinish: () => {
+                setIsUploadingProof(false);
+            },
+        });
+    };
+
+    const handleCancelDeliveryProof = () => {
+        setDeliveryProofPreview(null);
+        setSelectedDeliveryProof(null);
+        setShowUploadDeliveryDialog(null);
+    };
+
     const handleBulkApprove = () => {
         const selectedOrderIds = Array.from(selectedOrders);
 
@@ -194,10 +262,13 @@ export default function Transaction({ orders, availableMonths = [], month: initi
             validation: 0,
             paid: 0,
             processed: 0,
-            shipped: 0,
+            out_for_delivery: 0,
             delivered: 0,
-            rejected: 0,
+            payment_rejected: 0,
+            failed_delivery: 0,
             cancelled: 0,
+            returned: 0,
+            refunded: 0,
             totalRevenue: 0
         };
 
@@ -215,12 +286,24 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                 case 'processed':
                     stats.processed++;
                     break;
-                case 'shipped':
-                    stats.shipped++;
+                case 'out_for_delivery':
+                    stats.out_for_delivery++;
                     break;
                 case 'delivered':
                     stats.delivered++;
                     stats.totalRevenue += parseFloat(order.total_amount || 0);
+                    break;
+                case 'payment_rejected':
+                    stats.payment_rejected++;
+                    break;
+                case 'failed_delivery':
+                    stats.failed_delivery++;
+                    break;
+                case 'returned':
+                    stats.returned++;
+                    break;
+                case 'refunded':
+                    stats.refunded++;
                     break;
                 case 'rejected':
                     stats.rejected++;
@@ -401,7 +484,7 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                                             <SelectItem value="validation">Menunggu Validasi</SelectItem>
                                             <SelectItem value="paid">Sudah Dibayar</SelectItem>
                                             <SelectItem value="processed">Diproses</SelectItem>
-                                            <SelectItem value="shipped">Dikirim</SelectItem>
+                                            <SelectItem value="out_for_delivery">Sedang Diantar Kurir</SelectItem>
                                             <SelectItem value="delivered">Diterima</SelectItem>
                                             <SelectItem value="rejected">Ditolak</SelectItem>
                                             <SelectItem value="cancelled">Dibatalkan</SelectItem>
@@ -533,7 +616,12 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                                                         <div className="text-xs text-gray-500 sm:hidden">{formatDate(order.created_at)}</div>
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                        <div className="font-medium text-sm md:text-base">{formatPrice(order.total_amount)}</div>
+                                                        <div className="space-y-1">
+                                                            <div className="font-medium text-sm md:text-base">{formatPrice(order.total_amount)}</div>
+                                                            <div className="text-xs text-gray-500 hidden sm:block">
+                                                                {formatPrice(order.total_amount - order.shipping_cost)} + {formatPrice(order.shipping_cost)}
+                                                            </div>
+                                                        </div>
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="font-medium uppercase text-xs md:text-sm">
@@ -548,6 +636,39 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex items-center justify-end gap-1 sm:gap-2">
+                                                            {order.status === 'validation' && order.payment_proof && (
+                                                                <Button
+                                                                    variant="default"
+                                                                    size="sm"
+                                                                    onClick={() => {
+                                                                        // Buka dialog otomatis saat klik tombol Lihat Bukti Bayar
+                                                                        setShowDeliveryProofDialog(order.payment_proof);
+                                                                    }}
+                                                                >
+                                                                    Lihat Bukti Bayar
+                                                                </Button>
+                                                            )}
+                                                            {order.status === 'out_for_delivery' && !order.delivery_proof && (
+                                                                <Button
+                                                                    variant="default"
+                                                                    size="sm"
+                                                                    onClick={() => {
+                                                                        setShowUploadDeliveryDialog(order);
+                                                                    }}
+                                                                >
+                                                                    <span className="hidden sm:inline">Upload Bukti</span>
+                                                                </Button>
+                                                            )}
+                                                            {(order.status === 'delivered' || order.status === 'out_for_delivery') && order.delivery_proof && (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    onClick={() => setShowDeliveryProofDialog(order.delivery_proof)}
+                                                                    className="h-8 px-2 sm:px-3"
+                                                                >
+                                                                    <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                                                                    <span className="hidden sm:inline">Bukti Pengiriman</span>
+                                                                </Button>
+                                                            )}
                                                             <Button variant="outline" size="sm" asChild className="h-8 px-2 sm:px-3">
                                                                 <Link href={route('admin.transaction.show', order.id)}>
                                                                     <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
@@ -604,6 +725,104 @@ export default function Transaction({ orders, availableMonths = [], month: initi
                     </div>
                 </div>
             </div>
+
+            {/* Delivery Proof Dialog */}
+            {showDeliveryProofDialog && (
+                <PaymentProofDialog
+                    isOpen={!!showDeliveryProofDialog}
+                    onClose={() => setShowDeliveryProofDialog(null)}
+                    proofPath={showDeliveryProofDialog}
+                />
+            )}
+
+            {/* Upload Delivery Proof Dialog */}
+            {showUploadDeliveryDialog && (
+                <Dialog open={!!showUploadDeliveryDialog} onOpenChange={(open) => !open && handleCancelDeliveryProof()}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Package className="h-5 w-5 text-blue-600" />
+                                Upload Bukti Pengiriman
+                            </DialogTitle>
+                            <DialogDescription>
+                                Upload bukti pengiriman untuk Order #{showUploadDeliveryDialog.order_code}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            {!deliveryProofPreview ? (
+                                <div>
+                                    <input
+                                        type="file"
+                                        id="delivery_proof_upload_dialog"
+                                        accept="image/jpeg,image/png,image/jpg"
+                                        className="hidden"
+                                        onChange={handleUploadDeliveryProof}
+                                        disabled={isUploadingProof}
+                                    />
+                                    <label
+                                        htmlFor="delivery_proof_upload_dialog"
+                                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer hover:border-blue-400 bg-blue-50/30 transition-colors"
+                                    >
+                                        <Upload className="h-8 w-8 text-blue-500 mb-2" />
+                                        <span className="text-sm text-gray-700 font-medium">
+                                            Klik untuk pilih bukti pengiriman
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            (JPEG, PNG, max 2MB)
+                                        </span>
+                                    </label>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="text-sm font-medium text-gray-700">Preview:</div>
+                                    <img
+                                        src={deliveryProofPreview}
+                                        alt="Delivery proof preview"
+                                        className="w-full h-auto rounded-lg border border-gray-200"
+                                    />
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setDeliveryProofPreview(null);
+                                                setSelectedDeliveryProof(null);
+                                            }}
+                                            disabled={isUploadingProof}
+                                        >
+                                            Ganti
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={handleCancelDeliveryProof}
+                                disabled={isUploadingProof}
+                            >
+                                Batal
+                            </Button>
+                            <Button
+                                onClick={handleSaveDeliveryProof}
+                                disabled={!selectedDeliveryProof || isUploadingProof}
+                            >
+                                {isUploadingProof ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        Uploading...
+                                    </>
+                                ) : (
+                                    'Upload Bukti'
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </AdminLayout>
     );
 }

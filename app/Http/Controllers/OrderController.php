@@ -10,6 +10,8 @@ use App\Models\Product;
 use App\Models\ProductSku;
 use App\Models\Review;
 use App\Models\Setting;
+use App\Models\User;
+use App\Notifications\AdminBuyerConfirmedDelivery;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -214,11 +216,15 @@ class OrderController extends Controller
 
             $mitraCommission = $totalAmount * 0.25;
 
+            // Calculate final total amount including shipping
+            $finalTotalAmount = $totalAmount + $shippingCost;
+
             // Create order
             $order = Order::create([
                 'buyer_id' => Auth::id(),
                 'mitra_id' => $request->mitra_id,
-                'total_amount' => $totalAmount + $shippingCost,
+                'total_amount' => $finalTotalAmount,
+                'shipping_cost' => $shippingCost,
                 'partner_commission' => $mitraCommission,
                 'status' => 'pending',
                 'payment_method' => 'qris',
@@ -279,8 +285,8 @@ class OrderController extends Controller
         // Load basic relationships
         $order->load(['items.product', 'mitra']);
 
-        // For delivered orders, check review eligibility and load existing reviews
-        if ($order->status === 'delivered') {
+        // For delivered or completed orders, check review eligibility and load existing reviews
+        if (in_array($order->status, ['completed'])) {
             try {
                 $orderItemsWithReviewData = [];
 
@@ -315,7 +321,7 @@ class OrderController extends Controller
 
         return Inertia::render('orders/show', [
             'order' => $order,
-            'canReviewProducts' => $order->status === 'delivered',
+            'canReviewProducts' => in_array($order->status, ['completed']),
         ]);
     }
 
@@ -337,6 +343,15 @@ class OrderController extends Controller
         if ($request->status === 'paid' && $order->status === 'pending') {
             $order->update(['status' => 'paid']);
             return back()->with('success', 'Pembayaran berhasil diproses');
+        }
+
+        // Handle payment re-upload after rejection
+        if ($request->status === 'validation' && $order->status === 'payment_rejected') {
+            $order->update([
+                'status' => 'validation',
+                'reject_reason' => null
+            ]);
+            return back()->with('success', 'Bukti pembayaran berhasil diupload ulang. Menunggu validasi admin.');
         }
 
         // Handle cancellation
@@ -371,6 +386,7 @@ class OrderController extends Controller
     {
         $cartItems = Cart::forUser(Auth::id())
             ->withProduct()
+            ->orderBy('updated_at', 'desc') // Sort by most recently modified
             ->get()
             ->filter(function ($item) {
                 return $item->isValid();
@@ -600,6 +616,39 @@ class OrderController extends Controller
             'message' => 'Produk berhasil dihapus dari keranjang',
             'cart' => json_decode($updatedCart->getContent()),
         ]);
+    }
+
+    /**
+     * Confirm delivery for delivered order
+     */
+    public function confirmDelivery(Request $request, Order $order)
+    {
+        // Ensure order belongs to authenticated buyer
+        if ($order->buyer_id !== Auth::id()) {
+            abort(403);
+        }
+
+        // Only allow confirmation for delivered orders with delivery proof
+        if ($order->status !== 'delivered' || !$order->delivery_proof) {
+            return back()->with('error', 'Tidak dapat mengkonfirmasi pesanan ini');
+        }
+
+        // Update order with buyer confirmation timestamp and change status to completed
+        $order->update([
+            'status' => Order::STATUS_COMPLETED,
+            'delivered_confirmed_at' => now(),
+        ]);
+
+        // Notify all admin users that buyer confirmed delivery
+        $adminUsers = User::whereHas('role', function ($query) {
+            $query->where('name', 'admin');
+        })->get();
+
+        foreach ($adminUsers as $admin) {
+            $admin->notify(new AdminBuyerConfirmedDelivery($order));
+        }
+
+        return back()->with('success', 'Pesanan berhasil dikonfirmasi sudah sampai');
     }
 
     /**

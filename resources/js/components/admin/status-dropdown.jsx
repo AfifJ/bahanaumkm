@@ -22,12 +22,15 @@ export function StatusDropdown({ order, onSuccess }) {
     // Define allowed status transitions (same as backend)
     const allowedTransitions = {
         'pending': ['validation', 'cancelled'],
-        'validation': ['paid', 'cancelled'],
+        'validation': ['paid', 'payment_rejected', 'cancelled'],
         'paid': ['processed', 'cancelled'],
-        'processed': ['shipped', 'cancelled'],
-        'shipped': ['delivered'],
-        'delivered': [],
-        'rejected': [],
+        'processed': ['out_for_delivery', 'cancelled'],
+        'out_for_delivery': ['delivered', 'failed_delivery'],
+        'delivered': ['returned'],
+        'payment_rejected': ['validation', 'cancelled'],
+        'failed_delivery': ['out_for_delivery', 'cancelled'],
+        'returned': ['refunded'],
+        'refunded': [],
         'cancelled': [],
     };
 
@@ -36,14 +39,23 @@ export function StatusDropdown({ order, onSuccess }) {
         { value: 'validation', label: 'Menunggu Validasi', color: 'bg-blue-100 text-blue-800' },
         { value: 'paid', label: 'Sudah Dibayar', color: 'bg-green-100 text-green-800' },
         { value: 'processed', label: 'Diproses', color: 'bg-orange-100 text-orange-800' },
-        { value: 'shipped', label: 'Dikirim', color: 'bg-purple-100 text-purple-800' },
-        { value: 'delivered', label: 'Diterima', color: 'bg-emerald-100 text-emerald-800' },
-        { value: 'rejected', label: 'Ditolak', color: 'bg-red-100 text-red-800' },
+        { value: 'out_for_delivery', label: 'Sedang Diantar Kurir', color: 'bg-cyan-100 text-cyan-800' },
+        { value: 'delivered', label: 'Telah Sampai', color: 'bg-emerald-100 text-emerald-800' },
+        { value: 'payment_rejected', label: 'Pembayaran Ditolak', color: 'bg-red-100 text-red-800' },
+        { value: 'failed_delivery', label: 'Pengiriman Gagal', color: 'bg-orange-100 text-orange-800' },
+        { value: 'returned', label: 'Dikembalikan', color: 'bg-gray-100 text-gray-800' },
+        { value: 'refunded', label: 'Direfund', color: 'bg-slate-100 text-slate-800' },
         { value: 'cancelled', label: 'Dibatalkan', color: 'bg-gray-100 text-gray-800' },
     ];
 
     const handleStatusChange = (newStatus) => {
         if (newStatus === order.status || isUpdating) return;
+
+        // Special validation: Cannot change to "delivered" without delivery proof
+        if (newStatus === 'delivered' && order.status === 'out_for_delivery' && !order.delivery_proof) {
+            toast.error('Harap upload bukti pengiriman terlebih dahulu sebelum mengubah status menjadi "Telah Sampai"', 'error');
+            return;
+        }
 
         // Validate status transition
         const allowedNextStatuses = allowedTransitions[order.status] || [];
@@ -89,15 +101,14 @@ export function StatusDropdown({ order, onSuccess }) {
                 onValueChange={handleStatusChange}
                 disabled={isUpdating}
             >
-                <SelectTrigger className="w-8 h-6 p-0 border-0 bg-transparent hover:bg-gray-100 rounded">
-                    <PaymentStatusBadge status={order.status} size="sm" />
-                    {/* <ChevronDown className="h-3 w-3 text-gray-500" /> */}
+                <SelectTrigger className="h-fit p-0 shadow-none border-0">
+                    <PaymentStatusBadge status={order.status} order={order} />
                 </SelectTrigger>
                 <SelectContent align="end" className="w-48">
                     {statusOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                             <div className="flex items-center gap-2">
-                                <Badge className={`${option.color} border-0 text-xs font-medium`}>
+                                <Badge className={`${option.color}`}>
                                     {option.label}
                                 </Badge>
                             </div>

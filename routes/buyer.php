@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Buyer\CartController;
+use App\Http\Controllers\Buyer\NotificationController;
 use App\Http\Controllers\Buyer\PesananController;
 use App\Http\Controllers\Buyer\PaymentController;
 use App\Http\Controllers\Buyer\ProfileController;
@@ -23,6 +24,11 @@ Route::name('buyer.')->middleware(['auth', 'role:Buyer'])->group(function () {
         Route::post('/', [OrderController::class, 'store'])->name('store');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
         Route::put('/{order}', [OrderController::class, 'update'])->name('update');
+        Route::post('/{order}/confirm-delivery', [OrderController::class, 'confirmDelivery'])->name('confirm-delivery');
+        Route::post('/reset-checkout', function () {
+            session()->forget(['checkout_cart_items', 'checkout_cart_ids', 'checkout_subtotal']);
+            return redirect()->route('buyer.cart.index')->with('success', 'Session checkout dibersihkan. Silakan mulai ulang.');
+        })->name('checkout.reset');
     });
 
     // Payment routes
@@ -67,6 +73,12 @@ Route::name('buyer.')->middleware(['auth', 'role:Buyer'])->group(function () {
                 Route::get('/', [PesananController::class, 'index'])->name('index');
             });
         });
+
+    // Notification Routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::post('/{notificationId}/mark-read', [NotificationController::class, 'markAsRead'])->name('mark-read');
+    });
 
     });
 });

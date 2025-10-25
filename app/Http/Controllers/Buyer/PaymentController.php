@@ -20,6 +20,9 @@ class PaymentController extends Controller
             abort(403);
         }
 
+        // Auto-cleanup conflicting session data for this order
+        $this->cleanupConflictingSession($order);
+
         // Get QRIS image from settings
         $qrisImage = Setting::getValue('qris_image', 'qris/qris-code.png');
 
@@ -70,5 +73,28 @@ class PaymentController extends Controller
         }
 
         return back()->with('error', 'Gagal mengunggah bukti pembayaran.');
+    }
+
+    /**
+     * Clean up conflicting session data when accessing payment for existing order
+     */
+    private function cleanupConflictingSession(Order $order)
+    {
+        // Check if there's conflicting checkout session data
+        $checkoutCartItemIds = session()->get('checkout_cart_ids', []);
+
+        if (!empty($checkoutCartItemIds)) {
+            // Check if any cart items in session belong to products in this order
+            $orderProductIds = $order->items()->pluck('product_id')->toArray();
+
+            // Clear session if there's potential conflict
+            session()->forget(['checkout_cart_items', 'checkout_cart_ids', 'checkout_subtotal']);
+
+            \Log::info('🧹 Cleaned conflicting checkout session', [
+                'order_id' => $order->id,
+                'user_id' => auth()->id(),
+                'cleared_session_data' => true
+            ]);
+        }
     }
 }

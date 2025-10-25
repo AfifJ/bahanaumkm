@@ -1,7 +1,7 @@
-import { Navbar04 } from '@/components/ui/navbar-04';
 import PersistentNavigationWrapper from '@/components/persistent-navigation-wrapper';
 import { BookOpen, Folder, LayoutGrid, ShoppingCart } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { Navbar04 } from '@/components/ui/navbar-04';
 
 const mainNavItems = [
     {
