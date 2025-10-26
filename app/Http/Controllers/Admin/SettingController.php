@@ -28,7 +28,7 @@ class SettingController extends Controller
 
         // Debug: Log the values being sent to frontend
         \Log::info('Admin Settings Index - Values:', [
-            'admin_commission' => Setting::getValue('admin_commission', 10),
+            'mitra_commission' => Setting::getValue('mitra_commission', 25),
             'sales_commission' => Setting::getValue('sales_commission', 5),
             'shipping_price_per_km' => $shippingPricePerKm,
             'qris_image' => $qrisImage,
@@ -39,7 +39,7 @@ class SettingController extends Controller
 
         return Inertia::render('admin/settings/index', [
             'settings' => $settings,
-            'adminCommission' => Setting::getValue('admin_commission', 10),
+            'mitraCommission' => Setting::getValue('mitra_commission', 25),
             'salesCommission' => Setting::getValue('sales_commission', 5),
             'shippingPricePerKm' => $shippingPricePerKm,
             'qrisImage' => $qrisImage,
@@ -52,9 +52,9 @@ class SettingController extends Controller
     private function ensureDefaultSettings()
     {
         $defaultSettings = [
-            'admin_commission' => [
-                'value' => '10',
-                'description' => 'Komisi Admin (%)',
+            'mitra_commission' => [
+                'value' => '25',
+                'description' => 'Komisi Mitra (%)',
                 'type' => 'number'
             ],
             'sales_commission' => [
@@ -94,7 +94,7 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         \Log::info('Settings Update Request:', [
-            'has_commissions' => $request->has(['admin_commission', 'sales_commission']),
+            'has_commissions' => $request->has(['mitra_commission', 'sales_commission']),
             'has_shipping_price' => $request->has('shipping_price_per_km'),
             'has_qris_file' => $request->hasFile('qris_image'),
             'request_data' => $request->all()
@@ -104,7 +104,7 @@ class SettingController extends Controller
 
         try {
             // Update commissions if provided
-            if ($request->has(['admin_commission', 'sales_commission'])) {
+            if ($request->has(['mitra_commission', 'sales_commission'])) {
                 $this->updateCommissions($request);
                 $updatedTypes[] = 'komisi';
             }
@@ -144,17 +144,17 @@ class SettingController extends Controller
     private function updateCommissions(Request $request)
     {
         $request->validate([
-            'admin_commission' => 'required|numeric|min:0|max:100',
+            'mitra_commission' => 'required|numeric|min:0|max:100',
             'sales_commission' => 'required|numeric|min:0|max:100',
         ]);
 
         \Log::info('Updating Commissions:', [
-            'admin_commission' => $request->admin_commission,
+            'mitra_commission' => $request->mitra_commission,
             'sales_commission' => $request->sales_commission
         ]);
 
-        // Update admin commission
-        Setting::setValue('admin_commission', $request->admin_commission, 'number', 'Komisi Admin (%)');
+        // Update mitra commission
+        Setting::setValue('mitra_commission', $request->mitra_commission, 'number', 'Komisi Mitra (%)');
 
         // Update sales commission
         Setting::setValue('sales_commission', $request->sales_commission, 'number', 'Komisi Sales (%)');

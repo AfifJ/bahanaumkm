@@ -32,7 +32,7 @@ const generateSku = (productName, variantName) => {
     return `${cleanText(productName)} - ${cleanText(variantName)}`;
 };
 
-export default function ProductForm({ data, setData, errors, processing, onSubmit, isEdit = false, categories = [], vendors = [], editRestrictions = null }) {
+export default function ProductForm({ data, setData, errors, processing, onSubmit, isEdit = false, categories = [], vendors = [], editRestrictions = null, hasChanges = true }) {
     const fileInputRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [imagePreviews, setImagePreviews] = useState([]);
@@ -121,8 +121,15 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
 
             console.log('Final previews:', previews);
             setImagePreviews(previews);
-            // Initialize images data for form submission
-            updateImagesData(previews);
+            // Initialize images data for form submission - preserve existing images
+            setData('image_data', {
+                existing: data.images.map(img => ({
+                    id: img.id,
+                    is_primary: img.is_primary,
+                    sort_order: img.sort_order
+                })),
+                new_files_metadata: []
+            });
         } else if (data.image_url && !isEdit) {
             // Single image for new products
             const singleImage = [{
@@ -291,7 +298,8 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                 price: bulkUpdateData.price ? bulkUpdateData.price : sku.price,
                 buy_price: bulkUpdateData.buy_price ? bulkUpdateData.buy_price : sku.buy_price,
                 stock: bulkUpdateData.stock ? parseInt(bulkUpdateData.stock) : sku.stock,
-                sku_code: generateSku(data.name, sku.variant_name)
+                // Only auto-generate SKU for new SKUs (without ID)
+                sku_code: !sku.id ? generateSku(data.name, sku.variant_name) : sku.sku_code
             }));
 
             setData('skus', updatedSkus);
@@ -312,7 +320,8 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
         if (data.has_variations && data.skus && data.skus.length > 0) {
             const updatedSkus = data.skus.map(sku => ({
                 ...sku,
-                sku_code: generateSku(productName, sku.variant_name)
+                // Only auto-generate SKU for new SKUs (without ID)
+                sku_code: !sku.id ? generateSku(productName, sku.variant_name) : sku.sku_code
             }));
             setData('skus', updatedSkus);
         }
@@ -653,17 +662,6 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                             </DialogHeader>
 
                             <div className="space-y-4">
-                                <div>
-                                    <Label htmlFor="bulk_price">Harga (Rp)</Label>
-                                    <Input
-                                        id="bulk_price"
-                                        type="text"
-                                        placeholder="Masukkan harga baru (kosongkan untuk tidak mengubah)"
-                                        value={formatPrice(bulkUpdateData.price)}
-                                        onChange={(e) => setBulkUpdateData({ ...bulkUpdateData, price: parsePrice(e.target.value) })}
-                                        className="mt-1"
-                                    />
-                                </div>
 
                                 <div>
                                     <Label htmlFor="bulk_buy_price">Harga Beli (Rp)</Label>
@@ -673,6 +671,17 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                         placeholder="Masukkan harga beli baru (kosongkan untuk tidak mengubah)"
                                         value={formatPrice(bulkUpdateData.buy_price)}
                                         onChange={(e) => setBulkUpdateData({ ...bulkUpdateData, buy_price: parsePrice(e.target.value) })}
+                                        className="mt-1"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="bulk_price">Harga Jual(Rp)</Label>
+                                    <Input
+                                        id="bulk_price"
+                                        type="text"
+                                        placeholder="Masukkan harga baru (kosongkan untuk tidak mengubah)"
+                                        value={formatPrice(bulkUpdateData.price)}
+                                        onChange={(e) => setBulkUpdateData({ ...bulkUpdateData, price: parsePrice(e.target.value) })}
                                         className="mt-1"
                                     />
                                 </div>
@@ -745,6 +754,28 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                         </div>
                     )}
 
+                    {/* Validasi gambar variasi */}
+                    {data.use_images && data.skus && data.skus.length > 0 && (
+                        (() => {
+                            const skusWithoutImages = data.skus.filter(sku =>
+                                (!sku.image || sku.image.trim() === '') &&
+                                (!sku.image_file || !(sku.image_file instanceof File))
+                            );
+                            if (skusWithoutImages.length > 0) {
+                                return (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-sm text-red-800">
+                                            <AlertTriangle className="inline h-4 w-4 mr-2" />
+                                            <strong>Perhatian:</strong> {skusWithoutImages.length} variasi belum memiliki gambar.
+                                            Semua variasi wajib memiliki gambar ketika opsi "Gunakan Gambar per Variasi" diaktifkan.
+                                        </p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()
+                    )}
+
                     {data.skus && data.skus.length > 0 ? (
                         <>
                             {/* Validasi info */}
@@ -757,259 +788,268 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                                 </div>
                             )}
 
-                            {data.skus.map((sku, index) => (
-                                <div key={index} className={`border rounded-lg p-4 ${sku.deleted_at ? 'bg-gray-50 opacity-60' : ''}`}>
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-medium">{sku.variant_name || `Variasi ${index + 1}`}</h3>
-                                            {sku.deleted_at && (
-                                                <span className="px-2 py-1 text-xs font-medium bg-gray-200 text-gray-700 rounded">
-                                                    Nonaktif
-                                                </span>
-                                            )}
-                                            {sku.has_orders && (
-                                                <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                                                    Pernah Dipesan
-                                                </span>
-                                            )}
-                                        </div>
-                                        {/* Tombol hapus/nonaktifkan SKU */}
-                                        {!sku.deleted_at && (
-                                            <>
-                                                {editRestrictions?.has_orders && sku.id ? (
-                                                    // Jika produk punya orders dan SKU sudah ada di database, tampilkan tombol nonaktifkan
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                                        title="SKU tidak dapat dihapus karena produk memiliki pesanan. Gunakan tombol ini untuk menonaktifkan."
-                                                        onClick={() => {
-                                                            const updatedSkus = [...data.skus];
-                                                            updatedSkus[index].deleted_at = new Date().toISOString();
-                                                            updatedSkus[index].status = 'inactive';
-                                                            setData('skus', updatedSkus);
-                                                            toast.info('SKU akan dinonaktifkan setelah Anda menyimpan perubahan.');
-                                                        }}
-                                                    >
-                                                        <Ban className="h-4 w-4 mr-1" />
-                                                        Nonaktifkan
-                                                    </Button>
-                                                ) : (
-                                                    // Jika produk belum punya orders atau SKU baru, tampilkan tombol hapus biasa
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-red-500 hover:text-red-700"
-                                                        onClick={() => {
-                                                            const updatedSkus = data.skus.filter((_, i) => i !== index);
-                                                            setData('skus', updatedSkus);
-                                                        }}
-                                                    >
-                                                        <Trash className="h-4 w-4" />
-                                                    </Button>
+                            {data.skus.map((sku, index) => {
+                                const hasImageValidationIssue = data.use_images && (!sku.image || sku.image.trim() === '') && (!sku.image_file || !(sku.image_file instanceof File));
+                                return (
+                                    <div key={index} className={`border rounded-lg p-4 ${sku.deleted_at ? 'bg-gray-50 opacity-60' : ''} ${hasImageValidationIssue ? 'border-red-300 bg-red-50' : ''}`}>
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-medium">{sku.variant_name || `Variasi ${index + 1}`}</h3>
+                                                {sku.deleted_at && (
+                                                    <span className="px-2 py-1 text-xs font-medium bg-gray-200 text-gray-700 rounded">
+                                                        Nonaktif
+                                                    </span>
                                                 )}
-                                            </>
-                                        )}
-                                        {/* Tombol aktifkan kembali untuk SKU yang dinonaktifkan */}
-                                        {sku.deleted_at && (
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                onClick={() => {
-                                                    const updatedSkus = [...data.skus];
-                                                    delete updatedSkus[index].deleted_at;
-                                                    updatedSkus[index].status = 'active';
-                                                    setData('skus', updatedSkus);
-                                                    toast.success('SKU akan diaktifkan kembali.');
-                                                }}
-                                            >
-                                                <Plus className="h-4 w-4 mr-1" />
-                                                Aktifkan
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor={`variant-name-${index}`}>Nama Variasi</Label>
-                                            <Input
-                                                id={`variant-name-${index}`}
-                                                type="text"
-                                                value={sku.variant_name || ''}
-                                                onChange={(e) => {
-                                                    const updatedSkus = [...data.skus];
-                                                    updatedSkus[index].variant_name = e.target.value;
-                                                    updatedSkus[index].name = e.target.value; // Sync with name field
-                                                    // Auto-generate SKU
-                                                    updatedSkus[index].sku_code = generateSku(data.name, e.target.value);
-                                                    setData('skus', updatedSkus);
-                                                }}
-                                                className="mt-1"
-                                                placeholder="Contoh: Warna Merah, Ukuran L"
-                                            />
-                                            {/* Display generated SKU below variation name */}
-                                            {sku.variant_name && (
-                                                <div className="mt-1 text-xs text-gray-600 font-medium">
-                                                    SKU: {generateSku(data.name, sku.variant_name)}
-                                                </div>
+                                                {sku.has_orders && (
+                                                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+                                                        Pernah Dipesan
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {/* Tombol hapus/nonaktifkan SKU */}
+                                            {!sku.deleted_at && (
+                                                <>
+                                                    {editRestrictions?.has_orders && sku.id ? (
+                                                        // Jika produk punya orders dan SKU sudah ada di database, tampilkan tombol nonaktifkan
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                                            title="SKU tidak dapat dihapus karena produk memiliki pesanan. Gunakan tombol ini untuk menonaktifkan."
+                                                            onClick={() => {
+                                                                const updatedSkus = [...data.skus];
+                                                                updatedSkus[index].deleted_at = new Date().toISOString();
+                                                                updatedSkus[index].status = 'inactive';
+                                                                setData('skus', updatedSkus);
+                                                                toast.info('SKU akan dinonaktifkan setelah Anda menyimpan perubahan.');
+                                                            }}
+                                                        >
+                                                            <Ban className="h-4 w-4 mr-1" />
+                                                            Nonaktifkan
+                                                        </Button>
+                                                    ) : (
+                                                        // Jika produk belum punya orders atau SKU baru, tampilkan tombol hapus biasa
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-red-500 hover:text-red-700"
+                                                            onClick={() => {
+                                                                const updatedSkus = data.skus.filter((_, i) => i !== index);
+                                                                setData('skus', updatedSkus);
+                                                            }}
+                                                        >
+                                                            <Trash className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </>
                                             )}
-                                            <InputError message={errors[`skus.${index}.variant_name`]} className="mt-2" />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor={`variant-price-${index}`}>Harga (Rp)</Label>
-                                            <Input
-                                                id={`variant-price-${index}`}
-                                                type="text"
-                                                value={formatPrice(sku.price)}
-                                                onChange={(e) => {
-                                                    const value = parsePrice(e.target.value);
-                                                    if (value > 0 || e.target.value === '') { // Hanya terima nilai positif atau kosong
+                                            {/* Tombol aktifkan kembali untuk SKU yang dinonaktifkan */}
+                                            {sku.deleted_at && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                    onClick={() => {
                                                         const updatedSkus = [...data.skus];
-                                                        updatedSkus[index].price = value;
+                                                        delete updatedSkus[index].deleted_at;
+                                                        updatedSkus[index].status = 'active';
                                                         setData('skus', updatedSkus);
-                                                    }
-                                                }}
-                                                className="mt-1"
-                                                placeholder="Masukkan harga"
-                                            />
-                                            <InputError message={errors[`skus.${index}.price`]} className="mt-2" />
+                                                        toast.success('SKU akan diaktifkan kembali.');
+                                                    }}
+                                                >
+                                                    <Plus className="h-4 w-4 mr-1" />
+                                                    Aktifkan
+                                                </Button>
+                                            )}
                                         </div>
-                                        <div>
-                                            <Label htmlFor={`variant-buy-price-${index}`}>Harga Beli (Rp)</Label>
-                                            <Input
-                                                id={`variant-buy-price-${index}`}
-                                                type="text"
-                                                value={formatPrice(sku.buy_price)}
-                                                onChange={(e) => {
-                                                    const value = parsePrice(e.target.value);
-                                                    if (value > 0 || e.target.value === '') { // Hanya terima nilai positif atau kosong
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <Label htmlFor={`variant-name-${index}`}>Nama Variasi</Label>
+                                                <Input
+                                                    id={`variant-name-${index}`}
+                                                    type="text"
+                                                    value={sku.variant_name || ''}
+                                                    onChange={(e) => {
                                                         const updatedSkus = [...data.skus];
-                                                        updatedSkus[index].buy_price = value;
+                                                        updatedSkus[index].variant_name = e.target.value;
+                                                        updatedSkus[index].name = e.target.value; // Sync with name field
+                                                        // Only auto-generate SKU for new SKUs (without ID)
+                                                        if (!sku.id) {
+                                                            updatedSkus[index].sku_code = generateSku(data.name, e.target.value);
+                                                        }
                                                         setData('skus', updatedSkus);
-                                                    }
-                                                }}
-                                                className="mt-1"
-                                                placeholder="Masukkan harga beli"
-                                            />
-                                            <InputError message={errors[`skus.${index}.buy_price`]} className="mt-2" />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor={`variant-stock-${index}`}>Stok</Label>
-                                            <Input
-                                                id={`variant-stock-${index}`}
-                                                type="number"
-                                                value={sku.stock || 0}
-                                                onChange={(e) => {
-                                                    const updatedSkus = [...data.skus];
-                                                    updatedSkus[index].stock = parseInt(e.target.value) || 0;
-                                                    setData('skus', updatedSkus);
-                                                }}
-                                                className="mt-1"
-                                            />
-                                            <InputError message={errors[`skus.${index}.stock`]} className="mt-2" />
-                                        </div>
-                                    </div>
-
-                                    {/* Variation Image Upload */}
-                                    {data.use_images && (
-                                        <div className="mt-4">
-                                            <Label>Gambar Variasi</Label>
-                                            <div className="mt-2 space-y-2">
-                                                {/* Display existing image */}
-                                                {sku.image && (
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className="w-12 h-12 rounded border overflow-hidden">
-                                                            <img
-                                                                src={`/storage/${sku.image}`}
-                                                                alt="Variation"
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </div>
-                                                        <span className="text-sm text-gray-600">Gambar saat ini</span>
+                                                    }}
+                                                    className="mt-1"
+                                                    placeholder="Contoh: Warna Merah, Ukuran L"
+                                                />
+                                                {/* Display generated SKU below variation name */}
+                                                {sku.variant_name && (
+                                                    <div className="mt-1 text-xs text-gray-600 font-medium">
+                                                        SKU: {generateSku(data.name, sku.variant_name)}
                                                     </div>
                                                 )}
-
-                                                <input
-                                                    type="file"
-                                                    id={`sku-image-${index}`}
-                                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                                <InputError message={errors[`skus.${index}.variant_name`]} className="mt-2" />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor={`variant-price-${index}`}>Harga (Rp)</Label>
+                                                <Input
+                                                    id={`variant-price-${index}`}
+                                                    type="text"
+                                                    value={formatPrice(sku.price)}
                                                     onChange={(e) => {
-                                                        const file = e.target.files[0];
-                                                        if (file) {
-                                                            // Clean up previous preview URL if exists
-                                                            if (sku.image_preview) {
-                                                                URL.revokeObjectURL(sku.image_preview);
-                                                            }
-
-                                                            // Create preview URL
-                                                            const previewUrl = URL.createObjectURL(file);
+                                                        const value = parsePrice(e.target.value);
+                                                        if (value > 0 || e.target.value === '') { // Hanya terima nilai positif atau kosong
                                                             const updatedSkus = [...data.skus];
-                                                            updatedSkus[index].image_file = file;
-                                                            updatedSkus[index].image_preview = previewUrl;
+                                                            updatedSkus[index].price = value;
                                                             setData('skus', updatedSkus);
                                                         }
                                                     }}
-                                                    className="hidden"
+                                                    className="mt-1"
+                                                    placeholder="Masukkan harga"
                                                 />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => document.getElementById(`sku-image-${index}`).click()}
-                                                >
-                                                    <Upload className="mr-2 h-4 w-4" />
-                                                    {sku.image_file ? 'Ganti Gambar' : (sku.image ? 'Ganti Gambar' : 'Upload Gambar')}
-                                                </Button>
-                                                {sku.image_file && (
-                                                    <div className="mt-2 space-y-2">
-                                                        {/* Preview new image */}
-                                                        {sku.image_preview && (
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center space-x-2">
-                                                                    <div className="w-16 h-16 rounded border overflow-hidden">
-                                                                        <img
-                                                                            src={sku.image_preview}
-                                                                            alt="Preview variasi"
-                                                                            className="w-full h-full object-cover"
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm text-gray-600">File baru:</p>
-                                                                        <p className="text-xs text-gray-500">{sku.image_file.name}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="text-red-500 hover:text-red-700"
-                                                                    onClick={() => {
-                                                                        // Clean up preview URL
-                                                                        if (sku.image_preview) {
-                                                                            URL.revokeObjectURL(sku.image_preview);
-                                                                        }
-                                                                        // Remove image file and preview
-                                                                        const updatedSkus = [...data.skus];
-                                                                        updatedSkus[index].image_file = null;
-                                                                        updatedSkus[index].image_preview = null;
-                                                                        setData('skus', updatedSkus);
-                                                                    }}
-                                                                >
-                                                                    <Trash className="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                <InputError message={errors[`skus.${index}.image_file`]} className="mt-2" />
+                                                <InputError message={errors[`skus.${index}.price`]} className="mt-2" />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor={`variant-buy-price-${index}`}>Harga Beli (Rp)</Label>
+                                                <Input
+                                                    id={`variant-buy-price-${index}`}
+                                                    type="text"
+                                                    value={formatPrice(sku.buy_price)}
+                                                    onChange={(e) => {
+                                                        const value = parsePrice(e.target.value);
+                                                        if (value > 0 || e.target.value === '') { // Hanya terima nilai positif atau kosong
+                                                            const updatedSkus = [...data.skus];
+                                                            updatedSkus[index].buy_price = value;
+                                                            setData('skus', updatedSkus);
+                                                        }
+                                                    }}
+                                                    className="mt-1"
+                                                    placeholder="Masukkan harga beli"
+                                                />
+                                                <InputError message={errors[`skus.${index}.buy_price`]} className="mt-2" />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor={`variant-stock-${index}`}>Stok</Label>
+                                                <Input
+                                                    id={`variant-stock-${index}`}
+                                                    type="number"
+                                                    value={sku.stock || 0}
+                                                    onChange={(e) => {
+                                                        const updatedSkus = [...data.skus];
+                                                        updatedSkus[index].stock = parseInt(e.target.value) || 0;
+                                                        setData('skus', updatedSkus);
+                                                    }}
+                                                    className="mt-1"
+                                                />
+                                                <InputError message={errors[`skus.${index}.stock`]} className="mt-2" />
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+
+                                        {/* Variation Image Upload */}
+                                        {data.use_images && (
+                                            <div className="mt-4">
+                                                <Label className="flex items-center gap-2">
+                                                    Gambar Variasi
+                                                    <span className="text-xs text-red-500 font-medium">*</span>
+                                                    <span className="text-xs text-gray-500">(Wajib diupload semua variasi)</span>
+                                                </Label>
+                                                <div className="mt-2 space-y-2">
+                                                    {/* Display existing image */}
+                                                    {sku.image && (
+                                                        <div className="flex items-center space-x-2">
+                                                            <div className="w-12 h-12 rounded border overflow-hidden">
+                                                                <img
+                                                                    src={`/storage/${sku.image}`}
+                                                                    alt="Variation"
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            </div>
+                                                            <span className="text-sm text-gray-600">Gambar saat ini</span>
+                                                        </div>
+                                                    )}
+
+                                                    <input
+                                                        type="file"
+                                                        id={`sku-image-${index}`}
+                                                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                // Clean up previous preview URL if exists
+                                                                if (sku.image_preview) {
+                                                                    URL.revokeObjectURL(sku.image_preview);
+                                                                }
+
+                                                                // Create preview URL
+                                                                const previewUrl = URL.createObjectURL(file);
+                                                                const updatedSkus = [...data.skus];
+                                                                updatedSkus[index].image_file = file;
+                                                                updatedSkus[index].image_preview = previewUrl;
+                                                                setData('skus', updatedSkus);
+                                                            }
+                                                        }}
+                                                        className="hidden"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => document.getElementById(`sku-image-${index}`).click()}
+                                                    >
+                                                        <Upload className="mr-2 h-4 w-4" />
+                                                        {sku.image_file ? 'Ganti Gambar' : (sku.image ? 'Ganti Gambar' : 'Upload Gambar')}
+                                                    </Button>
+                                                    {sku.image_file && (
+                                                        <div className="mt-2 space-y-2">
+                                                            {/* Preview new image */}
+                                                            {sku.image_preview && (
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <div className="w-16 h-16 rounded border overflow-hidden">
+                                                                            <img
+                                                                                src={sku.image_preview}
+                                                                                alt="Preview variasi"
+                                                                                className="w-full h-full object-cover"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-sm text-gray-600">File baru:</p>
+                                                                            <p className="text-xs text-gray-500">{sku.image_file.name}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="text-red-500 hover:text-red-700"
+                                                                        onClick={() => {
+                                                                            // Clean up preview URL
+                                                                            if (sku.image_preview) {
+                                                                                URL.revokeObjectURL(sku.image_preview);
+                                                                            }
+                                                                            // Remove image file and preview
+                                                                            const updatedSkus = [...data.skus];
+                                                                            updatedSkus[index].image_file = null;
+                                                                            updatedSkus[index].image_preview = null;
+                                                                            setData('skus', updatedSkus);
+                                                                        }}
+                                                                    >
+                                                                        <Trash className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    <InputError message={errors[`skus.${index}.image_file`]} className="mt-2" />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
                         </>
                     ) : (
                         <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
@@ -1027,7 +1067,11 @@ export default function ProductForm({ data, setData, errors, processing, onSubmi
                         Cancel
                     </Link>
                 </Button>
-                <Button type="submit" disabled={processing}>
+                <Button
+                    type="submit"
+                    disabled={processing || (isEdit && !hasChanges)}
+                    title={isEdit && !hasChanges ? 'Tidak ada perubahan untuk disimpan' : ''}
+                >
                     {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                     {isEdit ? 'Update' : 'Create'}
                 </Button>

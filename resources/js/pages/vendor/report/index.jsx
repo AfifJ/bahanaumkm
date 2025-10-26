@@ -27,14 +27,17 @@ const getCurrentMonth = () => {
     return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
 };
 
-const Index = ({ report, availableMonths = [], month: initialMonth = '' }) => {
+const Index = ({ report, skuReports, availableMonths = [], month: initialMonth = '' }) => {
     const [selectedMonth, setSelectedMonth] = useState(initialMonth || getCurrentMonth());
 
-    const totalRevenue = useMemo(() => {
-        return report?.reduce((acc, curr) => {
-            return acc + parseFloat(curr.total_revenue);
-        }, 0);
-    }, [report]);
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
 
     const handleMonthChange = (value) => {
         setSelectedMonth(value);
@@ -43,6 +46,47 @@ const Index = ({ report, availableMonths = [], month: initialMonth = '' }) => {
             preserveScroll: true
         });
     };
+
+    // Flatten data to show both regular products and SKUs
+    const flattenedData = useMemo(() => {
+        const data = [];
+
+        // Add regular products (without variations)
+        report?.filter(item => !item.has_variations).forEach(item => {
+            data.push({
+                product_code: `${item.product_id}`,
+                product_name: item.product_name,
+                total_quantity: item.total_quantity,
+                buy_price: item.buy_price,
+                total_revenue: item.total_revenue,
+            });
+        });
+
+        // Add SKU variations (products with variations)
+        if (skuReports && typeof skuReports === 'object') {
+            Object.values(skuReports).forEach((productSkus) => {
+                if (Array.isArray(productSkus)) {
+                    productSkus.forEach(sku => {
+                        data.push({
+                            product_code: sku.sku_code,
+                            product_name: sku.product_name + (sku.variation_summary ? ` (${sku.variation_summary})` : ''),
+                            total_quantity: sku.total_quantity,
+                            buy_price: sku.sku_buy_price,
+                            total_revenue: sku.total_revenue,
+                        });
+                    });
+                }
+            });
+        }
+
+        return data;
+    }, [report, skuReports]);
+
+    const totalRevenue = useMemo(() => {
+        return flattenedData.reduce((acc, curr) => {
+            return acc + parseFloat(curr.total_revenue);
+        }, 0);
+    }, [flattenedData]);
 
     return (
         <VendorLayout
@@ -72,7 +116,7 @@ const Index = ({ report, availableMonths = [], month: initialMonth = '' }) => {
                                 </SelectContent>
                             </Select>}
                             <h3 className="text-lg my-4 font-medium leading-6 text-gray-900">
-                                Total Penjualan: Rp. {totalRevenue?.toLocaleString('id-ID')}
+                                Total Penjualan: {formatCurrency(totalRevenue)}
                             </h3>
                         </div>
                         <Table>
@@ -81,19 +125,18 @@ const Index = ({ report, availableMonths = [], month: initialMonth = '' }) => {
                                     <TableHead className="font-semibold">Kode Produk</TableHead>
                                     <TableHead className="font-semibold">Nama Produk</TableHead>
                                     <TableHead className="font-semibold">Terjual</TableHead>
-                                    <TableHead className="font-semibold">Harga Satuan</TableHead>
+                                    <TableHead className="font-semibold">Harga</TableHead>
                                     <TableHead className="font-semibold">Total</TableHead>
-                                    {/* <TableHead className="font-semibold"></TableHead> */}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {report?.map((item, key) => (
+                                {flattenedData.map((item, key) => (
                                     <TableRow key={key}>
-                                        <TableCell>{item.product_id}</TableCell>
+                                        <TableCell>{item.product_code}</TableCell>
                                         <TableCell>{item.product_name}</TableCell>
-                                        <TableCell>{item.total_quantity}</TableCell>
-                                        <TableCell>Rp{parseFloat(item.buy_price).toLocaleString('id-ID')}</TableCell>
-                                        <TableCell>Rp{parseFloat(item.total_revenue).toLocaleString('id-ID')}</TableCell>
+                                        <TableCell>{item.total_quantity.toLocaleString('id-ID')}</TableCell>
+                                        <TableCell>{formatCurrency(item.buy_price)}</TableCell>
+                                        <TableCell>{formatCurrency(item.total_revenue)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

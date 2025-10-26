@@ -30,4 +30,5 @@ Route::middleware(['auth', 'role:Sales Lapangan'])->group(function () {
 
     // Reports
     Route::get('/sales/reports', [DashboardController::class, 'reports'])->name('sales.reports');
+    Route::post('/sales/reports/export', [DashboardController::class, 'exportReports'])->name('sales.reports.export');
 });

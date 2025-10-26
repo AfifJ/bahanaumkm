@@ -29,6 +29,8 @@ class ProductController extends Controller
             $products = Product::where('vendor_id', auth()->id())
                 ->with(['category', 'primaryImage', 'images' => function ($query) {
                     $query->orderBy('sort_order')->orderBy('id');
+                }, 'skus' => function ($query) {
+                    $query->where('status', 'active');
                 }])
                 ->latest()
                 ->paginate(10);
@@ -54,6 +56,29 @@ class ProductController extends Controller
                             'sort_order' => $image->sort_order,
                         ];
                     })->toArray();
+                }
+
+                // Calculate display buy price for vendor
+                if ($product->has_variations && $product->skus && $product->skus->count() > 0) {
+                    $buyPrices = $product->skus->pluck('buy_price')->filter()->toArray();
+                    if (!empty($buyPrices)) {
+                        $minBuyPrice = min($buyPrices);
+                        $maxBuyPrice = max($buyPrices);
+
+                        if ($minBuyPrice === $maxBuyPrice) {
+                            $product->display_buy_price = (string) $minBuyPrice;
+                        } else {
+                            $product->display_buy_price = (string) $minBuyPrice . ' - ' . (string) $maxBuyPrice;
+                        }
+                    } else {
+                        $product->display_buy_price = (string) ($product->buy_price ?? 0);
+                    }
+
+                    // Calculate total stock for products with variations
+                    $product->display_stock = $product->skus->sum('stock');
+                } else {
+                    $product->display_buy_price = (string) ($product->buy_price ?? 0);
+                    $product->display_stock = $product->stock ?? 0;
                 }
 
                 return $product;

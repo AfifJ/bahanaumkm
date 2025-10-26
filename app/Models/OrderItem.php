@@ -13,12 +13,14 @@ class OrderItem extends Model
         'sku_id',
         'quantity',
         'unit_price',
+        'buy_price',
         'total_price',
         'variation_summary'
     ];
 
     protected $casts = [
         'unit_price' => 'decimal:2',
+        'buy_price' => 'decimal:2',
         'total_price' => 'decimal:2'
     ];
 
@@ -92,6 +94,11 @@ class OrderItem extends Model
         static::creating(function ($orderItem) {
             $orderItem->total_price = $orderItem->quantity * $orderItem->unit_price;
 
+            // Auto-fill buy_price if not provided
+            if ($orderItem->buy_price === null) {
+                $orderItem->buy_price = $orderItem->getBuyPriceFromSource();
+            }
+
             // Auto-generate variation summary if SKU is provided
             if ($orderItem->sku_id && !$orderItem->variation_summary) {
                 $orderItem->variation_summary = $orderItem->getVariationSummaryFromSku();
@@ -101,6 +108,30 @@ class OrderItem extends Model
         static::updating(function ($orderItem) {
             $orderItem->total_price = $orderItem->quantity * $orderItem->unit_price;
         });
+    }
+
+    /**
+     * Get buy price from product or SKU.
+     */
+    private function getBuyPriceFromSource()
+    {
+        // Try to get buy_price from SKU first (if exists)
+        if ($this->sku_id) {
+            $sku = ProductSku::find($this->sku_id);
+            if ($sku && $sku->buy_price !== null) {
+                return $sku->buy_price;
+            }
+        }
+
+        // Fallback to product buy_price
+        if ($this->product_id) {
+            $product = Product::find($this->product_id);
+            if ($product && $product->buy_price !== null) {
+                return $product->buy_price;
+            }
+        }
+
+        return 0; // Default to 0 if no buy_price found
     }
 
     /**

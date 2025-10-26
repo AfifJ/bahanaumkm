@@ -49,18 +49,38 @@ const Index = ({ orders, availableMonths = [], month: initialMonth = '' }) => {
 
     console.log(orders);
 
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
+
     const flattenedData = useMemo(() => {
         const data = []
         orders.data.forEach(order => {
             order.items.forEach(item => {
+                // Get product image from primaryImage or fallback
+                const imageUrl = item.product?.primaryImage?.url ||
+                                 item.product?.image_url ||
+                                 '—';
+
+                // Get product name and variation name if exists
+                const productName = item.product?.name || '—';
+                const variationName = item.sku?.variant_name || '';
+
+                // Format: "Nama Produk (Variasi)" or just "Nama Produk"
+                const displayName = variationName ? `${productName} (${variationName})` : productName;
+
                 data.push({
                     order_code: order.order_code,
                     created_at: order.created_at,
-                    product_name: item.product?.name ?? '—',
-                    image_url: item.product?.image_url ?? '—',
-                    quantity: item.quantity ?? item.quantityi ?? '—',
-                    price: item.product?.buy_price ?? '—',
-                    vendor_name: item.product?.vendor?.name ?? '—',
+                    product_name: displayName,
+                    image_url: imageUrl,
+                    quantity: item.quantity || 0,
+                    price: item.buy_price || 0,
                 })
             })
         })
@@ -102,7 +122,6 @@ const Index = ({ orders, availableMonths = [], month: initialMonth = '' }) => {
                                     <TableHead className="font-semibold">Produk</TableHead>
                                     <TableHead className="font-semibold">Qty</TableHead>
                                     <TableHead className="font-semibold">Harga</TableHead>
-                                    {/* <TableHead className="font-semibold">Vendor</TableHead> */}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -117,14 +136,16 @@ const Index = ({ orders, availableMonths = [], month: initialMonth = '' }) => {
                                                         src={row.image_url}
                                                         alt={row.product_name}
                                                         className="w-8 h-8 rounded object-cover"
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                        }}
                                                     />
                                                 )}
                                                 <span>{row.product_name}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell>{row.quantity}</TableCell>
-                                        <TableCell>{row.price}</TableCell>
-                                        {/* <TableCell>{row.vendor_name}</TableCell> */}
+                                        <TableCell>{row.quantity.toLocaleString('id-ID')}</TableCell>
+                                        <TableCell>{formatCurrency(row.price)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import MitraLayout from '@/layouts/mitra-layout';
 import { BarChart3, DollarSign, ShoppingCart, TrendingUp, FileText } from 'lucide-react';
 
@@ -13,16 +14,6 @@ export default function MitraReports({ orderItems, summary }) {
         }).format(amount);
     };
 
-    const formatDateTime = (dateTimeString) => {
-        return new Date(dateTimeString).toLocaleString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
     return (
         <MitraLayout
             breadcrumbs={[
@@ -30,10 +21,10 @@ export default function MitraReports({ orderItems, summary }) {
                 { title: 'Laporan', href: route('mitra.reports') },
             ]}
         >
-            <Head title="Laporan Keuangan Mitra" />
+            <Head title="Laporan Penjualan" />
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4 mt-4 mx-4">
+          {/*   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4 mt-4 mx-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
@@ -72,16 +63,16 @@ export default function MitraReports({ orderItems, summary }) {
                         </p>
                     </CardContent>
                 </Card>
-            </div>
+            </div> */}
 
-            <div className={'mx-4'}>
+            <div className={'mx-4 mt-4'}>
                 <div>
                     <div className="flex items-center gap-2 font-bold">
                         <FileText className="h-5 w-5" />
-                        Detail Komisi Per Item
+                        Laporan Penjualan Produk
                     </div>
                     <div className='text-muted-foreground text-sm'>
-                        Rincian komisi dari setiap item yang terjual
+                        Laporan penjualan produk per item
                     </div>
                 </div>
                 <div>
@@ -96,74 +87,50 @@ export default function MitraReports({ orderItems, summary }) {
                             </p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left py-3 px-4 font-medium text-gray-900">Order</th>
-                                        <th className="text-left py-3 px-4 font-medium text-gray-900">Produk</th>
-                                        <th className="text-right py-3 px-4 font-medium text-gray-900">Qty</th>
-                                        <th className="text-right py-3 px-4 font-medium text-gray-900">Harga Jual</th>
-                                        <th className="text-right py-3 px-4 font-medium text-gray-900">Harga Beli</th>
-                                        <th className="text-right py-3 px-4 font-medium text-gray-900">Margin</th>
-                                        <th className="text-right py-3 px-4 font-medium text-gray-900">Komisi</th>
-                                        <th className="text-left py-3 px-4 font-medium text-gray-900">Tanggal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {orderItems.data.map((item, index) => (
-                                        <tr key={item.id} className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                                            <td className="py-3 px-4">
-                                                <div className="font-mono text-sm">{item.order_code}</div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="font-medium">{item.product_name}</div>
-                                            </td>
-                                            <td className="py-3 px-4 text-right">
-                                                {item.quantity}
-                                            </td>
-                                            <td className="py-3 px-4 text-right">
-                                                {formatCurrency(item.unit_price)}
-                                            </td>
-                                            <td className="py-3 px-4 text-right text-gray-600">
-                                                {formatCurrency(item.buy_price)}
-                                            </td>
-                                            <td className="py-3 px-4 text-right">
-                                                <div className="font-medium text-green-600">
-                                                    {formatCurrency(item.margin)}
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4 text-right">
-                                                <div className="font-bold text-blue-600">
-                                                    {formatCurrency(item.commission)}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    25% × {item.quantity}
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="text-sm text-gray-600">
-                                                    {formatDateTime(item.created_at)}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                                <tfoot>
-                                    <tr className="bg-gray-100 font-semibold">
-                                        <td colSpan="6" className="py-3 px-4 text-right">
-                                            Total:
-                                        </td>
-                                        <td className="py-3 px-4 text-right text-blue-600">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Produk</TableHead>
+                                    <TableHead className="text-right">Qty</TableHead>
+                                    <TableHead className="text-right">Harga</TableHead>
+                                    <TableHead className="text-right">Komisi</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {orderItems.data.map((item, index) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>
+                                            <div className="font-medium">{item.product_name}</div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {item.quantity}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {formatCurrency(item.unit_price)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="font-bold text-blue-600">
+                                                {formatCurrency(item.commission)}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-right font-semibold">
+                                        Total:
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="font-bold text-blue-600">
                                             {formatCurrency(
                                                 orderItems.data.reduce((sum, item) => sum + item.commission, 0)
                                             )}
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
                     )}
 
                     {/* Pagination */}

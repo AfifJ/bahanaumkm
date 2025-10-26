@@ -12,8 +12,6 @@ Route::prefix('vendor')->name('vendor.')->middleware(['auth', 'role:Vendor'])->g
     // Profile Routes
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
-    Route::delete('profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
 
     // Product Routes
     Route::get('products', [ProductController::class, 'index'])->name('products.index');

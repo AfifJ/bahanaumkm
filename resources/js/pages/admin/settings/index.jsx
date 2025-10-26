@@ -11,14 +11,14 @@ import { toast } from 'sonner';
 import QrisUploadDialog from './components/qris-upload-dialog';
 
 export default function AdminSettingsIndex() {
-    const { adminCommission, salesCommission, shippingPricePerKm, qrisImage } = usePage().props;
+    const { mitraCommission, salesCommission, shippingPricePerKm, qrisImage } = usePage().props;
     const [imagePreview, setImagePreview] = useState(null);
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [formattedShippingPrice, setFormattedShippingPrice] = useState('');
     
     // Track initial values for change detection
     const initialValues = {
-        admin_commission: parseFloat(adminCommission) || 10,
+        mitra_commission: parseFloat(mitraCommission) || 25,
         sales_commission: parseFloat(salesCommission) || 5,
         shipping_price_per_km: parseFloat(shippingPricePerKm) || 5000,
         qris_image: null,
@@ -26,7 +26,7 @@ export default function AdminSettingsIndex() {
 
     // Debug: Log the initial values (simplified like category)
     console.log('Admin Settings - Initial values:', {
-        adminCommission,
+        mitraCommission,
         salesCommission,
         shippingPricePerKm,
         qrisImage,
@@ -34,7 +34,7 @@ export default function AdminSettingsIndex() {
     });
 
     const { data, setData, processing, errors, reset } = useForm({
-        admin_commission: parseFloat(adminCommission) || 10,
+        mitra_commission: parseFloat(mitraCommission) || 25,
         sales_commission: parseFloat(salesCommission) || 5,
         shipping_price_per_km: parseFloat(shippingPricePerKm) || 5000,
         qris_image: null,
@@ -67,7 +67,7 @@ export default function AdminSettingsIndex() {
 
     // Check if form has changes
     const hasChanges = () => {
-        const commissionChanged = data.admin_commission !== initialValues.admin_commission ||
+        const commissionChanged = data.mitra_commission !== initialValues.mitra_commission ||
                                  data.sales_commission !== initialValues.sales_commission;
         const shippingChanged = data.shipping_price_per_km !== initialValues.shipping_price_per_km;
         const imageChanged = !!data.qris_image || !!imagePreview;
@@ -84,8 +84,8 @@ export default function AdminSettingsIndex() {
         }
 
         // Client-side validation
-        if (data.admin_commission < 0 || data.admin_commission > 100) {
-            toast.error('Komisi admin harus antara 0% hingga 100%');
+        if (data.mitra_commission < 0 || data.mitra_commission > 100) {
+            toast.error('Komisi mitra harus antara 0% hingga 100%');
             return;
         }
         if (data.sales_commission < 0 || data.sales_commission > 100) {
@@ -186,25 +186,25 @@ export default function AdminSettingsIndex() {
                                 Pengaturan Komisi
                             </CardTitle>
                             <CardDescription>
-                                Atur persentase komisi untuk admin dan sales
+                                Atur persentase komisi untuk mitra dan sales
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="admin_commission">Komisi Admin (%)</Label>
+                                    <Label htmlFor="mitra_commission">Komisi Mitra (%)</Label>
                                     <Input
-                                        id="admin_commission"
+                                        id="mitra_commission"
                                         type="number"
                                         min="0"
                                         max="100"
                                         step="0.1"
-                                        value={data.admin_commission}
-                                        onChange={(e) => setData('admin_commission', parseFloat(e.target.value) || 0)}
+                                        value={data.mitra_commission}
+                                        onChange={(e) => setData('mitra_commission', parseFloat(e.target.value) || 0)}
                                         className="mt-1"
                                     />
-                                    {errors.admin_commission && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.admin_commission}</p>
+                                    {errors.mitra_commission && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.mitra_commission}</p>
                                     )}
                                 </div>
                                 <div>

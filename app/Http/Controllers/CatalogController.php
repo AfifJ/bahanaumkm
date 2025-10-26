@@ -181,7 +181,7 @@ class CatalogController extends Controller
             'vendor',
             'primaryImage',
             'images' => function ($query) {
-                $query->orderBy('sort_order')->orderBy('id');
+                $query->orderBy('is_primary', 'desc')->orderBy('sort_order')->orderBy('id');
             }
         ];
 
@@ -334,7 +334,7 @@ class CatalogController extends Controller
         }
 
         $query = Product::with(['category', 'vendor', 'primaryImage', 'activeSkus', 'images' => function ($query) {
-            $query->orderBy('sort_order')->orderBy('id');
+            $query->orderBy('is_primary', 'desc')->orderBy('sort_order')->orderBy('id');
         }])
             ->where('vendor_id', $vendor->id)
             ->where('status', 'active')

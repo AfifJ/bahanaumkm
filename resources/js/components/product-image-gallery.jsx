@@ -41,7 +41,7 @@ const ProductImageGallery = ({ product, selectedSku, onSkuChange }) => {
     findSkuByImageRef.current = findSkuByImage;
     findImageIndexBySkuRef.current = findImageIndexBySku;
 
-    // Get all images with new logic: product thumbnail first, then variation images
+    // Get all images with new logic: primary image, then non-primary product images, then variation images
     const getAllImages = () => {
         const images = [];
         const uniqueUrls = new Set(); // To avoid duplicates
@@ -68,7 +68,27 @@ const ProductImageGallery = ({ product, selectedSku, onSkuChange }) => {
         }
 
   
-        // 2. Add variation images (SKU images) if product has variations
+        // 2. Add remaining product images (non-primary) in sort_order
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            // Sort by sort_order first, then by id
+            const sortedImages = [...product.images]
+                .filter(img => img && img.url && !img.is_primary)
+                .sort((a, b) => {
+                    if (a.sort_order !== b.sort_order) {
+                        return (a.sort_order || 0) - (b.sort_order || 0);
+                    }
+                    return (a.id || 0) - (b.id || 0);
+                });
+
+            sortedImages.forEach(img => {
+                if (!uniqueUrls.has(img.url)) {
+                    images.push(img.url);
+                    uniqueUrls.add(img.url);
+                }
+            });
+        }
+
+        // 3. Add variation images (SKU images) if product has variations
         if (product.has_variations && product.skus && Array.isArray(product.skus)) {
             product.skus.forEach(sku => {
                 if (sku.image) {
@@ -81,18 +101,6 @@ const ProductImageGallery = ({ product, selectedSku, onSkuChange }) => {
                     if (!uniqueUrls.has(skuImageUrl)) {
                         images.push(skuImageUrl);
                         uniqueUrls.add(skuImageUrl);
-                    }
-                }
-            });
-        }
-
-        // 3. Add remaining product images (non-primary) if they exist
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-            product.images.forEach(img => {
-                if (img && img.url && !img.is_primary) {
-                    if (!uniqueUrls.has(img.url)) {
-                        images.push(img.url);
-                        uniqueUrls.add(img.url);
                     }
                 }
             });

@@ -24,11 +24,11 @@ class TransactionController extends Controller
 
         // $query = Orders::with 
         // dapatkan pesanan per sekali transaksi
-        $query = Order::with(['items.product.vendor', 'mitra'])
+        $query = Order::with(['items.product.primaryImage', 'items.product.skus', 'items.sku', 'mitra'])
             ->whereHas('items.product', function ($query) use ($vendorId) {
                 $query->where('vendor_id', $vendorId);
             })
-            ->whereIn('status', ['delivered']);
+            ->whereIn('status', ['delivered', 'completed']);
 
         // jika ada filter bulan:
         if ($month) {

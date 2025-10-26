@@ -270,65 +270,6 @@ export default function Show({ product, transactionStats, reviews, ratingStats }
                         </div>
                     )}
 
-                    {/* Transaction Statistics */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-blue-100 rounded-lg">
-                                    <ShoppingCart className="h-6 w-6 text-blue-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Total Transaksi</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {transactionStats.total_transactions}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-green-100 rounded-lg">
-                                    <DollarSign className="h-6 w-6 text-green-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {formatPrice(transactionStats.total_revenue)}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-purple-100 rounded-lg">
-                                    <Package className="h-6 w-6 text-purple-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Total Terjual</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {transactionStats.total_quantity_sold}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-lg shadow">
-                            <div className="flex items-center">
-                                <div className="p-2 bg-orange-100 rounded-lg">
-                                    <TrendingUp className="h-6 w-6 text-orange-600" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600">Rata-rata Order</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {formatPrice(transactionStats.average_order_value)}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Reviews Section */}
                     <div className="bg-white shadow rounded-lg">
                         <div className="p-6 border-b border-gray-200">

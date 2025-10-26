@@ -40,66 +40,50 @@ class ProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // Max 2MB
         ]);
+
+        // Handle avatar removal
+        if ($request->has('remove_avatar')) {
+            if ($user->avatar_url) {
+                // Delete old avatar file
+                $oldPath = parse_url($user->avatar_url, PHP_URL_PATH);
+                if ($oldPath) {
+                    $oldFilename = basename($oldPath);
+                    Storage::disk('public')->delete('avatars/' . $oldFilename);
+                }
+
+                // Remove avatar_url from database
+                $user->update(['avatar_url' => null]);
+            }
+        }
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
+            // Delete old avatar if exists
+            if ($user->avatar_url) {
+                $oldPath = parse_url($user->avatar_url, PHP_URL_PATH);
+                if ($oldPath) {
+                    $oldFilename = basename($oldPath);
+                    Storage::disk('public')->delete('avatars/' . $oldFilename);
+                }
+            }
+
+            // Store new avatar
+            $avatar = $request->file('avatar');
+            $filename = time() . '_' . $avatar->getClientOriginalName();
+            $path = $avatar->storeAs('avatars', $filename, 'public');
+
+            // Update user avatar_url
+            $validated['avatar_url'] = Storage::url($path);
+        }
+
+        // Remove avatar from validated data since it's handled separately
+        unset($validated['avatar']);
 
         $user->update($validated);
 
         return back()->with('success', 'Profil berhasil diperbarui!');
     }
 
-    /**
-     * Update the vendor avatar.
-     */
-    public function updateAvatar(Request $request)
-    {
-        $request->validate([
-            'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // Max 2MB
-        ]);
-
-        $user = Auth::user();
-
-        // Delete old avatar if exists
-        if ($user->avatar_url) {
-            // Extract filename from path
-            $oldPath = parse_url($user->avatar_url, PHP_URL_PATH);
-            if ($oldPath) {
-                $oldFilename = basename($oldPath);
-                Storage::disk('public')->delete('avatars/' . $oldFilename);
-            }
-        }
-
-        // Store new avatar
-        $avatar = $request->file('avatar');
-        $filename = time() . '_' . $avatar->getClientOriginalName();
-        $path = $avatar->storeAs('avatars', $filename, 'public');
-
-        // Update user avatar_url
-        $user->update([
-            'avatar_url' => Storage::url($path),
-        ]);
-
-        return back()->with('success', 'Foto profil berhasil diperbarui!');
     }
-
-    /**
-     * Remove the vendor avatar.
-     */
-    public function removeAvatar()
-    {
-        $user = Auth::user();
-
-        if ($user->avatar_url) {
-            // Delete file from storage
-            $oldPath = parse_url($user->avatar_url, PHP_URL_PATH);
-            if ($oldPath) {
-                $oldFilename = basename($oldPath);
-                Storage::disk('public')->delete('avatars/' . $oldFilename);
-            }
-
-            // Remove avatar_url from database
-            $user->update(['avatar_url' => null]);
-        }
-
-        return back()->with('success', 'Foto profil berhasil dihapus!');
-    }
-}

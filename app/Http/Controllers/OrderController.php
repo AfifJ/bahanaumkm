@@ -184,11 +184,20 @@ class OrderController extends Controller
                 $itemTotal = $unitPrice * $itemData['quantity'];
                 $totalAmount += $itemTotal;
 
+                // Get buy price from SKU or Product
+                $buyPrice = 0;
+                if ($skuId) {
+                    $buyPrice = $sku->buy_price ?? 0;
+                } else {
+                    $buyPrice = $product->buy_price ?? 0;
+                }
+
                 $items[] = [
                     'product_id' => $product->id,
                     'sku_id' => $skuId,
                     'quantity' => $itemData['quantity'],
                     'unit_price' => $unitPrice,
+                    'buy_price' => $buyPrice,
                     'total_price' => $itemTotal,
                 ];
 
@@ -214,7 +223,9 @@ class OrderController extends Controller
                 }
             }
 
-            $mitraCommission = $totalAmount * 0.25;
+            // Get mitra commission from settings
+        $mitraCommissionRate = Setting::getValue('mitra_commission', 25) / 100;
+        $mitraCommission = $totalAmount * $mitraCommissionRate;
 
             // Calculate final total amount including shipping
             $finalTotalAmount = $totalAmount + $shippingCost;

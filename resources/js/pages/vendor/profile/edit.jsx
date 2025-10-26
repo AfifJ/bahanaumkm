@@ -10,24 +10,79 @@ import { toast } from 'sonner';
 import { ConfirmationDialog } from '@/components/confirmation-dialog';
 
 export default function Edit({ user }) {
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, processing, errors, reset } = useForm({
         name: user.name,
         email: user.email,
         phone: user.phone || '',
+        avatar: null,
     });
 
     const [avatarPreview, setAvatarPreview] = useState(user.avatar_url);
-    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [hasNewAvatar, setHasNewAvatar] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('vendor.profile.update'), {
+
+        // Check if there are any changes
+        const hasChanges =
+            data.name !== user.name ||
+            data.email !== user.email ||
+            data.phone !== (user.phone || '') ||
+            data.avatar !== null ||
+            hasNewAvatar;
+
+        if (!hasChanges) {
+            toast.info('Tidak ada perubahan untuk disimpan');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('email', data.email);
+        formData.append('phone', data.phone);
+
+        // Handle avatar
+        if (data.avatar === 'remove') {
+            formData.append('remove_avatar', '1');
+        } else if (data.avatar instanceof File) {
+            formData.append('avatar', data.avatar);
+        }
+
+        // Use router.put with FormData (add _method field for method spoofing)
+        formData.append('_method', 'PUT');
+        router.post(route('vendor.profile.update'), formData, {
+            forceFormData: true,
             onSuccess: () => {
-                // Show success message
+                setHasNewAvatar(false);
+                setIsSubmitting(false);
+                // Show success toast
+                toast.success('Profil berhasil diperbarui!');
             },
             onError: (errors) => {
                 console.error('Profile update failed:', errors);
+                // Reset avatar preview on error
+                setAvatarPreview(user.avatar_url);
+                setHasNewAvatar(false);
+                setData('avatar', null);
+                setIsSubmitting(false);
+
+                // Show specific error messages
+                if (errors.name) {
+                    toast.error(`Nama: ${errors.name}`);
+                } else if (errors.email) {
+                    toast.error(`Email: ${errors.email}`);
+                } else if (errors.phone) {
+                    toast.error(`Telepon: ${errors.phone}`);
+                } else if (errors.avatar) {
+                    toast.error(`Foto: ${errors.avatar}`);
+                } else {
+                    toast.error('Gagal memperbarui profil. Silakan coba lagi.');
+                }
             },
         });
     };
@@ -58,41 +113,19 @@ export default function Edit({ user }) {
             };
             reader.readAsDataURL(file);
 
-            // Upload avatar
-            uploadAvatar(file);
+            // Store file in form data (without uploading)
+            setData('avatar', file);
+            setHasNewAvatar(true);
         }
     };
 
-    const uploadAvatar = (file) => {
-        setUploadingAvatar(true);
-        const formData = new FormData();
-        formData.append('avatar', file);
-
-        router.post(route('vendor.profile.avatar.update'), formData, {
-            onSuccess: () => {
-                setUploadingAvatar(false);
-            },
-            onError: (errors) => {
-                setUploadingAvatar(false);
-                console.error('Avatar upload failed:', errors);
-                // Reset preview on error
-                setAvatarPreview(user.avatar_url);
-            },
-        });
-    };
-
+    
     const handleRemoveAvatar = () => {
-        router.delete(route('vendor.profile.avatar.remove'), {
-            onSuccess: () => {
-                setAvatarPreview(null);
-                fileInputRef.current.value = '';
-                toast.success('Foto profil berhasil dihapus');
-            },
-            onError: (errors) => {
-                console.error('Avatar removal failed:', errors);
-                toast.error('Gagal menghapus foto profil');
-            },
-        });
+        setAvatarPreview(null);
+        setData('avatar', 'remove');
+        setHasNewAvatar(true);
+        fileInputRef.current.value = '';
+        toast.success('Foto akan dihapus setelah menyimpan perubahan');
     };
 
     const getInitials = (name) => {
@@ -136,13 +169,9 @@ export default function Edit({ user }) {
                     )}
 
                     <div className="space-y-6">
-                        {/* Avatar Section */}
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-medium text-gray-900">Foto Profil</h2>
-                            </div>
-
-                            <div className="flex items-center space-x-6">
+                        {/* Profile Information */}
+                        <div className="">
+                            <div className="flex items-center space-x-6 mb-6">
                                 <div className="relative">
                                     <Avatar className="h-24 w-24">
                                         <AvatarImage src={avatarPreview} alt={data.name} />
@@ -155,13 +184,8 @@ export default function Edit({ user }) {
                                         type="button"
                                         onClick={handleAvatarClick}
                                         className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors size-10"
-                                        disabled={uploadingAvatar}
                                     >
-                                        {uploadingAvatar ? (
-                                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                                        ) : (
-                                            <Camera className="h-4 w-4" />
-                                        )}
+                                        <Camera className="h-4 w-4" />
                                     </Button>
 
                                     <input
@@ -176,7 +200,7 @@ export default function Edit({ user }) {
                                 <div className="flex-1">
                                     <h3 className="text-sm font-medium text-gray-900 mb-2">Foto Profil</h3>
                                     <p className="text-sm text-gray-600 mb-4">
-                                        Upload foto profil Anda. Format yang didukung: JPEG, PNG, JPG, GIF. Maksimal 2MB.
+                                        Upload foto profil Anda. Format yang didukung: JPEG, PNG, JPG, GIF. Maksimal 2MB. Perubahan akan disimpan setelah klik "Simpan Perubahan".
                                     </p>
 
                                     <div className="flex space-x-3">
@@ -185,10 +209,9 @@ export default function Edit({ user }) {
                                             variant="outline"
                                             size="sm"
                                             onClick={handleAvatarClick}
-                                            disabled={uploadingAvatar}
                                         >
                                             <Upload className="h-4 w-4 mr-2" />
-                                            {uploadingAvatar ? 'Mengunggah...' : 'Ganti Foto'}
+                                            Ganti Foto
                                         </Button>
 
                                         {avatarPreview && (
@@ -205,16 +228,6 @@ export default function Edit({ user }) {
                                         )}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Profile Information */}
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <div className="mb-6">
-                                <h2 className="text-lg font-medium text-gray-900">Informasi Profil</h2>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    Perbarui informasi dasar profil Anda
-                                </p>
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
@@ -282,20 +295,27 @@ export default function Edit({ user }) {
                                     </div>
                                 </div>
 
-                                <div className="flex justify-end space-x-3 pt-6 border-t">
+                                <div className="flex justify-end space-x-3 pt-6">
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => reset()}
+                                        onClick={() => {
+                                            reset();
+                                            setAvatarPreview(user.avatar_url);
+                                            setHasNewAvatar(false);
+                                            setData('avatar', null);
+                                            fileInputRef.current.value = '';
+                                            toast.info('Form telah direset ke data awal');
+                                        }}
                                     >
                                         Reset
                                     </Button>
                                     <Button
                                         type="submit"
-                                        disabled={processing}
+                                        disabled={isSubmitting}
                                         className="bg-blue-600 hover:bg-blue-700 text-white"
                                     >
-                                        {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                        {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
                                     </Button>
                                 </div>
                             </form>
