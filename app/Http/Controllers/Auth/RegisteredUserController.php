@@ -40,7 +40,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => 5, // Default to Buyer role
+            'role_id' => 1, // Default to Buyer role
         ]);
 
         event(new Registered($user));

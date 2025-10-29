@@ -36,7 +36,7 @@ class DashboardController extends Controller
 
         // Get sales data for the last 6 months
         $salesData = Order::select(
-                DB::raw("TO_CHAR(created_at, 'YYYY-MM') as month"),
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month"),
                 DB::raw('SUM(total_amount) as revenue'),
                 DB::raw('COUNT(*) as orders')
             )

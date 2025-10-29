@@ -60,22 +60,22 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return $this->role->name === 'Admin';
+        return $this->role_id == 1;
     }
 
     public function isVendor()
     {
-        return $this->role->name === 'Vendor';
+        return $this->role_id == 2;
     }
 
     public function isMitra()
     {
-        return $this->role->name === 'Mitra';
+        return $this->role_id == 3;
     }
 
     public function isSales()
     {
-        return $this->role->name === 'Sales Lapangan';
+        return $this->role_id == 4;
     }
 
     public function hasPhone()

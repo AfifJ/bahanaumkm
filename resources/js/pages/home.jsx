@@ -97,7 +97,9 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                                     <div className="group flex flex-col items-center rounded-lg">
                                         <div className="mb-3 flex p-1 rounded-full h-14 w-14 items-center justify-center">
                                             {category.image ? (
-                                                <img src={`/storage/${category.image}`} alt={category.name} className="h-10 w-10 fill-green-200 rounded object-contain" />
+                                                <img src={`/storage/${category.image}`}
+                                                    // {`/storage/${category.image}`}
+                                                    alt={category.name} className="h-10 w-10 fill-green-200 rounded object-contain" />
                                             ) : (
                                                 <span className="text-2xl text-blue-500">📦</span>
                                             )}

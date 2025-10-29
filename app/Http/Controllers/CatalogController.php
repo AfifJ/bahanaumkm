@@ -328,8 +328,8 @@ class CatalogController extends Controller
      */
     public function vendorShow(User $vendor, Request $request)
     {
-        // Check if user is a vendor
-        if ($vendor->role_id !== 2) {
+        // Check if user is a vendor using the model method
+        if (!$vendor->isVendor()) {
             abort(404);
         }
 
