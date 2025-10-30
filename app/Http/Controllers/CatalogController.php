@@ -414,7 +414,7 @@ class CatalogController extends Controller
         }
 
         // If user is buyer (role_id = 5), use guest layout
-        if ($user->role_id === 5) {
+        if ($user->role_id == 5) {
             return 'guest';
         }
 

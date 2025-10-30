@@ -122,7 +122,7 @@ export default ({ withBottomNav, children, breadcrumbs, backLink, title, navbar 
         <PersistentNavigationWrapper withBottomNav={showBottomNav} navType="buyer">
             {navbar &&
                 <NavbarNonSearch
-                    profileLink={user?.role_id === 5 ? '/profile' : ""}
+                    profileLink={user?.role_id == 5 ? '/profile' : ""}
                     menuItems={mainNavItems}
                     navigationLinks={!isMobile ? navigationLinks : []}
                     onCartClick={handleCartClick}

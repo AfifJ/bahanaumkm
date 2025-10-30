@@ -15,7 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Copy, Pencil, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useState } from 'react';
 
 export default function UserIndex({ users, role, roleName }) {
@@ -27,6 +28,39 @@ export default function UserIndex({ users, role, roleName }) {
         router.delete(route('admin.users.destroy', { role: roleName, user: user.id }), {
             onFinish: () => setDeleting(null),
         });
+    };
+
+    const handleCopyUrl = (user) => {
+        // Get the base URL from current page
+        const baseUrl = window.location.origin;
+        const hotelCode = user.mitra_profile?.unique_code;
+
+        if (hotelCode) {
+            const url = `${baseUrl}?hotel=${hotelCode}`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                // Show success toast
+                toast.success('URL berhasil disalin', {
+                    description: url
+                });
+            }).catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                toast.success('URL berhasil disalin', {
+                    description: url
+                });
+            });
+        } else {
+            toast.error('Kode hotel tidak tersedia', {
+                description: 'User ini belum memiliki kode hotel'
+            });
+        }
     };
 
     const roleTitles = {
@@ -88,6 +122,17 @@ export default function UserIndex({ users, role, roleName }) {
                                 </TableCell>
                                 <TableCell>{new Date(user.created_at).toLocaleDateString('id-ID')}</TableCell>
                                 <TableCell className="space-x-2 text-right">
+                                    {/* Show Copy URL button only for Mitra role */}
+                                    {roleName === 'Mitra' && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleCopyUrl(user)}
+                                            title="Copy URL dengan parameter hotel"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                     <Link href={route('admin.users.edit', { role: roleName, user: user.id })}>
                                         <Button variant="outline" size="sm">
                                             <Pencil className="h-4 w-4" />

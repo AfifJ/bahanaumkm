@@ -19,7 +19,7 @@ class UserController extends Controller
     {
         $role = Role::where('name', $roleName)->firstOrFail();
 
-        $users = User::with('role')
+        $users = User::with(['role', 'mitraProfile'])
             ->where('role_id', $role->id)
             ->orderBy('name')
             ->get();

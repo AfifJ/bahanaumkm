@@ -2,20 +2,79 @@ import ProductList from '@/components/product-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { LocationSelector } from '@/components/location-selector';
-import Carousel from '@/components/carousel';
+import { LocationDialog } from '@/components/location-dialog';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import BuyerLayout from '@/layouts/buyer-layout';
-import GuestLayout from '@/layouts/guest-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeftRight, ChevronDown, HelpCircle, LayoutDashboard, MapPin, Package } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { toast } from 'sonner';
+import { MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocationStorage } from '@/hooks/use-location-storage';
+import Autoplay from 'embla-carousel-autoplay';
+import { cn } from '@/lib/utils';
 
-export default function Home({ carousels, featuredProducts, latestProducts, popularCategories, mitra }) {
+export default function Home({ carousels, featuredProducts, latestProducts, popularCategories, mitra, selectedHotel, showLocationDialog }) {
     const { selectedLocation, saveLocation } = useLocationStorage();
+    const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
+    const [carouselApi, setCarouselApi] = useState();
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
+
+    // Use hotel from session (server) if available, otherwise use localStorage
+    // Session data always takes priority over localStorage
+    const effectiveLocation = selectedHotel || selectedLocation;
+
+    // Sync localStorage with session data when session changes
+    useEffect(() => {
+        if (selectedHotel && JSON.stringify(selectedHotel) !== JSON.stringify(selectedLocation)) {
+            // Update localStorage to match session data
+            saveLocation(selectedHotel);
+        }
+    }, [selectedHotel]);
 
     const handleLocationSelect = (location) => {
         saveLocation(location);
     };
+
+    const handleDialogLocationSelect = (location, dontShowAgain) => {
+        router.post(route('location.select'), {
+            location_id: location.id,
+            dont_show_again: dontShowAgain
+        }, {
+            onSuccess: (page) => {
+                saveLocation(location);
+                // Show toast with location info
+                toast.success('Lokasi berhasil diperbarui', {
+                    description: `Hotel ${location.hotel_name} telah disimpan sebagai lokasi Anda`
+                });
+            },
+            onError: (errors) => {
+                toast.error('Gagal memperbarui lokasi', {
+                    description: 'Terjadi kesalahan saat menyimpan lokasi Anda'
+                });
+            },
+            preserveScroll: true
+        });
+    };
+    // Carousel API handler
+    useEffect(() => {
+        if (!carouselApi) {
+            return;
+        }
+
+        setCount(carouselApi.scrollSnapList().length);
+        setCurrent(carouselApi.selectedScrollSnap() + 1);
+
+        carouselApi.on("select", () => {
+            setCurrent(carouselApi.selectedScrollSnap() + 1);
+        });
+    }, [carouselApi]);
+
+    useEffect(() => {
+        if (showLocationDialog && !effectiveLocation) {
+            setIsLocationDialogOpen(true);
+        }
+    }, [showLocationDialog, effectiveLocation]);
 
     return (
         <BuyerLayout>
@@ -28,64 +87,86 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                         <LocationSelector
                             mitra={mitra || []}
                             onSelect={handleLocationSelect}
-                            selectedLocation={selectedLocation}
+                            selectedLocation={effectiveLocation}
                         />
                     </div>
                 </div>
             </section>
+            {carousels && carousels.length > 0 && (
+                <section className="pb-4">
+                    <div className="container mx-auto px-4">
+                        <Carousel
+                            setApi={setCarouselApi}
+                            plugins={[
+                                Autoplay({
+                                    delay: 5000,
+                                }),
+                            ]}
+                            className="w-full group"
+                            onMouseEnter={() => {
+                                const autoplay = carouselApi?.plugins()?.autoplay;
+                                if (autoplay) autoplay.stop();
+                            }}
+                            onMouseLeave={() => {
+                                const autoplay = carouselApi?.plugins()?.autoplay;
+                                if (autoplay) autoplay.play();
+                            }}
+                        >
+                            <CarouselContent>
+                                {carousels.map((carousel) => (
+                                    <CarouselItem key={carousel.id}>
+                                        <div className="relative aspect-[4/1] overflow-hidden rounded-md">
+                                            {carousel.link_url ? (
+                                                <Link
+                                                    href={carousel.link_url}
+                                                    className="block w-full h-full"
+                                                >
+                                                    <img
+                                                        src={carousel.image_url}
+                                                        alt={carousel.title || 'Carousel'}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </Link>
+                                            ) : (
+                                                <img
+                                                    src={carousel.image_url}
+                                                    alt={carousel.title || 'Carousel'}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            )}
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-60 disabled:opacity-0 disabled:group-hover:opacity-60 transition-opacity" />
+                            <CarouselNext className="right-4 opacity-0 group-hover:opacity-60 disabled:opacity-0 disabled:group-hover:opacity-60 transition-opacity" />
+                        </Carousel>
 
-            {/* Carousel Section */}
-            <Carousel carousels={carousels} />
-            {/* {featuredProducts.length > 0 && (
-                            <section className="bg-gray-50 py-16">
-                                <div className="container mx-auto px-4">
-                                    <div className="mb-12 text-center">
-                                        <h2 className="mb-4 text-2xl font-bold text-gray-900">Produk Unggulan</h2>
-                                        <p className="text-lg text-gray-600">Produk pilihan dengan kualitas terbaik</p>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                                        {featuredProducts.map((product) => (
-                                            <Link key={product.id} preserveScroll href={route('product.show', product.slug)}>
-                                                <Card className="transition-shadow hover:shadow-lg">
-                                                    <CardHeader className="p-0">
-                                                        {product.primaryImage?.url ? (
-                                                            <img
-                                                                src={product.primaryImage.url}
-                                                                alt={product.name}
-                                                                className="mx-auto h-48 w-48 rounded-lg object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-lg bg-gray-200">
-                                                                <span className="text-gray-500">Gambar Tidak Tersedia</span>
-                                                            </div>
-                                                        )}
-                                                    </CardHeader>
-                                                    <CardContent className="p-2">
-                                                        <span
-                                                            href={route('product.show', product.slug)}
-                                                            className="line-clamp-2 text-lg font-semibold text-gray-900"
-                                                        >
-                                                            {product.name}
-                                                        </span>
-                                                        <p className="mt-1 text-sm text-gray-600">{product.category?.name}</p>
-                                                        <p className="mt-2 text-xl font-bold text-primary">{formatPrice(product.sell_price)}</p>
-                                                    </CardContent>
-                                                </Card>
-                                            </Link>
-
-                                        ))}
-                                    </div>
-                                </div>
-                            </section>
-                        )} */}
-            {/* Popular Categories Section */}
+                        {/* Pagination dots */}
+                        <div className="mt-1 flex items-center justify-center gap-2">
+                            {Array.from({ length: count }).map((_, index) => (
+                                <Button
+                                    key={index}
+                                    onClick={() => carouselApi?.scrollTo(index)}
+                                    className={cn("p-0 h-full rounded-full transition-all", {
+                                        "border-primary bg-primary": current === index + 1,
+                                        "bg-gray-200 hover:border-gray-400 hover:bg-gray-200": current !== index + 1,
+                                    })}
+                                    aria-label={`Go to slide ${index + 1}`}
+                                >
+                                    <div className='w-2 h-2'></div>
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
             <section className="pb-2 pt-2">
                 <div className="container mx-auto px-4">
                     <div className='flex justify-between pb-2'>
                         <h2 className="text-md font-medium text-gray-900 ">Kategori
                         </h2>
-                        <Link className='text-sm text-primary' href={'/category'}>
+                        <Link className='text-sm text-primary' href={route('category.index')}>
                             Lihat Semua
                         </Link>
                     </div>
@@ -97,9 +178,7 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                                     <div className="group flex flex-col items-center rounded-lg">
                                         <div className="mb-3 flex p-1 rounded-full h-14 w-14 items-center justify-center">
                                             {category.image ? (
-                                                <img src={`/storage/${category.image}`}
-                                                    // {`/storage/${category.image}`}
-                                                    alt={category.name} className="h-10 w-10 fill-green-200 rounded object-contain" />
+                                                <img src={`/storage/${category.image}`} alt={category.name} className="h-10 w-10 fill-green-200 rounded object-contain" />
                                             ) : (
                                                 <span className="text-2xl text-blue-500">📦</span>
                                             )}
@@ -148,6 +227,14 @@ export default function Home({ carousels, featuredProducts, latestProducts, popu
                     </Button>
                 </div>
             </section> */}
+
+            {/* Location Dialog */}
+            <LocationDialog
+                isOpen={isLocationDialogOpen}
+                onClose={() => setIsLocationDialogOpen(false)}
+                mitra={mitra}
+                onSelectLocation={handleDialogLocationSelect}
+            />
         </BuyerLayout>
     );
 }

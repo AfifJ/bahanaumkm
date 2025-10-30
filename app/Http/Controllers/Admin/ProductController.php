@@ -124,7 +124,7 @@ class ProductController extends Controller
                 'create' => auth()->user()->can('create', Product::class),
                 'edit' => auth()->user()->can('update', Product::class),
                 'delete' => auth()->user()->can('delete', Product::class),
-                'deleteReviews' => auth()->user()->role_id === 1, // Only admin can delete reviews
+                'deleteReviews' => auth()->user()->isAdmin(), // Only admin can delete reviews
             ]
         ]);
     }
@@ -756,7 +756,7 @@ class ProductController extends Controller
         return Inertia::render('admin/products/reviews', [
             'product' => $product->load(['vendor', 'category']),
             'reviews' => $reviews,
-            'canDeleteReviews' => auth()->user()->role_id === 1,
+            'canDeleteReviews' => auth()->user()->isAdmin(),
         ]);
     }
 

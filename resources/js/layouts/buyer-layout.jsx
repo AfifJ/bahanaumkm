@@ -143,7 +143,7 @@ export default ({ children, mainNavItems }) => {
     return (
         <PersistentNavigationWrapper withBottomNav={isMobile} navType="buyer">
             <Navbar04
-                profileLink={user?.role_id === 5 ? '/profile' : ""}
+                profileLink={user?.role_id == 5 ? '/profile' : ""}
                 menuItems={effectiveMainNavItems}
                 navigationLinks={[]}
                 onSearchSubmit={handleSearchSubmit}

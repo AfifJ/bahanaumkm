@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -9,7 +10,7 @@ use function Termwind\render;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        if (auth()->user()->role_id === 1) {
+        if (auth()->user()->isAdmin()) {
             return redirect('/admin/dashboard');
         }
         if (auth()->user()->isSales()) {
@@ -23,7 +24,7 @@ Route::get('/', function () {
         }
     }
     return app(HomeController::class)->index();
-})->name('home');
+})->middleware('hotel.parameter')->name('home');
 
 Route::get('/category', [CatalogController::class, 'categoryIndex'])->name('category.index');
 Route::get('/category/{category}', [CatalogController::class, 'categoryShow'])->name('category.show');
@@ -38,7 +39,7 @@ Route::get('/vendor/profile/{vendor}', [CatalogController::class, 'vendorShow'])
 // Handle /products route with role-based redirect
 Route::get('/products', function () {
     if (auth()->check()) {
-        if (auth()->user()->role_id === 1) {
+        if (auth()->user()->isAdmin()) {
             return redirect('/admin/dashboard');
         }
         if (auth()->user()->isSales()) {
@@ -70,6 +71,16 @@ Route::get('/promo', function () {
 Route::get('/about', function () {
     return Inertia::render(component: 'buyer/profile/tentang-kami');
 })->name('about');
+
+// Location API Routes
+Route::prefix('api/location')->name('api.location.')->group(function () {
+    Route::post('/select', [LocationController::class, 'selectLocation'])->name('select');
+    Route::delete('/clear', [LocationController::class, 'clearLocation'])->name('clear');
+    Route::get('/current', [LocationController::class, 'getCurrentLocation'])->name('current');
+});
+
+// API route for location selection (for backward compatibility)
+Route::post('/api/select-location', [LocationController::class, 'selectLocation']);
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

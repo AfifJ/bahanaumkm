@@ -16,6 +16,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -420,13 +421,24 @@ class OrderController extends Controller
      */
     public function addToCart(Request $request)
     {
+        // Check if user has selected location
+        if (!Session::has('selected_hotel')) {
+            $errorMessage = 'Silakan pilih lokasi hotel Anda terlebih dahulu sebelum menambahkan produk ke keranjang.';
+
+            if (request()->expectsJson()) {
+                return response()->json(['error' => $errorMessage], 422);
+            } else {
+                return redirect()->route('home')->with('error', $errorMessage);
+            }
+        }
+
         // Debug logging
         \Log::info('🛒 Add to cart request:', [
             'product_id' => $request->product_id,
             'quantity' => $request->quantity,
             'user_id' => Auth::id(),
             'user_authenticated' => Auth::check(),
-            'buyer_role' => Auth::user() ? Auth::user()->role_id === 5 : 'no'
+            'buyer_role' => Auth::user() ? Auth::user()->role_id == 5 : 'no'
         ]);
 
         $request->validate([

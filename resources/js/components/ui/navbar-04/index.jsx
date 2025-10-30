@@ -160,7 +160,7 @@ export const Navbar04 = forwardRef((
                   >
                     <SearchIcon className="h-5 w-5" />
                   </Button>
-                  {auth?.user?.role_id === 5 && (
+                  {auth?.user?.role_id == 5 && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -196,7 +196,7 @@ export const Navbar04 = forwardRef((
 
                 {/* Mobile Right Side - Cart only */}
                 <div className="flex items-center gap-3 flex-1 justify-end">
-                  {auth?.user?.role_id === 5 && (
+                  {auth?.user?.role_id == 5 && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -381,7 +381,7 @@ export const Navbar04 = forwardRef((
                   </Button>
                 )
               )}
-              {auth?.user?.role_id === 5 &&
+              {auth?.user?.role_id == 5 &&
                 <Button
                   size="sm"
                   variant={'outline'}

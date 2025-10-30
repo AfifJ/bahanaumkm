@@ -6,10 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 class CartController extends Controller
 {
+    /**
+     * Check if user has selected location
+     */
+    private function checkLocation()
+    {
+        if (!Session::has('selected_hotel')) {
+            return redirect()->route('home')
+                ->with('error', 'Silakan pilih lokasi hotel Anda terlebih dahulu sebelum melanjutkan.');
+        }
+        return null;
+    }
+
     /**
      * Display cart page with all cart items
      */
@@ -119,6 +132,12 @@ class CartController extends Controller
      */
     public function checkout()
     {
+        // Check if user has selected location
+        $locationCheck = $this->checkLocation();
+        if ($locationCheck) {
+            return $locationCheck;
+        }
+
         $cartItems = Cart::forUser(Auth::id())
             ->withProduct()
             ->withSku()

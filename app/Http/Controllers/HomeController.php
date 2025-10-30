@@ -52,12 +52,23 @@ class HomeController extends Controller
         // Get all mitra/hotels for location selection
         $mitra = MitraProfile::get();
 
+        // Get current selected hotel from session
+        $selectedHotel = session('selected_hotel');
+
+        // Check if location dialog should be shown
+        $showLocationDialog = false;
+        if (!$selectedHotel && !session('hide_location_dialog')) {
+            $showLocationDialog = true;
+        }
+
         return Inertia::render('home', [
             'carousels' => $carousels,
             'featuredProducts' => $featuredProducts,
             'latestProducts' => $latestProducts,
             'popularCategories' => $popularCategories,
             'mitra' => $mitra,
+            'selectedHotel' => $selectedHotel,
+            'showLocationDialog' => $showLocationDialog,
         ]);
     }
 }
